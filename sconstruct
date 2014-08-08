@@ -1,0 +1,18 @@
+CCFLAGS   = '-std=c99 -Wpedantic -Wall `pkg-config --cflags gtk+-3.0` -g3'
+#CCFLAGS   = '-std=c99 -Wpedantic -Wall `pkg-config --cflags gtk+-3.0` -O2 -march=native'
+#CCFLAGS   = '-std=c99 -Wpedantic -Wall `pkg-config --cflags gtk+-3.0` -O3 -march=native'
+LINKFLAGS = '`pkg-config --libs gtk+-3.0`'
+CPPPATH = 'header'
+
+env = Environment(CCFLAGS=CCFLAGS, LINKFLAGS=LINKFLAGS, CPPPATH=CPPPATH)
+
+env.Program(target='gnome-arcade',
+		    source=['./src/app.c',
+		    		'./src/ui.c',
+		    		'./src/mame.c',
+		    		'./src/rom.c',
+		    		'./src/util.c',
+		    		'./src/pref.c',
+		    		'./src/www.c',
+		    		'./src/view.c',
+		    		'./src/config.c'])

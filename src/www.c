@@ -1,0 +1,154 @@
+/* gnome-arcade
+ * Copyright (c) 2014 Strippato strippato@gmail.com
+ *
+ * This file is part of gnome-arcade.
+ *
+ * gnome-arcade is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * gnome-arcade is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with gnome-arcade.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+#include <stdio.h>
+#include <glib.h>
+#include <gdk/gdk.h>
+#include <gtk/gtk.h>
+
+
+#include "global.h"
+#include "rom.h"
+#include "ui.h"
+#include "config.h"
+#include "util.h"
+#include "www.h"
+
+#define WWW_EXTENSION_PNG  "png"
+
+static const gchar* www_webProvider = NULL;
+void 
+www_init (void)
+{
+    if (g_str_has_prefix (cfg_keyStr ("WEB_PATH"), "~")) {
+        www_tilePath = g_strdup_printf ("%s%s", g_get_home_dir (), cfg_keyStr ("WEB_PATH") + 1);
+    } else {
+        www_tilePath = g_strdup_printf ("%s", cfg_keyStr ("WEB_PATH"));
+    }
+
+    if (cfg_keyBool ("WEB_DOWNLOAD")) {
+		www_autoDownload = TRUE;
+    } else {
+		www_autoDownload = FALSE;
+    }
+	g_print ("web download %s\n", www_autoDownload ? SUCCESS_MSG : FAIL_MSG);
+
+	www_webProvider = cfg_keyStr ("WEB_PROVIDER");
+	if (www_autoDownload) {
+		g_print ("web provider %s\n", www_webProvider);
+	}
+
+    if (g_mkdir_with_parents (www_tilePath, 0700) != 0) {
+    	g_print ("can't create %s " FAIL_MSG "\n", www_tilePath);
+    }
+}
+
+void 
+www_free (void)
+{
+	g_free (www_tilePath);
+    www_tilePath = NULL;
+    www_autoDownload = FALSE;
+    www_webProvider = NULL;
+}
+
+static void
+www_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem *item)
+{
+    GError *error = NULL;
+    GInputStream *stream = G_INPUT_STREAM (source_object);    
+    item->tile = gdk_pixbuf_new_from_stream_finish (res, &error);
+
+    g_input_stream_close (stream, NULL, NULL);
+    g_object_unref (stream);
+	
+	gchar* localName = www_getFileNameWWW (item->name);
+
+    if (!error) {
+    	g_print ("%s fetched %s \n", item->name, SUCCESS_MSG);
+		if (gdk_pixbuf_save (item->tile, localName, "png", &error, NULL)) {
+			g_print ("%s saved %s \n", item->name, SUCCESS_MSG);
+		} else {
+			g_print ("%s not saved %s \n", item->name, FAIL_MSG);
+	        g_warning ("can't save: %s\n", error->message);
+	        g_error_free (error);
+		}
+    } else {
+    
+        g_warning ("pixbuf stream error:%s\n", error->message);
+        g_error_free (error);
+        item->tile = NULL;
+    }
+
+    item->tileLoaded = TRUE;
+    item->tileLoading = FALSE;
+
+
+    g_free (localName);
+
+    if (ui_tileIsVisible (g_list_index (rom_romList, item))) {
+        ui_repaint ();
+    }
+}
+
+static void
+www_fileRead_cb (GFile *file, GAsyncResult *res, struct rom_romItem *item)
+{
+    GError *error = NULL;
+    gboolean keepratio = cfg_keyBool ("TILE_KEEP_ASPECT_RATIO");
+    GFileInputStream *input = g_file_read_finish (file, res, &error);
+
+    if (!error) {
+        gdk_pixbuf_new_from_stream_at_scale_async ((GInputStream*) input, ui_tileSize_W, ui_tileSize_H, keepratio, NULL, (GAsyncReadyCallback) www_pixbufRead_cb, item);
+    } else {
+        g_print ("stream error [%s]: %s " FAIL_MSG "\n", item->name, error->message);
+
+        g_error_free (error);
+
+        item->tile = NULL;
+        item->tileLoaded = TRUE;
+        item->tileLoading = FALSE;
+
+        if (ui_tileIsVisible (g_list_index (rom_romList, item))) {
+            ui_repaint ();
+        }
+    }
+} 
+
+void 
+www_download (struct rom_romItem* item)
+{
+	gchar *fileNameWeb = g_strdup_printf (www_webProvider, item->name);
+	g_print ("fetching [%s] %s\n", item->name, fileNameWeb);	
+
+	item->tileFile = g_file_new_for_uri (fileNameWeb);
+	
+    g_file_read_async (item->tileFile, G_PRIORITY_HIGH_IDLE, FALSE, (GAsyncReadyCallback) www_fileRead_cb, item);
+
+
+	g_free (fileNameWeb);
+
+}
+
+inline gchar* 
+www_getFileNameWWW (const gchar* romName)
+{
+	return g_strdup_printf ("%s%s.%s", www_tilePath, romName, WWW_EXTENSION_PNG);	
+}

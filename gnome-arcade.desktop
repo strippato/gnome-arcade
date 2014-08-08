@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Arcade
+GenericName=Arcade
+Comment=Play the best arcade from '70 '80 '90
+Icon=gnome-arcade.png
+Exec=gnome-arcade
+Terminal=false
+Type=Application
+Categories=GNOME;GTK;Game;ArcadeGame;Emulator;Mame;
+StartupNotify=true

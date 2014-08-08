@@ -1,0 +1,7 @@
+src/app.c
+src/config.c
+src/mame.c
+src/pixbuf.c
+src/rom.c
+src/ui.c
+src/util.c
