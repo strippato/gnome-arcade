@@ -34,6 +34,7 @@
 #define WWW_EXTENSION_PNG  "png"
 
 static const gchar* www_webProvider = NULL;
+
 void 
 www_init (void)
 {
@@ -69,6 +70,13 @@ www_free (void)
     www_webProvider = NULL;
 }
 
+static void 
+www_closeStream_cb (GObject *source_object, GAsyncResult *res, gpointer user_data)
+{
+    g_input_stream_close_finish (G_INPUT_STREAM (source_object), res, NULL);
+    g_object_unref (G_INPUT_STREAM (source_object));
+}
+
 static void
 www_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem *item)
 {
@@ -76,9 +84,8 @@ www_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem
     GInputStream *stream = G_INPUT_STREAM (source_object);    
     item->tile = gdk_pixbuf_new_from_stream_finish (res, &error);
 
-    g_input_stream_close (stream, NULL, NULL);
-    g_object_unref (stream);
-	
+    g_input_stream_close_async (stream, G_PRIORITY_DEFAULT, NULL, (GAsyncReadyCallback) www_closeStream_cb, NULL);
+
 	gchar* localName = www_getFileNameWWW (item->name);
 
     if (!error) {
@@ -99,7 +106,6 @@ www_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem
 
     item->tileLoaded = TRUE;
     item->tileLoading = FALSE;
-
 
     g_free (localName);
 
@@ -141,7 +147,6 @@ www_download (struct rom_romItem* item)
 	item->tileFile = g_file_new_for_uri (fileNameWeb);
 	
     g_file_read_async (item->tileFile, G_PRIORITY_HIGH_IDLE, FALSE, (GAsyncReadyCallback) www_fileRead_cb, item);
-
 
 	g_free (fileNameWeb);
 
