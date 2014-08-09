@@ -348,6 +348,13 @@ rom_getItemTileLoading (struct rom_romItem* item)
 
 
 /* pixbuf async:start */
+static void 
+rom_closeStream_cb (GObject *source_object, GAsyncResult *res, gpointer user_data)
+{
+    g_input_stream_close_finish (G_INPUT_STREAM (source_object), res, NULL);
+    g_object_unref (G_INPUT_STREAM (source_object));
+}
+
 static void
 rom_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem *item)
 {
@@ -357,10 +364,10 @@ rom_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem
     
     item->tile = gdk_pixbuf_new_from_stream_finish (res, &error);
 
-    //g_input_stream_close_async (stream, G_PRIORITY_DEFAULT, NULL, NULL, NULL);
-    g_input_stream_close (stream, NULL, NULL);
-    g_object_unref (stream);
-    stream = NULL;
+    g_input_stream_close_async (stream, G_PRIORITY_DEFAULT, NULL, (GAsyncReadyCallback) rom_closeStream_cb, NULL);    
+
+    g_object_unref (item->tileFile);
+    item->tileFile = NULL;
 
     if (error) {
         g_warning ("pixbuf stream error:%s\n", error->message);
@@ -368,7 +375,6 @@ rom_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem
         item->tile = NULL;
     }
 
-    //g_print ("item loaded = %i\n", g_list_index (rom_romList, item));       
     item->tileLoaded = TRUE;
     item->tileLoading = FALSE;
 
@@ -400,8 +406,6 @@ rom_fileRead_cb (GFile *file, GAsyncResult *res, struct rom_romItem *item)
             ui_repaint ();
         }
     }
-    //g_object_unref (item->tileFile);
-    //item->tileFile = NULL;
 
 }
 
@@ -426,8 +430,6 @@ rom_fileReadNoScale_cb (GFile *file, GAsyncResult *res, struct rom_romItem *item
             ui_repaint ();
         }
     }
-    //g_object_unref (item->tileFile);
-    //item->tileFile = NULL;
 } 
 
 void 

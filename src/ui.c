@@ -536,7 +536,6 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
 static gboolean
 ui_drawingAreaConfigureEvent (void)
 {
-
     int newItemOnRow = ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
 
     // no rom found
@@ -700,7 +699,6 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
 {
     gint x, y;
 
-    //GdkRGBA color;
     const GdkPixbuf *pix = NULL;
 
     if (rom_count <= 0) {

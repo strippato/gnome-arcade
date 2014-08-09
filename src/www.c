@@ -84,6 +84,9 @@ www_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem
     GInputStream *stream = G_INPUT_STREAM (source_object);    
     item->tile = gdk_pixbuf_new_from_stream_finish (res, &error);
 
+    g_object_unref (item->tileFile);
+    item->tileFile = NULL;
+
     g_input_stream_close_async (stream, G_PRIORITY_DEFAULT, NULL, (GAsyncReadyCallback) www_closeStream_cb, NULL);
 
 	gchar* localName = www_getFileNameWWW (item->name);
@@ -98,7 +101,6 @@ www_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem
 	        g_error_free (error);
 		}
     } else {
-    
         g_warning ("pixbuf stream error:%s\n", error->message);
         g_error_free (error);
         item->tile = NULL;
@@ -145,7 +147,7 @@ www_download (struct rom_romItem* item)
 	g_print ("fetching [%s] %s\n", item->name, fileNameWeb);	
 
 	item->tileFile = g_file_new_for_uri (fileNameWeb);
-	
+
     g_file_read_async (item->tileFile, G_PRIORITY_HIGH_IDLE, FALSE, (GAsyncReadyCallback) www_fileRead_cb, item);
 
 	g_free (fileNameWeb);
