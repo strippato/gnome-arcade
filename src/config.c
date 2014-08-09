@@ -47,7 +47,7 @@ cfg_fillDefaultConfig (void)
 
 	g_hash_table_insert (cfg_default, "ROM_PATH", "~/gnome-arcade/data/rom/");
 
-	g_hash_table_insert (cfg_default, "ROMLIST_FROM_FILE", "0");
+	g_hash_table_insert (cfg_default, "ROMLIST_FROM_FILE", "1");
 	g_hash_table_insert (cfg_default, "ROMLIST_SKIP_BIOS", "1");
 
 	g_hash_table_insert (cfg_default, "TILE_SIZE_W", "210");

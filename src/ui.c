@@ -1161,6 +1161,7 @@ ui_init (void)
     gtk_image_set_from_icon_name (GTK_IMAGE (imgselect), "object-select-symbolic", GTK_ICON_SIZE_BUTTON);
     gtk_button_set_image (GTK_BUTTON (ui_tbSelection), GTK_WIDGET (imgselect));
     gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_tbSelection);
+
     /* connect "toggled" event to the button */
     g_signal_connect (G_OBJECT (ui_tbSelection), "toggled", G_CALLBACK (ui_select_cb), NULL);
 

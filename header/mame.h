@@ -25,8 +25,7 @@
 void mame_gameList (void);
 void mame_playGame (guint gameidx);
 gboolean mame_isRunning(void);
-gboolean mame_dumpTo (gchar *cmdline, gchar *file);
-
+//gboolean mame_dumpTo (gchar *cmdline, gchar *file);
 
 #endif
 

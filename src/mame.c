@@ -51,6 +51,62 @@
 
 static gboolean mame_mameIsRunning = FALSE;
 
+static gchar*
+mame_getVersion (void) 
+{
+    const int MAXSIZE = 80;
+    char buf[MAXSIZE];
+    
+    gchar *cmdLine = g_strdup_printf ("%s -help", MAME_EXE);
+
+    FILE *file = popen (cmdLine, "r");
+
+    fgets (buf, MAXSIZE - 1, file);
+    
+    gchar *version = g_strndup (buf, strlen (buf) - 1);
+
+    pclose (file);
+    g_free (cmdLine);
+
+    return version;
+}
+
+static gboolean
+mame_dumpTo (gchar *cmdline, gchar *file) 
+{
+
+    gchar **argv  = NULL;
+    GError *error = NULL;
+    gchar *stdout = NULL;
+
+    gint status;
+
+    if (!g_shell_parse_argv (cmdline, NULL, &argv, &error)) {
+        g_error_free (error);
+        g_strfreev (argv);        
+        return FALSE;
+    }
+
+    if (!g_spawn_sync (NULL, argv, NULL, G_SPAWN_STDERR_TO_DEV_NULL, NULL, NULL, &stdout, NULL, &status, &error)) {    
+    
+        if (error) g_error_free (error);
+        if (stdout) g_free (stdout);                
+
+        g_strfreev (argv);
+        return FALSE;
+    
+    } else {
+
+        g_file_set_contents (file, stdout, -1, &error);
+        
+        if (error) g_error_free (error);
+        if (stdout) g_free (stdout);
+        
+        g_strfreev (argv);        
+        return TRUE;
+    }
+}
+
 static gboolean
 mame_run (gchar *cmdline, GPid *pid, gint *stdout, gint *stderr) {
 
@@ -107,6 +163,14 @@ zoo               "Zoo (Ver. ZO.02.D)"
 */
 
     #define CLONE_OFFSET 17
+    
+    gchar* mameVersion = NULL;
+    if (g_file_test (MAME_EXE, G_FILE_TEST_IS_EXECUTABLE)) {
+        mameVersion = mame_getVersion ();
+        g_print ("%s\n", mameVersion);
+    } else {
+        g_print ("Can't find M.A.M.E. (%s), please edit your config\n", MAME_EXE);
+    }
 
     FILE *file;
     
@@ -243,7 +307,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
             if (numGame >= DEBUG_ROM_LIMIT) continue;
 #endif            
 
-            gchar *tempstr = strstr(buf, " ");
+            gchar *tempstr = strstr (buf, " ");
             assert (tempstr);
 
             gchar *name = g_strndup (buf, tempstr - buf);
@@ -314,15 +378,13 @@ zoo               "Zoo (Ver. ZO.02.D)"
         } else {
             g_print ("\nfound %i of %i rom\n", numGame, numGameSupported);            
         }
-
-    } else {
-        g_print ("Can't find mame (%s)\n", MAME_EXE);
     }
     
     g_free (romPath);
     g_free (fileRom);
     g_free (fileClone);    
 
+    g_free (mameVersion);
 #ifdef DEBUG_TIMING
     logTimer ("end loading romlist");
 #endif    
@@ -337,6 +399,7 @@ mame_quit (GPid pid)
     mame_mameIsRunning = FALSE;
     
     g_spawn_close_pid (pid);
+
     ui_setPlayBtnState (TRUE);
     ui_setToolBarState (TRUE);
     ui_repaint ();
@@ -389,41 +452,3 @@ mame_isRunning (void)
 {
     return mame_mameIsRunning;
 }
-
-gboolean
-mame_dumpTo (gchar *cmdline, gchar *file) 
-{
-
-    gchar **argv  = NULL;
-    GError *error = NULL;
-    gchar *stdout = NULL;
-
-    gint status;
-
-    if (!g_shell_parse_argv (cmdline, NULL, &argv, &error)) {
-        g_error_free (error);
-        g_strfreev (argv);        
-        return FALSE;
-    }
-
-    if (!g_spawn_sync (NULL, argv, NULL, G_SPAWN_STDERR_TO_DEV_NULL, NULL, NULL, &stdout, NULL, &status, &error)) {    
-    
-        if (error) g_error_free (error);
-        if (stdout) g_free (stdout);                
-
-        g_strfreev (argv);
-        return FALSE;
-    
-    } else {
-
-        g_file_set_contents (file, stdout, -1, &error);
-        
-        if (error) g_error_free (error);
-        if (stdout) g_free (stdout);
-        
-        g_strfreev (argv);        
-        return TRUE;
-    }
-}
-
-
