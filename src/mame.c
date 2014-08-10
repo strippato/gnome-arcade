@@ -346,6 +346,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
                     rom_setItemTile (item, NULL);
                     rom_setItemRank (item, pref_getRank (name));
                     rom_setItemPref (item, pref_getPreferred (name));
+                    rom_setItemNPlay (item, pref_getNPlay (name));
 
                     ++numGame;
                 } else {
@@ -406,11 +407,11 @@ mame_quit (GPid pid)
     ui_setFocus ();
 }
 
-void
+gboolean
 mame_playGame (guint gameidx)
 {
     GPid pid;
-
+    gboolean played = FALSE;
     const gchar *romName;
     gchar *cmdline;
     gchar *romPath;
@@ -434,6 +435,7 @@ mame_playGame (guint gameidx)
     g_print ("playing %s(%i)\n", romName, gameidx);
 
     if (mame_run (cmdline, &pid, NULL, NULL)) {
+        played = TRUE;
         ui_setPlayBtnState (FALSE);
         ui_setToolBarState (FALSE);
         mame_mameIsRunning = TRUE;        
@@ -445,6 +447,7 @@ mame_playGame (guint gameidx)
     g_free (cmdline);
     g_free (romPath);
     g_free (romPathQuoted);
+    return played;
 }
 
 inline gboolean

@@ -142,8 +142,11 @@ ui_headerBarShowInfo (int romIndex)
 static void
 ui_preference_cb (void) 
 {
-    rom_setItemPref (rom_getItem (ui_focus), !rom_getItemPref (rom_getItem (ui_focus)));
-    
+    struct rom_romItem *item = rom_getItem (ui_focus);
+    rom_setItemPref (item, !rom_getItemPref (item));
+    if (ui_inSelectState ()) {
+        pref_setPreferred (rom_getItemName (item), rom_getItemPref (item));
+    }
     ui_repaint ();
 }
 
@@ -160,6 +163,8 @@ ui_rank_cb (gint i)
     } else {
         rom_setItemRank (item, i);
     }
+    pref_setRank (rom_getItemName (item), rom_getItemRank (item));
+
     ui_repaint ();
 }
 
@@ -226,10 +231,18 @@ ui_itemOnRow (gint width)
 static gboolean
 ui_playClicked (void)
 {
+    struct rom_romItem  *itm;
+    guint nplay;
     if (mame_isRunning ()) return FALSE;
 
     if (rom_count > 0) {
-        mame_playGame (ui_focus);
+        if (mame_playGame (ui_focus)) {
+            itm = rom_getItem (ui_focus);
+            nplay = rom_getItemNPlay (itm) + 1;
+            rom_setItemNPlay (itm, nplay);
+            pref_setNPlay (rom_getItemName (itm), nplay);
+            pref_save ();
+        };
     } else {
         g_print ("romlist is empty!\n");
     }
@@ -377,7 +390,7 @@ ui_isFullscreen (void)
 static gboolean
 ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
-
+    struct rom_romItem *item;
     if (mame_isRunning ()) return FALSE;
 
     switch (event->keyval) {
@@ -434,8 +447,11 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
 
     case GDK_KEY_plus:
     case GDK_KEY_KP_Add:   
+
         if (ui_inSelectState ()) {
-            rom_setItemRank (rom_getItem (ui_focus), rom_getItemRank (rom_getItem (ui_focus)) + 1);
+            item = rom_getItem (ui_focus);
+            rom_setItemRank (item, rom_getItemRank (item) + 1);
+            pref_setRank (rom_getItemName (item), rom_getItemRank (item));
             ui_repaint ();
         }
        break;
@@ -443,49 +459,63 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
     case GDK_KEY_minus:    
     case GDK_KEY_KP_Subtract:
         if (ui_inSelectState ()) {
-            rom_setItemRank (rom_getItem (ui_focus), rom_getItemRank (rom_getItem (ui_focus)) - 1);
+            item = rom_getItem (ui_focus);            
+            rom_setItemRank (item, rom_getItemRank (item) - 1);
+            pref_setRank (rom_getItemName (item), rom_getItemRank (item));
             ui_repaint ();            
         }
         break;
 
     case GDK_KEY_KP_0:
         if (ui_inSelectState ()) {
-            rom_setItemRank (rom_getItem (ui_focus), 0);
+            item = rom_getItem (ui_focus);            
+            rom_setItemRank (item, 0);
+            pref_setRank (rom_getItemName (item), 0);
             ui_repaint ();
         }
         break;
 
     case GDK_KEY_KP_1:
         if (ui_inSelectState ()) {
-            rom_setItemRank (rom_getItem (ui_focus), 1);
+            item = rom_getItem (ui_focus);            
+            rom_setItemRank (item, 1);
+            pref_setRank (rom_getItemName (item), 1);            
             ui_repaint ();
         }
         break;
 
     case GDK_KEY_KP_2:
         if (ui_inSelectState ()) {
-            rom_setItemRank (rom_getItem (ui_focus), 2);
+            item = rom_getItem (ui_focus);            
+            rom_setItemRank (item, 2);
+            pref_setRank (rom_getItemName (item), 2);            
             ui_repaint ();
         }
         break;
 
     case GDK_KEY_KP_3:
         if (ui_inSelectState ()) {
-            rom_setItemRank (rom_getItem (ui_focus), 3);
+            item = rom_getItem (ui_focus);            
+            rom_setItemRank (item, 3);
+            pref_setRank (rom_getItemName (item), 3);            
             ui_repaint ();
         }
         break;
 
     case GDK_KEY_KP_4:
         if (ui_inSelectState ()) {
-            rom_setItemRank (rom_getItem (ui_focus), 4);
+            item = rom_getItem (ui_focus);            
+            rom_setItemRank (item, 4);
+            pref_setRank (rom_getItemName (item), 4);            
             ui_repaint ();
         }
         break;
 
     case GDK_KEY_KP_5:
         if (ui_inSelectState ()) {
-            rom_setItemRank (rom_getItem (ui_focus), 5);
+            item = rom_getItem (ui_focus);
+            rom_setItemRank (item, 5);
+            pref_setRank (rom_getItemName (item), 5);            
             ui_repaint ();
         }
         break;
@@ -493,7 +523,10 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
     case GDK_KEY_KP_Multiply:
     case GDK_KEY_asterisk:
         if (ui_inSelectState ()) {
-            rom_setItemPref (rom_getItem (ui_focus), !rom_getItemPref (rom_getItem (ui_focus)));
+            item = rom_getItem (ui_focus);
+            rom_setItemPref (item, !rom_getItemPref (item));
+            pref_setPreferred (rom_getItemName (item), rom_getItemPref (item));
+
             ui_repaint ();
         }
         break;        

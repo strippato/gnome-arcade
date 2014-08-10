@@ -137,6 +137,7 @@ rom_listFree (struct rom_romItem *item)
     item->tileFile = NULL;
     item->rank = 0;
     item->pref = FALSE;
+    item->nplay = 0;
      
     g_free (item);
     item = NULL;    
@@ -247,6 +248,7 @@ rom_newItem (void)
     item->tileFile = NULL;
     item->rank = 0;
     item->pref = FALSE;
+    item->nplay = 0;
 
     rom_romList = g_list_insert (rom_romList, item, rom_count++);
     return item;
@@ -514,7 +516,6 @@ inline void
 rom_setItemPref (struct rom_romItem *item, gboolean value) 
 {
     item->pref = value;
-    if (ui_inSelectState ()) pref_setPreferred (item->name, item->pref);
 }
 
 inline guint
@@ -527,7 +528,18 @@ inline void
 rom_setItemRank (struct rom_romItem *item, guint rank) 
 {
     item->rank = posval (lim (rank, ROM_MAXRANK));
-    if (ui_inSelectState ()) pref_setRank (item->name, item->rank);
+}
+
+inline guint
+rom_getItemNPlay (const struct rom_romItem *item) 
+{
+    return item->nplay;
+}
+
+inline void
+rom_setItemNPlay (struct rom_romItem *item, guint nplay) 
+{
+    item->nplay = nplay;
 }
 
 inline gboolean 

@@ -33,8 +33,10 @@ void pref_setPreferred (const char* key, gboolean value);
 gint pref_getRank (const char* key);
 void pref_setRank (const char* key, gint rank);
 
-void pref_save (void);
+guint pref_getNPlay (const char* key);
+void  pref_setNPlay (const char* key, guint value);
 
+void pref_save (void);
 
 #endif
 

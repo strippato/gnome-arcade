@@ -49,6 +49,7 @@ struct rom_romItem {
 	// user preference
 	gboolean pref;
 	guint	 rank;
+	guint	 nplay;
 
 	// pixbuf 
 	gboolean  tileLoading;	
@@ -97,6 +98,8 @@ gboolean rom_getItemPref (const struct rom_romItem *item);
 void rom_setItemPref (struct rom_romItem *item, gboolean value);
 guint rom_getItemRank (const struct rom_romItem *item);
 void rom_setItemRank (struct rom_romItem *item, guint rank);
+guint rom_getItemNPlay (const struct rom_romItem *item);
+void rom_setItemNPlay (struct rom_romItem *item, guint nplay);
 
 #endif
 

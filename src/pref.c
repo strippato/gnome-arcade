@@ -32,7 +32,8 @@
 #define PREF_FLAGS G_KEY_FILE_KEEP_COMMENTS
 
 #define PREF_KG_PREFFERED "FAVOURITE"
-#define PREF_KG_RANK      "RANK" 
+#define PREF_KG_RANK      "RANK"
+#define PREF_KG_NPLAY     "NPLAY" 
 
 static gchar* pref_fileName = NULL;
 static GKeyFile *pref_keyFile = NULL;
@@ -77,6 +78,14 @@ pref_load (void)
 
 }
 
+guint
+pref_getNPlay (const char* key)
+{
+	if (!pref_keyFile) return 0;
+
+	return g_key_file_get_integer (pref_keyFile, key, PREF_KG_NPLAY, NULL);
+}
+
 gboolean
 pref_getPreferred (const char* key)
 {
@@ -118,6 +127,12 @@ pref_save (void)
 
 	}
 
+}
+
+void
+pref_setNPlay (const char* key, guint value)
+{
+	g_key_file_set_integer (pref_keyFile, key, PREF_KG_NPLAY, value);
 }
 
 void
