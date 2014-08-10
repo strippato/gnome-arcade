@@ -37,7 +37,8 @@
 							"If not, see <http://www.gnu.org/licenses/>."
 
 #define APP_RESOURCE 		"res/"
-#define APP_DIRCONFIG  		"gnome-arcade"							
+#define APP_DIRCONFIG  		"gnome-arcade"
+#define APP_CSS				"gnome-arcade.css"
 
 #define APP_ICON    		"gnome-arcade.png"
 #define APP_ICON_ABOUT 		"gnome-arcade-about.png"

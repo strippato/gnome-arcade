@@ -1076,7 +1076,7 @@ ui_windowWindowStateEvent (GtkWidget *widget, GdkEventWindowState *event, gpoint
 void 
 ui_init (void)
 {
-    const gchar* cssFile = "./res/gnome-arcade.css";
+    const gchar* cssFile = APP_RESOURCE APP_CSS;
 
     GtkWidget* box;
 
