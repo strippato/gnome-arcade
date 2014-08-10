@@ -963,7 +963,7 @@ ui_showAbout (GSimpleAction *action, GVariant *parameter, gpointer user_data)
                          "title", APP_NAME,
                          "version", APP_VERSION,
                          "authors", app_authors,
-//                         "artists", app_artists,
+                         "artists", app_artists,
 //                         "documenters", app_documenters,
 //                         "translator-credits", APP_TRANSLATORS,
                          "comments", APP_DESCRIPTION,

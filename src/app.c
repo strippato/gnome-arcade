@@ -31,7 +31,8 @@
 const gchar *app_authors[] = { "Strippato <strippato@gmail.com>", 
                                NULL };
 
-const gchar *app_artists[] = { "Strippato <strippato@gmail.com>", 
+const gchar *app_artists[] = { "Strippato <strippato@gmail.com>",
+                               "Sergio Gridelli <sergio.gridelli@gmail.com> \"The Fox\" &amp; \"Zio Bosi\" seal of quality logo",
                                NULL };
 
 GtkApplication *app_application;
