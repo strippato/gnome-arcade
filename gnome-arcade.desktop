@@ -1,10 +1,18 @@
 [Desktop Entry]
 Name=Arcade
-GenericName=Arcade
+Name[it]=Arcade
+GenericName=M.A.M.E frontend
+GenericName[it]=Frontend per M.A.M.E
 Comment=Play the best arcade from '70 '80 '90
+Comment[it]=Gioca ai migliori arcade anni '70 '80 '90
 Icon=gnome-arcade
 Exec=gnome-arcade
 Terminal=false
 Type=Application
 Categories=GNOME;GTK;Game;ArcadeGame;Emulator;
 StartupNotify=true
+Keywords=mame;emulator;frontend;games;
+Keywords[it]=mame;emulatore;frontend;giochi;
+
+
+X-Desktop-File-Install-Version=0.22
