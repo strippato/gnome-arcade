@@ -13,6 +13,7 @@ Categories=GNOME;GTK;Game;ArcadeGame;Emulator;
 StartupNotify=true
 Keywords=mame;emulator;frontend;games;
 Keywords[it]=mame;emulatore;frontend;giochi;
+Path=/usr/share/gnome-arcade/
 
 
 X-Desktop-File-Install-Version=0.22

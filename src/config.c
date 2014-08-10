@@ -41,11 +41,11 @@ static void
 cfg_fillDefaultConfig (void)
 {
 	g_hash_table_insert (cfg_default, "MAME_EXE", "/usr/bin/mame");
-	g_hash_table_insert (cfg_default, "MAME_OPTIONS", "-skip_gameinfo -multithreading -video opengl");
+	g_hash_table_insert (cfg_default, "MAME_OPTIONS", "-skip_gameinfo -multithreading -window -video opengl");
 
 	g_hash_table_insert (cfg_default, "USE_DARK_THEME", "1");
 
-	g_hash_table_insert (cfg_default, "ROM_PATH", "~/gnome-arcade/data/rom/");
+	g_hash_table_insert (cfg_default, "ROM_PATH", "/usr/share/gnome-arcade/data/rom/");
 
 	g_hash_table_insert (cfg_default, "ROMLIST_FROM_FILE", "1");
 	g_hash_table_insert (cfg_default, "ROMLIST_SKIP_BIOS", "1");
@@ -54,7 +54,7 @@ cfg_fillDefaultConfig (void)
 	g_hash_table_insert (cfg_default, "TILE_SIZE_H", "210");
 	g_hash_table_insert (cfg_default, "TILE_KEEP_ASPECT_RATIO", "1");	
 	g_hash_table_insert (cfg_default, "TILE_TITLE_CENTERED", "1");
-	g_hash_table_insert (cfg_default, "TILE_PATH", "~/gnome-arcade/data/tile/");
+	g_hash_table_insert (cfg_default, "TILE_PATH", "/usr/share/gnome-arcade/data/tile/");
 	g_hash_table_insert (cfg_default, "TILE_BORDER_DYNAMIC", "1");
 	g_hash_table_insert (cfg_default, "TILE_SHORT_DESCRIPTION", "1");
 	g_hash_table_insert (cfg_default, "TILE_SHORT_DESCRIPTION_HIDE_PREFIX", "1");
