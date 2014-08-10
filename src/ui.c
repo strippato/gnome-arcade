@@ -109,6 +109,7 @@ static guint ui_mouseOver = -1;
 static cairo_font_face_t *ui_tileFont = NULL;            
 
 static GError *gerror = NULL;
+static GdkPixbuf *ui_aboutLogo = NULL;
 
 // forward decl
 static void ui_prefManager (gdouble x, gdouble y);
@@ -957,6 +958,7 @@ void
 ui_showAbout (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
     gtk_show_about_dialog (GTK_WINDOW (ui_window),
+                         "logo", ui_aboutLogo,        
                          "program-name", APP_NAME,
                          "title", APP_NAME,
                          "version", APP_VERSION,
@@ -1234,6 +1236,8 @@ ui_init (void)
 
     ui_focusAdd (0);
 
+    ui_aboutLogo = gdk_pixbuf_new_from_file(APP_RESOURCE APP_ICON_ABOUT, NULL);
+
     /* loading font */
     ui_tileFont = cairo_toy_font_face_create (TEXT_FONT, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     g_assert (ui_tileFont);
@@ -1293,9 +1297,11 @@ ui_free (void)
     ui_selPrefOn = NULL;    
     
     /* select fav off */    
-    g_object_unref (ui_selPrefOff);    
-    ui_selPrefOff = NULL;        
+    g_object_unref (ui_selPrefOff);
+    ui_selPrefOff = NULL;
 
+    g_object_unref (ui_aboutLogo);
+    ui_aboutLogo = NULL;
 }
 
 void 

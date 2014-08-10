@@ -6,7 +6,7 @@ CPPPATH = 'header'
 
 env = Environment(CCFLAGS=CCFLAGS, LINKFLAGS=LINKFLAGS, CPPPATH=CPPPATH)
 
-env.Program(target='gnome-arcade',
+t = env.Program(target='gnome-arcade',
 		    source=['./src/app.c',
 		    		'./src/ui.c',
 		    		'./src/mame.c',
@@ -16,3 +16,5 @@ env.Program(target='gnome-arcade',
 		    		'./src/www.c',
 		    		'./src/view.c',
 		    		'./src/config.c'])
+
+Default (t)

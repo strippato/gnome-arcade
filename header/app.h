@@ -40,6 +40,7 @@
 #define APP_DIRCONFIG  		"gnome-arcade"							
 
 #define APP_ICON    		"gnome-arcade.png"
+#define APP_ICON_ABOUT 		"gnome-arcade-about.png"
 #define APP_NOIMAGE    		"noimage.png"
 #define APP_NOWSHOWING 		"nowshowing.png"	
 #define APP_LOADING			"loading.png"
