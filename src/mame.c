@@ -56,14 +56,15 @@ mame_getVersion (void)
 {
     const int MAXSIZE = 80;
     char buf[MAXSIZE];
+    gchar *version = NULL;
     
     gchar *cmdLine = g_strdup_printf ("%s -help", MAME_EXE);
 
     FILE *file = popen (cmdLine, "r");
 
-    fgets (buf, MAXSIZE - 1, file);
-    
-    gchar *version = g_strndup (buf, strlen (buf) - 1);
+    if (fgets (buf, MAXSIZE - 1, file) != NULL) {    
+        version = g_strndup (buf, strlen (buf) - 1);
+    }
 
     pclose (file);
     g_free (cmdLine);

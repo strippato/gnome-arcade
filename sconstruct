@@ -1,5 +1,5 @@
 #debug
-#CCFLAGS   = '-std=c99 -Wpedantic -Wall `pkg-config --cflags gtk+-3.0` -g3'
+#CCFLAGS   = '-std=c99 -Wpedantic -Wall -Wformat -Wformat-security -Wunused-result `pkg-config --cflags gtk+-3.0` -g3'
 
 #release
 CCFLAGS   = '-std=c99 -Wall `pkg-config --cflags gtk+-3.0` -g -O2 -march=native'

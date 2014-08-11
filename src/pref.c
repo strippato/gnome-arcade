@@ -111,14 +111,14 @@ pref_save (void)
 	if (pref_keyFile) {
 		gchar *data = g_key_file_to_data (pref_keyFile, &size, &error);
 		if (!data) {
-	    	g_warning (error->message);
+	    	g_warning ("%s", error->message);
 	    	g_error_free (error);
 		} else {
 			if (g_file_set_contents (pref_fileName, data, size,  &error)) {
 				g_print ("preferrence saved " SUCCESS_MSG "\n");
 
 			} else {
-		    	g_warning (error->message);
+		    	g_warning ("%s", error->message);
 		    	g_error_free (error);
 			}
 

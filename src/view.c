@@ -71,6 +71,7 @@ view_modelAdd (struct view_model* model, struct rom_romItem* item)
 	model->romList = g_list_insert (model->romList, item, 0);
 }
 
+/*
 static void
 view_test (void)
 {
@@ -89,4 +90,5 @@ view_test (void)
 	view_free ();
 
 }
+*/
 
