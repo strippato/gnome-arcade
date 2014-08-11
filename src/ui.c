@@ -1009,6 +1009,8 @@ ui_showAbout (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 void
 ui_quit (GSimpleAction *simple, GVariant *parameter, gpointer user_data)
 {
+    if (ui_inSelectState ()) pref_save ();
+
     GApplication *app = user_data;
 
     g_application_quit (app);  
