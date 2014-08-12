@@ -26,3 +26,7 @@
 data/www/*
 .sconsign.dblite
 gnome-arcade
+
+#wiki
+wiki/*
+
