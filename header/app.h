@@ -35,8 +35,11 @@
 #define APP_WEB             "https://github.com/strippato" 
 #define APP_GNU_WARN        "You should have received a copy of the GNU GPL along with gnome-arcade.\n"\
 							"If not, see <http://www.gnu.org/licenses/>."
-
-#define APP_RESOURCE 		"res/"
+#ifndef APP_RES
+	#define APP_RESOURCE 		"./res/"
+#else
+	#define APP_RESOURCE 		APP_RES "/res/"
+#endif						
 #define APP_DIRCONFIG  		"gnome-arcade"
 #define APP_CSS				"gnome-arcade.css"
 

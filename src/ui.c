@@ -1086,6 +1086,8 @@ ui_init (void)
     ui_view  = 0;
     ui_mouseOver = -1;
 
+    g_print ("resource path is %s\n", APP_RESOURCE);
+
     /* CSS */
     GtkCssProvider* cssProvider = gtk_css_provider_new ();
     GdkDisplay* display = gdk_display_get_default ();
