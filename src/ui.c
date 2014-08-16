@@ -1360,6 +1360,9 @@ ui_repaint (void)
 {
     /* redraw drawing area */
     gtk_widget_queue_draw (GTK_WIDGET (ui_drawingArea));
+
+    while (gtk_events_pending ())
+            gtk_main_iteration ();    
 }
 
 inline void
