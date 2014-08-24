@@ -490,42 +490,42 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
 
         ui_focusPrevRow ();
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_repaint ();
         break;
 
     case GDK_KEY_Down:
         if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusNextRow ();
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_repaint ();
         break;
 
     case GDK_KEY_Right:
         if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusNext ();
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_repaint ();
         break;
 
     case GDK_KEY_Left:
         if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusPrev ();
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_repaint ();
         break;
 
     case GDK_KEY_Home:
         if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusAt (0);
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_repaint ();
         break;
 
     case GDK_KEY_End:
         if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusAt (ui_viewModel->romCount - 1);
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_repaint ();
         break;
 
     case GDK_KEY_space:
