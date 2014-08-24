@@ -35,24 +35,23 @@ static GHashTable *cfg_default = NULL;
 static GHashTable *cfg_config  = NULL;
 
 static GKeyFile *cfg_keyFile = NULL;
-static GError 	*err = NULL;	
+static GError 	*err = NULL;
 
-static void 
+static void
 cfg_fillDefaultConfig (void)
 {
 	g_hash_table_insert (cfg_default, "MAME_EXE", "/usr/bin/mame");
-	g_hash_table_insert (cfg_default, "MAME_OPTIONS", "-skip_gameinfo -multithreading -window -video opengl");
+	g_hash_table_insert (cfg_default, "MAME_OPTIONS", "-skip_gameinfo -multithreading -video opengl");
 
 	g_hash_table_insert (cfg_default, "USE_DARK_THEME", "1");
 
 	g_hash_table_insert (cfg_default, "ROM_PATH", "/usr/share/gnome-arcade/data/rom/");
 
 	g_hash_table_insert (cfg_default, "ROMLIST_FROM_FILE", "1");
-	g_hash_table_insert (cfg_default, "ROMLIST_SKIP_BIOS", "1");
 
 	g_hash_table_insert (cfg_default, "TILE_SIZE_W", "210");
 	g_hash_table_insert (cfg_default, "TILE_SIZE_H", "210");
-	g_hash_table_insert (cfg_default, "TILE_KEEP_ASPECT_RATIO", "1");	
+	g_hash_table_insert (cfg_default, "TILE_KEEP_ASPECT_RATIO", "1");
 	g_hash_table_insert (cfg_default, "TILE_TITLE_CENTERED", "1");
 	g_hash_table_insert (cfg_default, "TILE_PATH", "/usr/share/gnome-arcade/data/tile/");
 	g_hash_table_insert (cfg_default, "TILE_BORDER_DYNAMIC", "1");
@@ -72,18 +71,18 @@ cfg_print (gchar *key, gchar *value)
 	g_print ("Key:%s Value:%s\n", key, value);
 }
 
-static void 
+static void
 cfg_dump (void)
 {
 	g_print ("Dumping hashtable...\n");
 	g_hash_table_foreach (cfg_default, (GHFunc) cfg_print, NULL);
-	g_print ("Done!\n");	
+	g_print ("Done!\n");
 }
 */
-												
 
-void 
-cfg_init (void) 																																	
+
+void
+cfg_init (void)
 {
 	g_assert (!cfg_keyFile);
 	g_assert (!cfg_default);
@@ -92,14 +91,14 @@ cfg_init (void)
 	err = NULL;
 	cfg_default = g_hash_table_new (g_str_hash, g_str_equal);
 	cfg_config = g_hash_table_new (g_str_hash, g_str_equal);
-	
+
 	cfg_fillDefaultConfig ();
-	
+
 	//cfg_dump();
 }
 
-void 
-cfg_free (void) 
+void
+cfg_free (void)
 {
 
 	if (cfg_keyFile) g_key_file_free (cfg_keyFile);
@@ -107,13 +106,13 @@ cfg_free (void)
 
 	g_hash_table_unref (cfg_default);
 	g_hash_table_unref (cfg_config);
-	
+
 	cfg_default = NULL;
 	cfg_config = NULL;
 }
 
 gboolean
-cfg_createDefaultConfigFile (void) 
+cfg_createDefaultConfigFile (void)
 {
 	gchar *data;
 	GKeyFile* keyFile = NULL;
@@ -122,14 +121,14 @@ cfg_createDefaultConfigFile (void)
 	gboolean created = TRUE;
 
 	gchar *fileName = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, CFG_FILENAME, NULL);
-	gchar *pathName = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, NULL);	
+	gchar *pathName = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, NULL);
 
 	g_print ("writing config file (%s)\n", fileName);
 
 	g_assert (fileName);
-	g_assert (pathName);	
+	g_assert (pathName);
 
-	keyFile = g_key_file_new ();	
+	keyFile = g_key_file_new ();
 
 	/* adding default config */
 	GHashTableIter iter;
@@ -151,9 +150,9 @@ cfg_createDefaultConfigFile (void)
 																  	"\n" \
 																  	"http://www.mamedb.com/snap/%s.png\n" \
 																	"http://www.mamedb.com/titles/%s.png\n" \
-																	"http://www.mamedb.com/cabinets/%s.png\n"																	
+																	"http://www.mamedb.com/cabinets/%s.png\n"
 							, &err);
-	
+
 	if (err) {
 		g_print ("Can't write to output stream: %s\n", err->message);
 	    g_error_free (err);
@@ -165,7 +164,7 @@ cfg_createDefaultConfigFile (void)
 		if (!g_mkdir_with_parents (pathName, 0700)) {
 
 		    file = g_file_new_for_path (fileName);
-		    
+
 		    GFileOutputStream *outStream = g_file_replace (file, NULL, TRUE, G_FILE_CREATE_PRIVATE, NULL, &err);
 		    if (outStream) {
 		    	if (g_output_stream_write (G_OUTPUT_STREAM (outStream), data, strlen (data), NULL, &err) == -1) {
@@ -184,8 +183,8 @@ cfg_createDefaultConfigFile (void)
 			    err = NULL;
 			    created = FALSE;
 		    }
-	    	g_object_unref (file);		    
-			
+	    	g_object_unref (file);
+
 
 		} else {
 			g_print ("Can't create config directory\n");
@@ -198,21 +197,21 @@ cfg_createDefaultConfigFile (void)
 	    g_error_free (err);
 	    err = NULL;
 	    created = FALSE;
-	} 
+	}
 
 	g_key_file_free (keyFile);
-	g_free (fileName);			
-	g_free (pathName);				
+	g_free (fileName);
+	g_free (pathName);
 
 	return created;
 }
 
 gboolean
-cfg_load (void) 
+cfg_load (void)
 {
 	gchar *file = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, CFG_FILENAME, NULL);
 	g_assert (file);
-	
+
 	cfg_keyFile = g_key_file_new ();
 
 	g_print ("loading config from %s ", file);
@@ -237,14 +236,14 @@ cfg_load (void)
 				//g_key_file_set_string (cfg_keyFile, CFG_SECTION, (gchar*) key, (gchar*) value);
 			}
 		}
-		g_free (file);                                                  
+		g_free (file);
 		return TRUE;
 	} else  {
 		g_key_file_free (cfg_keyFile);
 		g_print ("\n");
 		g_print ("Opps, can't read config (%s): %s\n", file, err->message);
 
-		g_free (file);			
+		g_free (file);
 		g_error_free (err);
 		err = NULL;
 
@@ -257,7 +256,7 @@ cfg_configFileExist (void)
 {
 	gboolean exist;
 	gchar *file = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, CFG_FILENAME, NULL);
-	if (g_file_test (file, G_FILE_TEST_EXISTS)) {	
+	if (g_file_test (file, G_FILE_TEST_EXISTS)) {
 		exist = TRUE;
 	} else {
 		exist = FALSE;
@@ -282,7 +281,7 @@ cfg_keyInt (const gchar* key)
 	gpointer out = g_hash_table_lookup (cfg_config, key);
 
 	if (out) {
-		return (gint) strtod (out, NULL);	
+		return (gint) strtod (out, NULL);
 	} else {
 		return 0;
 	}
@@ -298,7 +297,7 @@ cfg_keyDbl (const gchar* key)
 
 inline gboolean
 cfg_keyBool (const gchar* key)
-{ 
+{
 	// 0 -> FALSE
 	// else TRUE
 	g_assert (cfg_config);

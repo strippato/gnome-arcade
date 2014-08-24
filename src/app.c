@@ -26,9 +26,10 @@
 
 #include "global.h"
 #include "app.h"
+#include "view.h"
 #include "ui.h"
 
-const gchar *app_authors[] = { "Strippato <strippato@gmail.com>", 
+const gchar *app_authors[] = { "Strippato <strippato@gmail.com>",
                                NULL };
 
 const gchar *app_artists[] = { "Strippato <strippato@gmail.com>",
@@ -41,7 +42,7 @@ GtkApplication *app_application;
 static gint app_status = 0;
 
 GActionEntry app_entries[] = {
-    { "fullscreen", ui_actionFullscreen, NULL, "false", ui_actionChangeFullscreen},    
+    { "fullscreen", ui_actionFullscreen, NULL, "false", ui_actionChangeFullscreen},
     { "sort"      , ui_actionSort, NULL, "true", NULL },
     { "about"     , ui_showAbout, NULL, NULL, NULL },
     { "quit"      , ui_quit     , NULL, NULL, NULL },
@@ -62,17 +63,17 @@ app_activate (GtkApplication *app)
 static void
 app_startup (void)
 {
-    ui_init ();    
+    ui_init ();
 }
 
 
 static void
 app_shutdown (GtkApplication *app)
 {
-    ui_free (); 
+    ui_free ();
 }
 
-gint 
+gint
 main (gint argc, gchar *argv[])
 {
     setlocale (LC_CTYPE, "");
@@ -81,11 +82,11 @@ main (gint argc, gchar *argv[])
 
 #ifdef DEBUG_ROM_LIMIT
     g_print ("WARNING DEBUG IS ACTIVE (max %i rom loaded)\n", DEBUG_ROM_LIMIT);
-#endif    
+#endif
 
     g_print (APP_NAME " rel. " APP_VERSION "\n");
-    g_print (APP_DESCRIPTION "\n\n");     
-    g_print (APP_COPYRIGHT " " APP_AUTHOR_EMAIL "\n");    
+    g_print (APP_DESCRIPTION "\n\n");
+    g_print (APP_COPYRIGHT " " APP_AUTHOR_EMAIL "\n");
     g_print (APP_LICENSE "\n");
 
     g_print (APP_GNU_WARN "\n\n");
@@ -93,11 +94,11 @@ main (gint argc, gchar *argv[])
     app_application = gtk_application_new (APP_ID, G_APPLICATION_FLAGS_NONE);
 
     g_signal_connect (app_application, "activate", G_CALLBACK (app_activate), NULL);
-    g_signal_connect (app_application, "shutdown", G_CALLBACK (app_shutdown), NULL);    
-    g_signal_connect (app_application, "startup", G_CALLBACK (app_startup), NULL);    
+    g_signal_connect (app_application, "shutdown", G_CALLBACK (app_shutdown), NULL);
+    g_signal_connect (app_application, "startup", G_CALLBACK (app_startup), NULL);
 
     g_application_set_default (G_APPLICATION (app_application));
-    app_status = g_application_run (G_APPLICATION (app_application), argc, argv);    
+    app_status = g_application_run (G_APPLICATION (app_application), argc, argv);
 
     g_object_unref (app_application);
 

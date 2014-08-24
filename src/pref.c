@@ -33,35 +33,35 @@
 
 #define PREF_KG_PREFFERED "FAVOURITE"
 #define PREF_KG_RANK      "RANK"
-#define PREF_KG_NPLAY     "NPLAY" 
+#define PREF_KG_NPLAY     "NPLAY"
 
 static gchar* pref_fileName = NULL;
 static GKeyFile *pref_keyFile = NULL;
 
-void 
+void
 pref_init (void)
 {
 	g_assert (!pref_fileName);
-	g_assert (!pref_keyFile);	
+	g_assert (!pref_keyFile);
 
 	pref_fileName = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, PREF_FILENAME, NULL);
 	pref_keyFile = g_key_file_new ();
 }
 
-void 
+void
 pref_free (void)
 {
 	g_assert (pref_fileName);
 	g_assert (pref_keyFile);
 
-	g_free (pref_fileName);	
+	g_free (pref_fileName);
  	g_key_file_free (pref_keyFile);
 
 	pref_fileName = NULL;
 	pref_keyFile = NULL;
 }
 
-void 
+void
 pref_load (void)
 {
 	GError *error = NULL;
@@ -98,11 +98,11 @@ gint
 pref_getRank (const char* key)
 {
 	if (!pref_keyFile) return 0;
-	
+
 	return g_key_file_get_integer (pref_keyFile, key, PREF_KG_RANK, NULL);
 }
 
-void 
+void
 pref_save (void)
 {
 	GError *error = NULL;
@@ -144,5 +144,5 @@ pref_setPreferred (const char* key, gboolean value)
 void
 pref_setRank (const char* key, gint rank)
 {
-	g_key_file_set_integer (pref_keyFile, key, PREF_KG_RANK, rank);	
+	g_key_file_set_integer (pref_keyFile, key, PREF_KG_RANK, rank);
 }

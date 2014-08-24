@@ -30,3 +30,8 @@ gnome-arcade
 #wiki
 wiki/*
 
+#sublime
+*.sublime-project
+*.sublime-workspace
+
+

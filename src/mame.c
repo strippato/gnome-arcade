@@ -21,17 +21,18 @@
 #define _XOPEN_SOURCE
 
 #include <stdio.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
-#include <glib/gstdio.h> 
+#include <glib/gstdio.h>
 #include <assert.h>
 #include <string.h>
 
-#include "app.h" 
+#include "app.h"
 #include "global.h"
 #include "rom.h"
 #include "mame.h"
+#include "view.h"
 #include "ui.h"
 #include "config.h"
 #include "pref.h"
@@ -52,17 +53,17 @@
 static gboolean mame_mameIsRunning = FALSE;
 
 static gchar*
-mame_getVersion (void) 
+mame_getVersion (void)
 {
     const int MAXSIZE = 80;
     char buf[MAXSIZE];
     gchar *version = NULL;
-    
+
     gchar *cmdLine = g_strdup_printf ("%s -help", MAME_EXE);
 
     FILE *file = popen (cmdLine, "r");
 
-    if (fgets (buf, MAXSIZE - 1, file) != NULL) {    
+    if (fgets (buf, MAXSIZE - 1, file) != NULL) {
         version = g_strndup (buf, strlen (buf) - 1);
     }
 
@@ -73,7 +74,7 @@ mame_getVersion (void)
 }
 
 static gboolean
-mame_dumpTo (gchar *cmdline, gchar *file) 
+mame_dumpTo (gchar *cmdline, gchar *file)
 {
 
     gchar **argv  = NULL;
@@ -84,26 +85,26 @@ mame_dumpTo (gchar *cmdline, gchar *file)
 
     if (!g_shell_parse_argv (cmdline, NULL, &argv, &error)) {
         g_error_free (error);
-        g_strfreev (argv);        
+        g_strfreev (argv);
         return FALSE;
     }
 
-    if (!g_spawn_sync (NULL, argv, NULL, G_SPAWN_STDERR_TO_DEV_NULL, NULL, NULL, &stdout, NULL, &status, &error)) {    
-    
+    if (!g_spawn_sync (NULL, argv, NULL, G_SPAWN_STDERR_TO_DEV_NULL, NULL, NULL, &stdout, NULL, &status, &error)) {
+
         if (error) g_error_free (error);
-        if (stdout) g_free (stdout);                
+        if (stdout) g_free (stdout);
 
         g_strfreev (argv);
         return FALSE;
-    
+
     } else {
 
         g_file_set_contents (file, stdout, -1, &error);
-        
+
         if (error) g_error_free (error);
         if (stdout) g_free (stdout);
-        
-        g_strfreev (argv);        
+
+        g_strfreev (argv);
         return TRUE;
     }
 }
@@ -142,11 +143,11 @@ mame_gameList (void)
 /*
  mame -listclones
 Name:            Clone of:
-10yard85         10yard  
-10yardj          10yard  
-18w2             18w     
+10yard85         10yard
+10yardj          10yard
+18w2             18w
 18wheels         18wheelr
-1941j            1941    
+1941j            1941
 ...
 
  mame -listfull
@@ -164,7 +165,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
 */
 
     #define CLONE_OFFSET 17
-    
+
     gchar* mameVersion = NULL;
     if (g_file_test (MAME_EXE, G_FILE_TEST_IS_EXECUTABLE)) {
         mameVersion = mame_getVersion ();
@@ -174,33 +175,33 @@ zoo               "Zoo (Ver. ZO.02.D)"
     }
 
     FILE *file;
-    
+
     gchar buf[MAME_LIST_BUFSIZE];
     gchar *romNameZip;
-    gchar *romName7Zip;    
+    gchar *romName7Zip;
     gchar *romNameDir;
     gchar *cmdLine;
 
     gint numGame = 0;
     gint numGameSupported = 0;
     gint numClone = 0;
-    gint numBios = 0;    
+    gint numBios = 0;
     gboolean skipFirst = TRUE;
     gchar* romPath;
 
     gchar *fileRom = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_FULL_FILE, NULL);
-    gchar *fileClone = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_CLONES_FILE, NULL);    
+    gchar *fileClone = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_CLONES_FILE, NULL);
 
 #ifdef DEBUG_TIMING
     logTimer ("Start loading romlist");
-#endif    
+#endif
 
     if (g_str_has_prefix (cfg_keyStr ("ROM_PATH"), "~")) {
         romPath = g_strdup_printf ("%s%s", g_get_home_dir (), cfg_keyStr ("ROM_PATH")+1);
     } else {
         romPath = g_strdup_printf ("%s", cfg_keyStr ("ROM_PATH"));
     }
-    
+
     g_assert (g_file_test (romPath, G_FILE_TEST_IS_DIR));
 
     if (g_file_test (MAME_EXE, G_FILE_TEST_IS_EXECUTABLE)) {
@@ -222,13 +223,13 @@ zoo               "Zoo (Ver. ZO.02.D)"
                 if (!mame_dumpTo (cmdLine, fileClone)) {
                     g_print (FAIL_MSG "\n");
                 }
-                g_print (SUCCESS_MSG "\n");                
+                g_print (SUCCESS_MSG "\n");
                 g_free (cmdLine);
             }
-                        
+
             g_print ("gamelist from %s %s\n", MAME_LIST_FULL_FILE, MAME_LIST_CLONES_FILE);
         } else {
-            g_print ("gamelist from %s\n", MAME_EXE);        
+            g_print ("gamelist from %s\n", MAME_EXE);
         }
 
         g_print ("rom from %s\n", romPath);
@@ -237,7 +238,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
         // load clone table
         g_print ("loading clonetable");
         cmdLine = g_strdup_printf ("%s -" MAME_LIST_CLONES, MAME_EXE);
-        
+
         if (cfg_keyBool ("ROMLIST_FROM_FILE")) {
             assert (g_file_test (fileClone, G_FILE_TEST_EXISTS));
             file = g_fopen (fileClone, "r");
@@ -268,12 +269,12 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
             if (numClone % 500 == 0) g_print (".");
 
-            // don't free romname and cloneof 
+            // don't free romname and cloneof
             //g_free (romname);
             //g_free (cloneof);
         }
 
-        g_free (cmdLine);        
+        g_free (cmdLine);
 
         if (cfg_keyBool ("ROMLIST_FROM_FILE")) {
             fclose (file);
@@ -290,12 +291,12 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
         if (cfg_keyBool ("ROMLIST_FROM_FILE")) {
             assert (g_file_test (fileRom, G_FILE_TEST_EXISTS));
-            file = g_fopen (fileRom, "r");        
+            file = g_fopen (fileRom, "r");
         } else {
             file = popen (cmdLine, "r");
         }
 
-        skipFirst = TRUE;        
+        skipFirst = TRUE;
         while (fgets (buf, sizeof (buf), file)) {
             if (skipFirst) {
                 skipFirst = FALSE;
@@ -306,7 +307,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
 #ifdef DEBUG_ROM_LIMIT
             if (numGame >= DEBUG_ROM_LIMIT) continue;
-#endif            
+#endif
 
             gchar *tempstr = strstr (buf, " ");
             assert (tempstr);
@@ -324,92 +325,86 @@ zoo               "Zoo (Ver. ZO.02.D)"
             if (g_file_test (romNameZip, G_FILE_TEST_EXISTS)) {
                 foundRom = TRUE;
             } else if (g_file_test (romName7Zip, G_FILE_TEST_EXISTS)) {
-                foundRom = TRUE;                
+                foundRom = TRUE;
             } else if (g_file_test (romNameDir, G_FILE_TEST_IS_DIR)) {
                 foundRom = TRUE;
             }
 
-            if (foundRom) {
+            tempstr = strstr (buf, "\"");
+            assert (tempstr);
+            tempstr++;
+            gchar *nameDes = g_strndup (tempstr, strlen (tempstr) - 2);
 
-                tempstr = strstr (buf, "\"");
-                assert (tempstr);
-                tempstr++;
-                gchar *nameDes = g_strndup (tempstr, strlen (tempstr) - 2);
-                
-                // g_print ("*%s*%zu\n", nameDes, strlen(nameDes));
-                
-                if (!rom_filterBios (nameDes)) {
-                    struct rom_romItem *item = rom_newItem ();
+            // g_print ("*%s*%zu\n", nameDes, strlen(nameDes));
 
-                    rom_setItemName (item, name);
-                    rom_setItemDescription (item, nameDes);
-                    rom_setItemDesc (item, nameDes);
-                    rom_setItemTile (item, NULL);
-                    rom_setItemRank (item, pref_getRank (name));
-                    rom_setItemPref (item, pref_getPreferred (name));
-                    rom_setItemNPlay (item, pref_getNPlay (name));
+            if (!rom_filterBios (nameDes)) {
+                struct rom_romItem *item = rom_newItem ();
 
-                    ++numGame;
-                } else {
-                    ++numBios;
-                }
-                g_free (nameDes);
+                rom_setItemName (item, name);
+                rom_setItemDescription (item, nameDes);
+                rom_setItemDesc (item, nameDes);
+                rom_setItemTile (item, NULL);
+                rom_setItemRank (item, pref_getRank (name));
+                rom_setItemPref (item, pref_getPreferred (name));
+                rom_setItemNPlay (item, pref_getNPlay (name));
+                rom_setItemRomFound (item, foundRom);
+
+                if (foundRom) ++numGame;
+            } else {
+                if (foundRom) ++numBios;
             }
-
+            g_free (nameDes);
             g_free (name);
 
             g_free (romNameZip);
-            g_free (romName7Zip); 
+            g_free (romName7Zip);
             g_free (romNameDir);
 
-            if (numGameSupported % 550 == 0) g_print (".");
+            if (numGameSupported % 600 == 0) g_print (".");
 
         }
         if (cfg_keyBool ("ROMLIST_FROM_FILE")) {
-            fclose (file);        
+            fclose (file);
         } else {
             pclose (file);
         }
-        
+
         g_free (cmdLine);
 
         g_print (" " SUCCESS_MSG " (%i)\n", numGameSupported);
-        
-        if (cfg_keyBool ("ROMLIST_SKIP_BIOS")) {
-            g_print ("\nfound %i of %i rom (%i bios skipped)\n", numGame, numGameSupported, numBios);
-        } else {
-            g_print ("\nfound %i of %i rom\n", numGame, numGameSupported);            
-        }
+
+        g_print ("found %i of %i rom (%i bios skipped)\n", numGame, numGameSupported, numBios);
     }
-    
+
     g_free (romPath);
     g_free (fileRom);
-    g_free (fileClone);    
+    g_free (fileClone);
 
     g_free (mameVersion);
 #ifdef DEBUG_TIMING
     logTimer ("end loading romlist");
-#endif    
+#endif
 
 }
 
-void 
+void
 mame_quit (GPid pid)
 {
     g_print ("quitting from mame...\n");
-    
+
     mame_mameIsRunning = FALSE;
-    
+
     g_spawn_close_pid (pid);
 
     ui_setPlayBtnState (TRUE);
     ui_setToolBarState (TRUE);
-    ui_repaint ();
+    ui_setScrollBarState (TRUE);
+    ui_invalidateDrawingArea ();
     ui_setFocus ();
 }
 
 gboolean
-mame_playGame (guint gameidx)
+mame_playGame (struct rom_romItem *item)
 {
     GPid pid;
     gboolean played = FALSE;
@@ -417,7 +412,6 @@ mame_playGame (guint gameidx)
     gchar *cmdline;
     gchar *romPath;
     gchar *romPathQuoted;
-    struct rom_romItem* item;
 
     if (g_str_has_prefix (cfg_keyStr ("ROM_PATH"), "~")) {
         romPath = g_strdup_printf ("%s%s", g_get_home_dir (), cfg_keyStr ("ROM_PATH") + 1);
@@ -426,20 +420,21 @@ mame_playGame (guint gameidx)
     }
     romPathQuoted = g_shell_quote (romPath);
 
-    item = rom_getItem (gameidx);
     romName = rom_getItemName (item);
     cmdline = g_strdup_printf ("%s %s -rompath %s %s", MAME_EXE, cfg_keyStr("MAME_OPTIONS"), romPathQuoted, romName);
 
     /* free pixbuff cache, so mame can use more memory */
     rom_invalidateUselessTile ();
 
-    g_print ("playing %s(%i)\n", romName, gameidx);
+    g_print ("playing %s\n", romName);
 
     if (mame_run (cmdline, &pid, NULL, NULL)) {
         played = TRUE;
         ui_setPlayBtnState (FALSE);
         ui_setToolBarState (FALSE);
-        mame_mameIsRunning = TRUE;        
+        ui_setScrollBarState (FALSE);
+
+        mame_mameIsRunning = TRUE;
         g_child_watch_add (pid, (GChildWatchFunc) mame_quit, &pid);
     } else {
         g_print ("oops, something goes wrong again...\n");

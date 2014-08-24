@@ -26,15 +26,16 @@
 void view_init (void);
 void view_free (void);
 
-struct view_model 
+struct view_viewModel
 {
-	gint curretItem;
 	GList *romList;
+	gint romCount;
+
+    guint focus;
+    gint  view; // drawingarea offset
 };
 
-struct view_model* view_modelCreate (void);
-void view_modelFree (struct view_model* model);
-
+struct rom_romItem* view_getItem (struct view_viewModel *view, int numGame);
 
 #endif
 

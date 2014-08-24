@@ -23,7 +23,7 @@
 #define MAME_H
 
 void mame_gameList (void);
-gboolean mame_playGame (guint gameidx);
+gboolean mame_playGame (struct rom_romItem *item);
 gboolean mame_isRunning(void);
 //gboolean mame_dumpTo (gchar *cmdline, gchar *file);
 

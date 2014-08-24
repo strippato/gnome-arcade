@@ -31,7 +31,7 @@ extern GdkPixbuf *rom_tileLoading;
 extern GdkPixbuf *rom_tileFavorite;
 extern GdkPixbuf *rom_tileRank;
 
-extern guint rom_count;
+//extern guint rom_count;
 
 enum rom_sortOrder {
     ROM_SORT_AZ,
@@ -40,9 +40,9 @@ enum rom_sortOrder {
 
 struct rom_romItem {
 	// mame
-	gchar *name;                //	1941 
+	gchar *name;                //	1941
 	gchar *description;	        //	1941: The Counter Attack (World 900227)
-	
+	gboolean romFound;
 	// view/sort
 	gchar *desc;                //  1941: Counter Attack, The
 
@@ -51,16 +51,15 @@ struct rom_romItem {
 	guint	 rank;
 	guint	 nplay;
 
-	// pixbuf 
-	gboolean  tileLoading;	
+	// pixbuf
+	gboolean  tileLoading;
 	gboolean  tileLoaded;
 	GdkPixbuf *tile;
 	GFile     *tileFile;
-
 };
 
-extern GList *rom_romList;
-extern GHashTable *rom_cloneTable;
+extern GList *rom_romList; // all game (NOT clone, NOT bios)
+extern GHashTable *rom_cloneTable; // all clones (NOT BIOS)
 
 #define ROM_EXTENSION_ZIP	"zip"
 #define ROM_EXTENSION_7ZIP	"7z"
@@ -83,14 +82,17 @@ void rom_setItemName (struct rom_romItem* item, gchar* name);
 void rom_setItemDescription (struct rom_romItem* item, gchar* description);
 void rom_setItemDesc (struct rom_romItem* item, gchar* desc);
 void rom_setItemTile (struct rom_romItem* item, GdkPixbuf* tile);
+void rom_setItemRomFound (struct rom_romItem* item, gboolean value);
 void rom_loadItemAsync (struct rom_romItem* item);
 
 const gchar* rom_getItemName (struct rom_romItem* item);
 const gchar* rom_getItemDescription (struct rom_romItem* item);
 const gchar* rom_getItemDesc (struct rom_romItem* item);
 const GdkPixbuf* rom_getItemTile (struct rom_romItem* item);
+const gboolean rom_getItemRomFound (struct rom_romItem* item);
 const gboolean rom_getItemTileLoaded (struct rom_romItem* item);
 const gboolean rom_getItemTileLoading (struct rom_romItem* item);
+
 const gchar* rom_parentOf (const gchar *romName);
 void rom_invalidateUselessTile (void);
 
@@ -102,4 +104,5 @@ guint rom_getItemNPlay (const struct rom_romItem *item);
 void rom_setItemNPlay (struct rom_romItem *item, guint nplay);
 
 #endif
+
 

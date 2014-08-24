@@ -19,15 +19,16 @@
  */
 
 
-
 #include <stdio.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
-#include <string.h> 
+#include <string.h>
 
 #include "global.h"
+#include "view.h"
 #include "rom.h"
 #include "app.h"
+#include "view.h"
 #include "ui.h"
 #include "mame.h"
 #include "util.h"
@@ -35,7 +36,7 @@
 #include "pref.h"
 #include "www.h"
 
-#define TILE_MIN_SIZE       150 
+#define TILE_MIN_SIZE       150
 #define TILE_W_BORDER_MIN   24
 #define TILE_H_BORDER       35
 
@@ -49,7 +50,7 @@
 
 #define TILE_MOUSEOVER_SIZE  1.5
 #define TILE_COLOR_MOUSEOVER 1.0, 1.0, 1.0
-#define EMBLEM_PADDING       4 
+#define EMBLEM_PADDING       4
 //
 #define UI_OFFSET_Y         10
 #define UI_SCROLL_STEP      50
@@ -70,7 +71,7 @@
     |/TILE_W_BORDER_MIN^                       |                  |
     |                  |TILE_H                 |                  |
     |                  |                       |<-TILE_W_BORDER-->|
-    |                  |                       |/TILE_W_BORDER_MIN| 
+    |                  |                       |/TILE_W_BORDER_MIN|
     |                  +-----------------------+                  +--..
     |                  ^
     |                  |TILE_H_BORDER
@@ -80,7 +81,7 @@
     |/TILE_W_BORDER_MIN^                       |                  |
     |                  |TILE_H                 |                  |
     |                  |                       |<-TILE_W_BORDER-->|
-    |                  |                       |/TILE_W_BORDER_MIN| 
+    |                  |                       |/TILE_W_BORDER_MIN|
     |                  +-----------------------+                  +--..
     |
     |
@@ -103,10 +104,13 @@ static GdkPixbuf *ui_selRankOff = NULL;
 static GdkPixbuf *ui_selPrefOn  = NULL;
 static GdkPixbuf *ui_selPrefOff = NULL;
 
-static guint ui_focus = 0;
-static gint  ui_view  = 0;
+// current model
+static struct view_viewModel *ui_viewModel = NULL;
+
 static guint ui_mouseOver = -1;
-static cairo_font_face_t *ui_tileFont = NULL;            
+static guint ui_mouseOverOld = 0;
+
+static cairo_font_face_t *ui_tileFont = NULL;
 
 static GError *gerror = NULL;
 static GdkPixbuf *ui_aboutLogo = NULL;
@@ -114,6 +118,15 @@ static GdkPixbuf *ui_aboutLogo = NULL;
 // forward decl
 static void ui_prefManager (gdouble x, gdouble y);
 static void ui_rankManager (gdouble x, gdouble y);
+
+static inline void
+ui_repaint (void)
+{
+    /* redraw drawing area */
+    gtk_widget_queue_draw (GTK_WIDGET (ui_drawingArea));
+    //while (gtk_events_pending ())
+    //        gtk_main_iteration ();
+}
 
 gboolean
 ui_inSelectState (void)
@@ -131,18 +144,35 @@ ui_headerBarRestore (void)
 static void
 ui_headerBarShowInfo (int romIndex)
 {
-    struct rom_romItem *item = rom_getItem (romIndex);
-    const gchar *desc =  rom_getItemDescription (item); 
-    const gchar *name =  rom_getItemName (item); 
+    struct rom_romItem *item = view_getItem (ui_viewModel, romIndex);
+
+    gchar *subTitle=NULL;
+
+    const gchar *desc = rom_getItemDescription (item);
+    const gchar *name = rom_getItemName (item);
+    guint played = rom_getItemNPlay (item);
+
+    switch (played) {
+    case 0:
+        subTitle = g_strdup_printf ("%s never played", name);
+        break;
+    case 1:
+        subTitle = g_strdup_printf ("%s played 1 time", name);
+        break;
+    default:
+        subTitle = g_strdup_printf ("%s played %i times", name, played);
+        break;
+    }
 
     gtk_header_bar_set_title (GTK_HEADER_BAR (ui_headerBar), desc);
-    gtk_header_bar_set_subtitle (GTK_HEADER_BAR (ui_headerBar), name);
+    gtk_header_bar_set_subtitle (GTK_HEADER_BAR (ui_headerBar), subTitle);
+    g_free (subTitle);
 }
 
 static void
-ui_preference_cb (void) 
+ui_preference_cb (void)
 {
-    struct rom_romItem *item = rom_getItem (ui_focus);
+    struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
     rom_setItemPref (item, !rom_getItemPref (item));
     if (ui_inSelectState ()) {
         pref_setPreferred (rom_getItemName (item), rom_getItemPref (item));
@@ -152,9 +182,9 @@ ui_preference_cb (void)
 
 
 static void
-ui_rank_cb (gint i) 
+ui_rank_cb (gint i)
 {
-    struct rom_romItem *item = rom_getItem (ui_focus);
+    struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
 
     gint oldRank = rom_getItemRank (item);
 
@@ -168,7 +198,7 @@ ui_rank_cb (gint i)
     ui_repaint ();
 }
 
-static void 
+static void
 ui_select_cb (void)
 {
     GtkStyleContext *context = gtk_widget_get_style_context (ui_headerBar);
@@ -178,21 +208,21 @@ ui_select_cb (void)
         gtk_widget_hide (ui_playBtn);
         gtk_style_context_add_class (context, "selection-mode");
         ui_setPlayBtnState (FALSE);
-        ui_headerBarShowInfo (ui_focus);
+        ui_headerBarShowInfo (ui_viewModel->focus);
     } else {
-        gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (ui_headerBar), TRUE);        
-        gtk_widget_show (ui_playBtn);        
+        gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (ui_headerBar), TRUE);
+        gtk_widget_show (ui_playBtn);
         gtk_style_context_remove_class (context, "selection-mode");
         ui_setPlayBtnState (TRUE);
         ui_headerBarRestore ();
-        pref_save ();   
+        pref_save ();
     }
-    gtk_widget_reset_style (ui_headerBar);    
+    gtk_widget_reset_style (ui_headerBar);
     ui_repaint ();
 }
 
 inline static gint
-ui_itemOnRowMax (gint width) 
+ui_itemOnRowMax (gint width)
 {
     return (width - TILE_SHADOW_SIZE) / (ui_tileSize_W + TILE_W_BORDER_MIN);
 }
@@ -205,13 +235,13 @@ ui_getTileWBorderSize (void)
         gint item = ui_itemOnRowMax (pageWide);
         gint border;
 
-        if (rom_count <= item) {
-            border = (pageWide - (rom_count * ui_tileSize_W)) / (rom_count + 1);
+        if (ui_viewModel->romCount <= item) {
+            border = (pageWide - (ui_viewModel->romCount * ui_tileSize_W)) / (ui_viewModel->romCount + 1);
         } else {
-            border = (pageWide - (item * ui_tileSize_W)) / (item + 1);            
+            border = (pageWide - (item * ui_tileSize_W)) / (item + 1);
         }
 
-        border = border < TILE_W_BORDER_MIN ? TILE_W_BORDER_MIN : border;        
+        border = border < TILE_W_BORDER_MIN ? TILE_W_BORDER_MIN : border;
 
         return border;
     } else {
@@ -221,7 +251,7 @@ ui_getTileWBorderSize (void)
 }
 
 inline static gint
-ui_itemOnRow (gint width) 
+ui_itemOnRow (gint width)
 {
     gint tileBorder = ui_getTileWBorderSize ();
 
@@ -231,13 +261,13 @@ ui_itemOnRow (gint width)
 static gboolean
 ui_playClicked (void)
 {
-    struct rom_romItem  *itm;
     guint nplay;
+
     if (mame_isRunning ()) return FALSE;
 
-    if (rom_count > 0) {
-        if (mame_playGame (ui_focus)) {
-            itm = rom_getItem (ui_focus);
+    if (ui_viewModel->romCount > 0) {
+        struct rom_romItem  *itm = view_getItem (ui_viewModel, ui_viewModel->focus);
+        if (mame_playGame (itm)) {
             nplay = rom_getItemNPlay (itm) + 1;
             rom_setItemNPlay (itm, nplay);
             pref_setNPlay (rom_getItemName (itm), nplay);
@@ -247,44 +277,44 @@ ui_playClicked (void)
         g_print ("romlist is empty!\n");
     }
 
-    return TRUE;    
+    return TRUE;
 }
 
-static void 
+static void
 ui_focusAt (int index)
 {
     // no rom found
-    if (rom_count <= 0) {
-        ui_focus = 0;        
+    if (ui_viewModel->romCount <= 0) {
+        ui_viewModel->romCount = 0;
         return;
     }
 
-    ui_focus = index;
+    ui_viewModel->focus = index;
 
-    ui_focus = lim (ui_focus, rom_count - 1);    
-    ui_focus = posval (ui_focus);
+    ui_viewModel->focus = lim (ui_viewModel->focus, ui_viewModel->romCount - 1);
+    ui_viewModel->focus = posval (ui_viewModel->focus);
 
     if (ui_inSelectState ()) {
-        ui_headerBarShowInfo (ui_focus);
+        ui_headerBarShowInfo (ui_viewModel->focus);
     }
 
     // play button
-    gchar *tips = g_strdup_printf ("Play at %s", rom_getItemDescription (rom_getItem (ui_focus)));
+    gchar *tips = g_strdup_printf ("Play at %s", rom_getItemDescription (view_getItem (ui_viewModel, ui_viewModel->focus)));
     gtk_widget_set_tooltip_text (ui_playBtn, tips);
     g_free (tips);
 
 }
 
-static void 
-ui_focusAdd (int step) 
+static void
+ui_focusAdd (int step)
 {
-    ui_focusAt (ui_focus + step);
+    ui_focusAt (ui_viewModel->focus + step);
 }
 
-static void 
+static void
 ui_focusPrevRow (void)
 {
-    if (ui_focus >= ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)))) {
+    if (ui_viewModel->focus >= ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)))) {
         ui_focusAdd (-ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea))));
     }
 }
@@ -292,30 +322,30 @@ ui_focusPrevRow (void)
 static void
 ui_focusNextRow (void)
 {
-    if (ui_focus + ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea))) < rom_count) {
+    if (ui_viewModel->focus + ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea))) < ui_viewModel->romCount) {
         ui_focusAdd (+ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea))));
     }
 }
 
-static void 
-ui_focusNext (void) 
+static void
+ui_focusNext (void)
 {
     ui_focusAdd (+1);
 }
 
-static void 
-ui_focusPrev (void) 
+static void
+ui_focusPrev (void)
 {
     ui_focusAdd (-1);
 }
 
-static void 
-ui_drawingAreaShowItem (int item) 
+static void
+ui_drawingAreaShowItem (int item)
 {
     /* follow the tile with fucus */
     gint rowNum  = ((item) / ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea))));
 
-    gint uiTop = ui_view;
+    gint uiTop = ui_viewModel->view;
     gint uiBottom = uiTop + gtk_widget_get_allocated_height (GTK_WIDGET (ui_drawingArea));
 
     gint itemTop = rowNum * (ui_tileSize_H + TILE_H_BORDER) + UI_OFFSET_Y;
@@ -327,30 +357,30 @@ ui_drawingAreaShowItem (int item)
         gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), itemTop - TILE_FOCUS_SIZE);
     } else if (itemBottom > uiBottom) {
         gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), uiTop + (itemBottom - uiBottom));
-    }    
+    }
 }
 
 static gint
 ui_getTileIdx (gdouble x, gdouble y, gboolean hitOnlyPixmap)
 {
     // no rom loaded
-    if (rom_count <= 0) return -1;
+    if (ui_viewModel->romCount <= 0) return -1;
 
     gint tileBorder = ui_getTileWBorderSize ();
     gint colNum = x / (ui_tileSize_W + tileBorder);
     gint maxCol = ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea))) - 1;
     colNum = lim (colNum, maxCol);
-    gint rowNum = (ui_view + y - UI_OFFSET_Y) / (ui_tileSize_H + TILE_H_BORDER);
-    gint maxRow = (rom_count / ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)))) - 1;
-    maxRow += (rom_count % ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)))) == 0 ? 0 : 1;
+    gint rowNum = (ui_viewModel->view + y - UI_OFFSET_Y) / (ui_tileSize_H + TILE_H_BORDER);
+    gint maxRow = (ui_viewModel->romCount / ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)))) - 1;
+    maxRow += (ui_viewModel->romCount % ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)))) == 0 ? 0 : 1;
     rowNum = lim (rowNum, maxRow);
     gint idx = colNum + rowNum * ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
 
-    if (idx < rom_count) {
+    if (idx < ui_viewModel->romCount) {
         if (hitOnlyPixmap) {
             /* real collision? */
-            const GdkPixbuf* pix = rom_getItemTile (rom_getItem (idx));
-            
+            const GdkPixbuf* pix = rom_getItemTile (view_getItem (ui_viewModel, idx));
+
             /* fallback to noimage pixbuf */
             if (!pix) pix = rom_tileNoImage;
 
@@ -365,7 +395,7 @@ ui_getTileIdx (gdouble x, gdouble y, gboolean hitOnlyPixmap)
             gint baseTileX = itemLeft;
             gint baseTileY = itemTop;
 
-            if (!pointInside (x, ui_view + y, baseTileX, baseTileY, baseTileX + pixbuf_w, baseTileY + pixbuf_h)) {
+            if (!pointInside (x, ui_viewModel->view + y, baseTileX, baseTileY, baseTileX + pixbuf_w, baseTileY + pixbuf_h)) {
                 idx = -1;
             }
         }
@@ -373,18 +403,79 @@ ui_getTileIdx (gdouble x, gdouble y, gboolean hitOnlyPixmap)
         /* out of tile */
         idx = -1;
     }
-    
+
     return idx;
 }
 
 static gboolean
-ui_isFullscreen (void) 
+ui_isFullscreen (void)
 {
     GdkWindow *win = gtk_widget_get_window (GTK_WIDGET (ui_window));
 
-    gboolean fullscreen = (gdk_window_get_state (GDK_WINDOW (win)) & GDK_WINDOW_STATE_FULLSCREEN) != 0;    
+    gboolean fullscreen = (gdk_window_get_state (GDK_WINDOW (win)) & GDK_WINDOW_STATE_FULLSCREEN) != 0;
 
     return fullscreen;
+}
+
+static gboolean
+ui_drawingAreaConfigureEvent (void)
+{
+    // no rom found
+    //g_print ("*Configure event \n");
+    if (ui_viewModel->romCount <= 0) {
+        gtk_widget_hide (GTK_WIDGET (ui_scrollBar));
+        return FALSE;
+    }
+
+    // {
+    //     if (gtk_widget_get_visible (GTK_WIDGET (ui_scrollBar))) {
+    //         g_print ("C scrollbar is visible %i\n", gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
+    //     } else {
+    //         g_print ("C scrollbar is NOT visible %i\n", gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
+    //     }
+    // }
+
+    //gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), ui_viewModel->view);
+
+    int newItemOnRow = ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
+
+    gint rowNum  = posval (ui_viewModel->romCount - 1) / newItemOnRow;
+    gint upper = (rowNum + 1) * (ui_tileSize_H + TILE_H_BORDER) + UI_OFFSET_Y;
+
+    gint pageHeight = gtk_widget_get_allocated_height (GTK_WIDGET (ui_drawingArea));
+
+    gdouble position = gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust));
+
+//g_print ("->in  position %f\n", position);
+
+    gtk_adjustment_configure (GTK_ADJUSTMENT (ui_adjust), position, 0, upper, UI_SCROLL_STEP, pageHeight, pageHeight);
+
+//position = gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust));
+//g_print ("->out position %f\n", position);
+
+    if (pageHeight >= upper) {
+        gtk_widget_hide (GTK_WIDGET (ui_scrollBar));
+    } else {
+        gtk_widget_show (GTK_WIDGET (ui_scrollBar));
+    }
+
+    return FALSE;
+}
+
+static gboolean
+ui_barValueChanged (GtkWidget *widget, GtkAdjustment *adj)
+{
+    ui_viewModel->view = gtk_adjustment_get_value (GTK_ADJUSTMENT (adj));
+
+    /* tooltips */
+    gint width  = gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea));
+    gint row = posval (ui_viewModel->view - UI_OFFSET_Y) / (ui_tileSize_H + TILE_H_BORDER);
+    gint idx = row * ui_itemOnRow (width);
+
+    gtk_widget_set_tooltip_markup (ui_scrollBar, rom_getItemDesc (view_getItem (ui_viewModel, idx)));
+    ui_invalidateDrawingArea ();
+
+    return TRUE;
 }
 
 static gboolean
@@ -395,49 +486,49 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
 
     switch (event->keyval) {
     case GDK_KEY_Up:
-        if (rom_count <= 0) return FALSE; // no rom found
+        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
 
         ui_focusPrevRow ();
-        ui_drawingAreaShowItem (ui_focus);
-        ui_repaint ();
+        ui_drawingAreaShowItem (ui_viewModel->focus);
+        ui_invalidateDrawingArea ();
         break;
-    
+
     case GDK_KEY_Down:
-        if (rom_count <= 0) return FALSE; // no rom found
+        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusNextRow ();
-        ui_drawingAreaShowItem (ui_focus);        
-        ui_repaint ();
+        ui_drawingAreaShowItem (ui_viewModel->focus);
+        ui_invalidateDrawingArea ();
         break;
-    
+
     case GDK_KEY_Right:
-        if (rom_count <= 0) return FALSE; // no rom found
+        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusNext ();
-        ui_drawingAreaShowItem (ui_focus);        
-        ui_repaint ();
+        ui_drawingAreaShowItem (ui_viewModel->focus);
+        ui_invalidateDrawingArea ();
         break;
-    
+
     case GDK_KEY_Left:
-        if (rom_count <= 0) return FALSE; // no rom found
+        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusPrev ();
-        ui_drawingAreaShowItem (ui_focus);        
-        ui_repaint ();
+        ui_drawingAreaShowItem (ui_viewModel->focus);
+        ui_invalidateDrawingArea ();
         break;
-    
+
     case GDK_KEY_Home:
-        if (rom_count <= 0) return FALSE; // no rom found
+        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusAt (0);
-        ui_drawingAreaShowItem (ui_focus);
-        ui_repaint ();
+        ui_drawingAreaShowItem (ui_viewModel->focus);
+        ui_invalidateDrawingArea ();
         break;
-    
+
     case GDK_KEY_End:
-        if (rom_count <= 0) return FALSE; // no rom found
-        ui_focusAt (rom_count - 1);
-        ui_drawingAreaShowItem (ui_focus);
-        ui_repaint ();
+        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
+        ui_focusAt (ui_viewModel->romCount - 1);
+        ui_drawingAreaShowItem (ui_viewModel->focus);
+        ui_invalidateDrawingArea ();
         break;
-    
-    case GDK_KEY_space:        
+
+    case GDK_KEY_space:
     case GDK_KEY_KP_Enter:
     case GDK_KEY_Return:
         if (!ui_inSelectState ()) {
@@ -446,171 +537,139 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         break;
 
     case GDK_KEY_plus:
-    case GDK_KEY_KP_Add:   
+    case GDK_KEY_KP_Add:
 
         if (ui_inSelectState ()) {
-            item = rom_getItem (ui_focus);
+            item = view_getItem (ui_viewModel, ui_viewModel->focus);
             rom_setItemRank (item, rom_getItemRank (item) + 1);
             pref_setRank (rom_getItemName (item), rom_getItemRank (item));
-            ui_repaint ();
+            ui_invalidateDrawingArea ();
         }
        break;
 
-    case GDK_KEY_minus:    
+    case GDK_KEY_minus:
     case GDK_KEY_KP_Subtract:
         if (ui_inSelectState ()) {
-            item = rom_getItem (ui_focus);            
+            item = view_getItem (ui_viewModel, ui_viewModel->focus);
             rom_setItemRank (item, rom_getItemRank (item) - 1);
             pref_setRank (rom_getItemName (item), rom_getItemRank (item));
-            ui_repaint ();            
+            ui_invalidateDrawingArea ();
         }
         break;
 
     case GDK_KEY_KP_0:
         if (ui_inSelectState ()) {
-            item = rom_getItem (ui_focus);            
+            item = view_getItem (ui_viewModel, ui_viewModel->focus);
             rom_setItemRank (item, 0);
             pref_setRank (rom_getItemName (item), 0);
-            ui_repaint ();
+            ui_invalidateDrawingArea ();
         }
         break;
 
     case GDK_KEY_KP_1:
         if (ui_inSelectState ()) {
-            item = rom_getItem (ui_focus);            
+            item = view_getItem (ui_viewModel, ui_viewModel->focus);
             rom_setItemRank (item, 1);
-            pref_setRank (rom_getItemName (item), 1);            
-            ui_repaint ();
+            pref_setRank (rom_getItemName (item), 1);
+            ui_invalidateDrawingArea ();
         }
         break;
 
     case GDK_KEY_KP_2:
         if (ui_inSelectState ()) {
-            item = rom_getItem (ui_focus);            
+            item = view_getItem (ui_viewModel, ui_viewModel->focus);
             rom_setItemRank (item, 2);
-            pref_setRank (rom_getItemName (item), 2);            
-            ui_repaint ();
+            pref_setRank (rom_getItemName (item), 2);
+            ui_invalidateDrawingArea ();
         }
         break;
 
     case GDK_KEY_KP_3:
         if (ui_inSelectState ()) {
-            item = rom_getItem (ui_focus);            
+            item = view_getItem (ui_viewModel, ui_viewModel->focus);
             rom_setItemRank (item, 3);
-            pref_setRank (rom_getItemName (item), 3);            
-            ui_repaint ();
+            pref_setRank (rom_getItemName (item), 3);
+            ui_invalidateDrawingArea ();
         }
         break;
 
     case GDK_KEY_KP_4:
         if (ui_inSelectState ()) {
-            item = rom_getItem (ui_focus);            
+            item = view_getItem (ui_viewModel, ui_viewModel->focus);
             rom_setItemRank (item, 4);
-            pref_setRank (rom_getItemName (item), 4);            
-            ui_repaint ();
+            pref_setRank (rom_getItemName (item), 4);
+            ui_invalidateDrawingArea ();
         }
         break;
 
     case GDK_KEY_KP_5:
         if (ui_inSelectState ()) {
-            item = rom_getItem (ui_focus);
+            item = view_getItem (ui_viewModel, ui_viewModel->focus);
             rom_setItemRank (item, 5);
-            pref_setRank (rom_getItemName (item), 5);            
-            ui_repaint ();
+            pref_setRank (rom_getItemName (item), 5);
+            ui_invalidateDrawingArea ();
         }
         break;
 
     case GDK_KEY_KP_Multiply:
     case GDK_KEY_asterisk:
         if (ui_inSelectState ()) {
-            item = rom_getItem (ui_focus);
+            item = view_getItem (ui_viewModel, ui_viewModel->focus);
             rom_setItemPref (item, !rom_getItemPref (item));
             pref_setPreferred (rom_getItemName (item), rom_getItemPref (item));
-
-            ui_repaint ();
+            ui_invalidateDrawingArea ();
         }
-        break;        
+        break;
 
     case GDK_KEY_Page_Up:
-        if (rom_count <= 0) return FALSE; // non rom found
-        gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust)) - gtk_adjustment_get_page_increment (GTK_ADJUSTMENT (ui_adjust)));    
+        if (ui_viewModel->romCount <= 0) return FALSE; // non rom found
+        gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust)) - gtk_adjustment_get_page_increment (GTK_ADJUSTMENT (ui_adjust)));
         break;
-    
+
     case GDK_KEY_Page_Down:
-        if (rom_count <= 0) return FALSE; // non rom found
-        gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust)) + gtk_adjustment_get_page_increment (GTK_ADJUSTMENT (ui_adjust)));    
+        if (ui_viewModel->romCount <= 0) return FALSE; // non rom found
+        gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust)) + gtk_adjustment_get_page_increment (GTK_ADJUSTMENT (ui_adjust)));
         break;
-    
+
     case GDK_KEY_F11:
     /*
         if (ui_isFullscreen ()) {
-            gtk_window_unfullscreen (GTK_WINDOW (ui_window));            
+            gtk_window_unfullscreen (GTK_WINDOW (ui_window));
         } else {
             gtk_window_fullscreen (GTK_WINDOW (ui_window));
         }
     */
         break;
-    
+
     case GDK_KEY_Escape:
         if (ui_inSelectState ()) {
-            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (ui_tbSelection), FALSE);            
+            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (ui_tbSelection), FALSE);
             break;
         }
 
         if (ui_isFullscreen ()) {
             g_action_group_activate_action (G_ACTION_GROUP (app_application), "fullscreen", NULL);
         }
-        break;    
+        break;
+
+    // FIXME TODO
+
+    // case GDK_KEY_KP_7:
+    //     if (!ui_inSelectState ()) {
+    //         view_test1 ();
+    //     }
+    //     break;
+
+    // case GDK_KEY_KP_9:
+    //     if (!ui_inSelectState ()) {
+    //         view_test2 ();
+    //     }
+    //     break;
+
     }
-
-    return TRUE;
-}
-
-
-static gboolean
-ui_drawingAreaConfigureEvent (void)
-{
-    int newItemOnRow = ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
-
-    // no rom found
-    if (rom_count <= 0) {
-        gtk_widget_hide (GTK_WIDGET (ui_scrollBar));
-        return FALSE;
-    }
-
-    gint rowNum  = (posval (rom_count - 1) / newItemOnRow);
-
-    gint upper = (rowNum + 1) * (ui_tileSize_H + TILE_H_BORDER) + UI_OFFSET_Y;    
-
-    gint pageHeight = gtk_widget_get_allocated_height (GTK_WIDGET (ui_drawingArea));
-
-    gdouble position = gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust));
-    
-    gtk_adjustment_configure (GTK_ADJUSTMENT (ui_adjust), position, 0, upper, UI_SCROLL_STEP, pageHeight, pageHeight);
-    if (pageHeight >= upper) {
-        gtk_widget_hide (GTK_WIDGET (ui_scrollBar));
-    } else {
-        gtk_widget_show (GTK_WIDGET (ui_scrollBar));        
-    }
-
     return FALSE;
 }
 
-static gboolean
-ui_barValueChanged (GtkWidget *widget, GtkAdjustment *adj)
-{
-    ui_view = gtk_adjustment_get_value (GTK_ADJUSTMENT (adj));
-
-    /* tooltips */
-    gint width  = gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)); 
-    gint row = posval (ui_view - UI_OFFSET_Y) / (ui_tileSize_H + TILE_H_BORDER);
-    gint idx = row * ui_itemOnRow (width); 
-
-    gtk_widget_set_tooltip_markup (ui_scrollBar, rom_getItemDesc (rom_getItem (idx)));
-    ui_repaint ();
-
-    return TRUE;
-}
 
 static gboolean
 ui_drawingAreaScrollEvent (GtkWidget *widget, GdkEventScroll *event, gpointer data)
@@ -630,16 +689,16 @@ ui_drawingAreaScrollEvent (GtkWidget *widget, GdkEventScroll *event, gpointer da
         factor = 1.0;
     }
 
-    gdouble position = gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust));    
+    gdouble position = gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust));
     switch (event->direction) {
     case GDK_SCROLL_UP:
         gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), position - factor * gtk_adjustment_get_step_increment (GTK_ADJUSTMENT (ui_adjust)));
-        break;    
-    case GDK_SCROLL_DOWN:    
+        break;
+    case GDK_SCROLL_DOWN:
         gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), position + factor * gtk_adjustment_get_step_increment (GTK_ADJUSTMENT (ui_adjust)));
         break;
     default:
-        // nothing to do 
+        // nothing to do
         break;
     }
 
@@ -649,8 +708,6 @@ ui_drawingAreaScrollEvent (GtkWidget *widget, GdkEventScroll *event, gpointer da
 static gboolean
 ui_drawingAreaMotionNotifyEvent (GtkWidget *widget, GdkEventMotion *event, gpointer data)
 {
-    static gint lastMouseOver = 0;
-
     if (mame_isRunning ()) return FALSE;
 
     ui_mouseOver = -1;
@@ -660,12 +717,13 @@ ui_drawingAreaMotionNotifyEvent (GtkWidget *widget, GdkEventMotion *event, gpoin
         ui_mouseOver = tileIdx;
     }
 
-    if (tileIdx != lastMouseOver) {
-        lastMouseOver = tileIdx;
-        ui_repaint ();
+    if (tileIdx != ui_mouseOverOld) {
+        ui_mouseOverOld = tileIdx;
+        ui_invalidateDrawingArea ();
     }
 
     return TRUE;
+
 }
 
 static gboolean
@@ -674,26 +732,24 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
     gint tileIdx;
 
     if (mame_isRunning ()) return FALSE;
-    
+
     switch (event->type) {
 
     case GDK_2BUTTON_PRESS:
-
         tileIdx = ui_getTileIdx (event->x, event->y, TRUE);
         if (tileIdx >= 0) {
             ui_focusAt (tileIdx);
 
             if (!ui_inSelectState ()) {
-                ui_drawingAreaShowItem (ui_focus);
+                ui_drawingAreaShowItem (ui_viewModel->focus);
                 ui_playClicked ();
             }
-            ui_repaint ();            
+            ui_repaint ();
         }
 
         break;
 
     case GDK_BUTTON_PRESS:
-
         switch (event->button) {
 
         case 1: // left
@@ -704,8 +760,8 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
                 if (ui_inSelectState ()) {
                     ui_prefManager (event->x, event->y);
                     ui_rankManager (event->x, event->y);
-                } else {  
-                    ui_drawingAreaShowItem (ui_focus);
+                } else {
+                    ui_drawingAreaShowItem (ui_viewModel->focus);
                 }
                 ui_repaint ();
             }
@@ -735,7 +791,7 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
 
     const GdkPixbuf *pix = NULL;
 
-    if (rom_count <= 0) {
+    if (ui_viewModel->romCount <= 0) {
         return TRUE;
     }
 
@@ -747,37 +803,25 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
     gint width  = gtk_widget_get_allocated_width (GTK_WIDGET (widget));
     gint height = gtk_widget_get_allocated_height (GTK_WIDGET (widget));
 
-    //gtk_style_context_get_color (gtk_widget_get_style_context (GTK_WIDGET (widget)), 0, &color);
-    //gdk_cairo_set_source_rgba (cr, &color);
-
-    /* set color for background */
-    //cairo_set_source_rgb (cr, UI_BACKGROUND);
-
-    /* set the line width */
-    //cairo_set_line_width (cr, 40);
-
-    /* fill in the background color*/
-    //cairo_paint (cr);
-
     /* get right tile base */
-    gint row = posval (ui_view - UI_OFFSET_Y) / (ui_tileSize_H + TILE_H_BORDER);
-    
-    gint idx = row * ui_itemOnRow (width); 
+    gint row = posval (ui_viewModel->view - UI_OFFSET_Y) / (ui_tileSize_H + TILE_H_BORDER);
+
+    gint idx = row * ui_itemOnRow (width);
 
     gint ui_base;
 
-    if (ui_view > UI_OFFSET_Y) {
-        ui_base = UI_OFFSET_Y + (ui_view - UI_OFFSET_Y) % (ui_tileSize_H + TILE_H_BORDER);
+    if (ui_viewModel->view > UI_OFFSET_Y) {
+        ui_base = UI_OFFSET_Y + (ui_viewModel->view - UI_OFFSET_Y) % (ui_tileSize_H + TILE_H_BORDER);
     } else {
-        ui_base = ui_view % (ui_tileSize_H + TILE_H_BORDER);
+        ui_base = ui_viewModel->view % (ui_tileSize_H + TILE_H_BORDER);
     }
 
 
-    for (y=0; -ui_base + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER) <= height; ++y) {   
+    for (y=0; -ui_base + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER) <= height; ++y) {
 
         for (x=0; (x + 1) * (ui_tileSize_W + tileBorder) + TILE_SHADOW_SIZE <= width; ++x) {
 
-            struct rom_romItem *item = rom_getItem (idx);
+            struct rom_romItem *item = view_getItem (ui_viewModel, idx);
 
             if (rom_getItemTileLoaded (item)) {
                 /* cached */
@@ -827,7 +871,7 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
             /* stroke the rectangle */
             cairo_stroke (cr);
 
-            /* pixbuf */   
+            /* pixbuf */
             cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
 
             cairo_rectangle (cr, diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER), pixbuf_w, pixbuf_h);
@@ -835,7 +879,7 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
             gdk_cairo_set_source_pixbuf (cr, pix, diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER));
 
             if (mame_isRunning ()) {
-                if (ui_focus != idx) {
+                if (ui_viewModel->focus != idx) {
                     cairo_set_operator (cr,CAIRO_OPERATOR_HSL_LUMINOSITY);
                 } else {
                     cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
@@ -859,7 +903,7 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
                     cairo_rectangle (cr, EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + EMBLEM_PADDING + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER), gdk_pixbuf_get_width (ui_selPrefOff), gdk_pixbuf_get_height (ui_selPrefOff));
                     gdk_cairo_set_source_pixbuf (cr, ui_selPrefOff, EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + EMBLEM_PADDING + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER));
                 }
-                cairo_fill (cr);                                
+                cairo_fill (cr);
 
                 /* emblem rank */
                 for (int i = 0; i < ROM_MAXRANK; ++i) {
@@ -869,16 +913,16 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
                     } else {
                         cairo_rectangle (cr, (i * gdk_pixbuf_get_width (ui_selRankOff)) + EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base - EMBLEM_PADDING + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER) + ui_tileSize_H - gdk_pixbuf_get_height (ui_selRankOff), gdk_pixbuf_get_width (ui_selRankOff), gdk_pixbuf_get_height (ui_selRankOff));
                         gdk_cairo_set_source_pixbuf (cr, ui_selRankOff, (i * gdk_pixbuf_get_width (ui_selRankOff)) + EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base - EMBLEM_PADDING + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER) + ui_tileSize_H - gdk_pixbuf_get_height (ui_selRankOff));
-                    }                            
+                    }
                     cairo_fill (cr);
                 }
 
             } else {
-                /* emblem fav */                
+                /* emblem fav */
                 if (rom_getItemPref (item)) {
                     cairo_rectangle (cr, EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + EMBLEM_PADDING + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER), gdk_pixbuf_get_width (rom_tileFavorite), gdk_pixbuf_get_height (rom_tileFavorite));
                     gdk_cairo_set_source_pixbuf (cr, rom_tileFavorite, EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + EMBLEM_PADDING + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER));
-                    cairo_fill (cr);            
+                    cairo_fill (cr);
                 }
 
                 /* emblem rank */
@@ -894,14 +938,14 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
             /* draw some text */
             cairo_set_font_face (cr, ui_tileFont);
             cairo_set_font_size (cr, TEXT_SIZE);
-            
-            if (ui_focus == idx || ui_mouseOver == idx) {
+
+            if (ui_viewModel->focus == idx || ui_mouseOver == idx) {
                 cairo_set_source_rgb (cr, TEXT_FONT_COLOR_FOCUS);
             } else {
                 cairo_set_source_rgb (cr, TEXT_FONT_COLOR);
             }
-            
-            const gchar *desc = (ui_focus == idx ? rom_getItemDescription (item) : rom_getItemDesc (item));
+
+            const gchar *desc = (ui_viewModel->focus == idx ? rom_getItemDescription (item) : rom_getItemDesc (item));
 
             gchar *title = g_strdup (desc);
             gint numChar = strlen (desc);
@@ -942,7 +986,7 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
             title = NULL;
 
             /* focus border */
-            if (ui_focus == idx) {
+            if (ui_viewModel->focus == idx) {
                 /* set the line width */
                 cairo_set_line_width (cr, TILE_FOCUS_SIZE);
                 cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
@@ -978,9 +1022,9 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
 
             }
 
-            ++idx; 
-            if (idx >= rom_count) {
-                 return TRUE;           
+            ++idx;
+            if (idx >= ui_viewModel->romCount) {
+                 return TRUE;
             }
         }
     }
@@ -991,7 +1035,7 @@ void
 ui_showAbout (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
     gtk_show_about_dialog (GTK_WINDOW (ui_window),
-                         "logo", ui_aboutLogo,        
+                         "logo", ui_aboutLogo,
                          "program-name", APP_NAME,
                          "title", APP_NAME,
                          "version", APP_VERSION,
@@ -1013,48 +1057,48 @@ ui_quit (GSimpleAction *simple, GVariant *parameter, gpointer user_data)
 
     GApplication *app = user_data;
 
-    g_application_quit (app);  
+    g_application_quit (app);
 }
 
 void
-ui_actionSort (GSimpleAction *simple, GVariant *parameter, gpointer user_data) 
+ui_actionSort (GSimpleAction *simple, GVariant *parameter, gpointer user_data)
 {
-    GVariant *state = g_action_get_state (G_ACTION (simple));    
+    GVariant *state = g_action_get_state (G_ACTION (simple));
 
     g_action_change_state (G_ACTION (simple), g_variant_new_boolean (!g_variant_get_boolean (state)));
-    g_variant_unref (state);    
-    
+    g_variant_unref (state);
+
     rom_setSort (rom_getSort () == ROM_SORT_AZ ? ROM_SORT_ZA : ROM_SORT_AZ);
 }
 
 void
-ui_actionFullscreen (GSimpleAction *simple, GVariant *parameter, gpointer user_data) 
+ui_actionFullscreen (GSimpleAction *simple, GVariant *parameter, gpointer user_data)
 {
     GVariant *state = g_action_get_state (G_ACTION (simple));
     g_action_change_state (G_ACTION (simple), g_variant_new_boolean (!g_variant_get_boolean (state)));
-    g_variant_unref (state);    
+    g_variant_unref (state);
 }
 
 void
-ui_actionChangeFullscreen (GSimpleAction *simple, GVariant *parameter, gpointer user_data) 
+ui_actionChangeFullscreen (GSimpleAction *simple, GVariant *parameter, gpointer user_data)
 {
     if (g_variant_get_boolean (parameter)) {
         gtk_window_fullscreen (GTK_WINDOW (ui_window));
     } else {
         gtk_window_unfullscreen (GTK_WINDOW (ui_window));
     }
-    g_simple_action_set_state (simple, parameter);    
+    g_simple_action_set_state (simple, parameter);
 }
 
 
 /*
-static gboolean 
+static gboolean
 ui_windowWindowStateEvent (GtkWidget *widget, GdkEventWindowState *event, gpointer user_data)
 {
     g_print("event\n");
 
     if (event->type != GDK_WINDOW_STATE) {
-           g_print("event 2\n");        
+           g_print("event 2\n");
         return FALSE;
     }
 
@@ -1063,11 +1107,11 @@ ui_windowWindowStateEvent (GtkWidget *widget, GdkEventWindowState *event, gpoint
             return FALSE;
     }
 
-    if (event->new_window_state == GDK_WINDOW_STATE_FULLSCREEN) {    
+    if (event->new_window_state == GDK_WINDOW_STATE_FULLSCREEN) {
         ui_fullscreen = TRUE;
         g_print(">event fullscreen\n");
     } else  {
-        g_print(">event normal\n");        
+        g_print(">event normal\n");
         ui_fullscreen = FALSE;
     }
 
@@ -1075,16 +1119,15 @@ ui_windowWindowStateEvent (GtkWidget *widget, GdkEventWindowState *event, gpoint
 }
 */
 
-void 
+void
 ui_init (void)
 {
     const gchar* cssFile = APP_RESOURCE APP_CSS;
 
     GtkWidget* box;
 
-    ui_focus = 0;
-    ui_view  = 0;
     ui_mouseOver = -1;
+    ui_mouseOverOld = 0;
 
     g_print ("resource path is %s\n", APP_RESOURCE);
 
@@ -1102,7 +1145,7 @@ ui_init (void)
 
     GtkBuilder *builder = gtk_builder_new ();
 
-    g_action_map_add_action_entries (G_ACTION_MAP (app_application), app_entries, -1, app_application);    
+    g_action_map_add_action_entries (G_ACTION_MAP (app_application), app_entries, -1, app_application);
 
     gtk_builder_add_from_string (builder,
                                "<interface>"
@@ -1155,7 +1198,7 @@ ui_init (void)
     g_object_unref (builder);
 
     gtk_window_set_title (GTK_WINDOW (ui_window), APP_NAME);
-    //gtk_window_set_hide_titlebar_when_maximized (GTK_WINDOW(ui_window), TRUE);    
+    //gtk_window_set_hide_titlebar_when_maximized (GTK_WINDOW(ui_window), TRUE);
 
     /* config */
     cfg_init ();
@@ -1165,12 +1208,12 @@ ui_init (void)
         g_print ("config file not found!\n");
         cfg_createDefaultConfigFile ();
     }
-    
+
     /* load config */
     g_assert (cfg_load ());
 
     ui_tileSize_W = MAX (cfg_keyInt ("TILE_SIZE_W"), TILE_MIN_SIZE);
-    ui_tileSize_H = MAX (cfg_keyInt ("TILE_SIZE_H"), TILE_MIN_SIZE);    
+    ui_tileSize_H = MAX (cfg_keyInt ("TILE_SIZE_H"), TILE_MIN_SIZE);
 
     // need extra space (1.5 * TILE_W_BORDER_MIN) for scrollbar
     gtk_window_set_default_size (GTK_WINDOW (ui_window), 4 * (ui_tileSize_W + TILE_W_BORDER_MIN) + TILE_W_BORDER_MIN + 1.5 * TILE_W_BORDER_MIN, UI_OFFSET_Y + 2.7 * (ui_tileSize_H + TILE_H_BORDER));
@@ -1179,7 +1222,7 @@ ui_init (void)
     gtk_window_set_icon_from_file (GTK_WINDOW (ui_window), APP_RESOURCE APP_ICON, &gerror);
 
     /* default icon */
-    gtk_window_set_default_icon_from_file (APP_RESOURCE APP_ICON, &gerror);    
+    gtk_window_set_default_icon_from_file (APP_RESOURCE APP_ICON, &gerror);
 
     /* header bar */
     ui_headerBar = gtk_header_bar_new ();
@@ -1188,17 +1231,19 @@ ui_init (void)
 
     /* play button */
     ui_playBtn = gtk_button_new_with_mnemonic ("_Play");
+    ui_setPlayBtnState (FALSE);
     gtk_button_set_focus_on_click (GTK_BUTTON (ui_playBtn), FALSE);
     gtk_header_bar_pack_start (GTK_HEADER_BAR (ui_headerBar), ui_playBtn);
     g_signal_connect (ui_playBtn, "clicked", G_CALLBACK (ui_playClicked), ui_headerBar);
 
     /* selection toolbar */
     ui_tbSelection = gtk_toggle_button_new ();
-    gtk_button_set_focus_on_click (GTK_BUTTON (ui_tbSelection), FALSE);    
-    gtk_widget_set_tooltip_text (ui_tbSelection, "Selection");     
-    GtkWidget *imgselect = gtk_image_new ();
-    gtk_image_set_from_icon_name (GTK_IMAGE (imgselect), "object-select-symbolic", GTK_ICON_SIZE_BUTTON);
-    gtk_button_set_image (GTK_BUTTON (ui_tbSelection), GTK_WIDGET (imgselect));
+    ui_setToolBarState (FALSE);
+    gtk_button_set_focus_on_click (GTK_BUTTON (ui_tbSelection), FALSE);
+    gtk_widget_set_tooltip_text (ui_tbSelection, "Selection");
+    GtkWidget *imgSelect = gtk_image_new ();
+    gtk_image_set_from_icon_name (GTK_IMAGE (imgSelect), "object-select-symbolic", GTK_ICON_SIZE_BUTTON);
+    gtk_button_set_image (GTK_BUTTON (ui_tbSelection), GTK_WIDGET (imgSelect));
     gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_tbSelection);
 
     /* connect "toggled" event to the button */
@@ -1224,27 +1269,27 @@ ui_init (void)
     ui_selPrefOff = gdk_pixbuf_new_from_file (APP_RESOURCE APP_SELECT_FAV_OFF, NULL);
     g_assert(ui_selPrefOff);
 
-    /* cut off the tilte bar */ 
+    /* cut off the tilte bar */
     gtk_style_context_add_class (gtk_widget_get_style_context (ui_headerBar), "titlebar");
     gtk_window_set_titlebar (GTK_WINDOW (ui_window), (ui_headerBar));
 
     /* vbox  */
     box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 1);
-    gtk_container_add (GTK_CONTAINER (ui_window), box);    
+    gtk_container_add (GTK_CONTAINER (ui_window), box);
 
     /* drawing area */
     ui_drawingArea = gtk_drawing_area_new ();
     gtk_widget_set_size_request (ui_drawingArea, 2 * TILE_W_BORDER_MIN + ui_tileSize_W, UI_OFFSET_Y + ui_tileSize_H + TILE_H_BORDER);
-
     gtk_box_pack_start (GTK_BOX (box), ui_drawingArea, TRUE, TRUE, 0);
 
+    /* scrollbar & adj widget*/
     ui_adjust = gtk_adjustment_new (0, 0, 0, 0, 0, 0);
-
-    /* scrollbar */
     ui_scrollBar = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL, ui_adjust);
-    gtk_box_pack_end (GTK_BOX (box), ui_scrollBar, FALSE, TRUE, 0);
+    /* hide */
+    gtk_widget_hide (ui_scrollBar);
+    gtk_box_pack_end (GTK_BOX (box), ui_scrollBar, FALSE, FALSE, 0);
 
-    g_signal_connect (ui_scrollBar, "value_changed", G_CALLBACK (ui_barValueChanged), ui_adjust);    
+    g_signal_connect (ui_scrollBar, "value_changed", G_CALLBACK (ui_barValueChanged), ui_adjust);
 
     /* dark theme */
     if (cfg_keyBool ("USE_DARK_THEME")) {
@@ -1263,17 +1308,15 @@ ui_init (void)
 
     rom_setSort (ROM_SORT_AZ);
 
-    /* no rom, no play... */
-    if (rom_count <= 0) {
-        ui_setPlayBtnState (FALSE);
-        ui_setToolBarState (FALSE);
-    }
+    /* view */
+    view_init ();
+
     /* web */
     www_init ();
 
     ui_focusAdd (0);
 
-    ui_aboutLogo = gdk_pixbuf_new_from_file(APP_RESOURCE APP_ICON_ABOUT, NULL);
+    ui_aboutLogo = gdk_pixbuf_new_from_file (APP_RESOURCE APP_ICON_ABOUT, NULL);
 
     /* loading font */
     ui_tileFont = cairo_toy_font_face_create (TEXT_FONT, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
@@ -1292,22 +1335,24 @@ ui_init (void)
     gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_SCROLL_MASK);
     gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_BUTTON_RELEASE_MASK);
     gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_BUTTON_PRESS_MASK);
-    gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_POINTER_MOTION_MASK);    
+    gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_POINTER_MOTION_MASK);
 
     g_signal_connect (G_OBJECT (ui_drawingArea), "configure-event", G_CALLBACK (ui_drawingAreaConfigureEvent), NULL);
 
     gtk_widget_show_all (GTK_WIDGET (ui_window));
+
 }
 
 void
 ui_free (void)
 {
-    ui_focus = 0;
-    ui_view  = 0;
     ui_mouseOver = -1;
-    
+
     /* user preference*/
     pref_free ();
+
+    /*view */
+    view_free ();
 
     /* free romlist */
     rom_free ();
@@ -1322,18 +1367,18 @@ ui_free (void)
     ui_tileFont = NULL;
 
     /* select rank on */
-    g_object_unref (ui_selRankOn);    
-    ui_selRankOn = NULL;    
-    
-    /* select rank off */    
-    g_object_unref (ui_selRankOff);    
-    ui_selRankOff = NULL;        
+    g_object_unref (ui_selRankOn);
+    ui_selRankOn = NULL;
+
+    /* select rank off */
+    g_object_unref (ui_selRankOff);
+    ui_selRankOff = NULL;
 
     /* select fav on */
-    g_object_unref (ui_selPrefOn);    
-    ui_selPrefOn = NULL;    
-    
-    /* select fav off */    
+    g_object_unref (ui_selPrefOn);
+    ui_selPrefOn = NULL;
+
+    /* select fav off */
     g_object_unref (ui_selPrefOff);
     ui_selPrefOff = NULL;
 
@@ -1341,48 +1386,49 @@ ui_free (void)
     ui_aboutLogo = NULL;
 }
 
-void 
+void
 ui_setPlayBtnState (gboolean state)
 {
     gtk_widget_set_sensitive (ui_playBtn, state);
 }
 
-void 
+void
 ui_setToolBarState (gboolean state)
 {
-    gtk_widget_set_sensitive (ui_tbSelection, state);        
-//    gtk_widget_set_sensitive (ui_tbFavorite, state);    
-//    gtk_widget_set_sensitive (ui_tbRank, state);
+    gtk_widget_set_sensitive (ui_tbSelection, state);
 }
 
-inline void 
-ui_repaint (void)
+void
+ui_setScrollBarState (gboolean state)
 {
-    /* redraw drawing area */
-    gtk_widget_queue_draw (GTK_WIDGET (ui_drawingArea));
-
-    while (gtk_events_pending ())
-            gtk_main_iteration ();    
+    gtk_widget_set_sensitive (ui_scrollBar, state);
 }
 
 inline void
-ui_setFocus (void) 
+ui_setFocus (void)
 {
     gtk_window_present (GTK_WINDOW (ui_window));
 }
 
 inline gboolean
-ui_tileIsVisible (int index) 
+ui_tileIsVisible (struct rom_romItem *item)
 {
-    gint uiTop  = ((index) / ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea))));
-    gint itemTop = uiTop * (ui_tileSize_H + TILE_H_BORDER) + UI_OFFSET_Y;
+    gint index = g_list_index (ui_viewModel->romList, item);
 
-    if (itemTop > ui_view + gtk_widget_get_allocated_height (GTK_WIDGET (ui_drawingArea)) || itemTop + ui_tileSize_H + TILE_H_BORDER < ui_view) {    
-        //g_print ("%i is NOT visible (%i %i) (%i %i)\n", index, itemTop, itemTop + ui_tileSize_H + TILE_H_BORDER, ui_view, ui_view + gtk_widget_get_allocated_height (GTK_WIDGET (ui_drawingArea)));
-        return FALSE;
+    if (index >= 0) {
+        gint uiTop  = ((index) / ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea))));
+        gint itemTop = uiTop * (ui_tileSize_H + TILE_H_BORDER) + UI_OFFSET_Y;
+
+        if (itemTop > ui_viewModel->view + gtk_widget_get_allocated_height (GTK_WIDGET (ui_drawingArea)) || itemTop + ui_tileSize_H + TILE_H_BORDER < ui_viewModel->view) {
+            //g_print ("%i is NOT visible\n", index);
+            return FALSE;
+        } else {
+            //g_print ("%i is visible\n", index);
+            return TRUE;
+        }
     } else {
-        //g_print ("%i is visible (%i %i) (%i %i)\n", index, itemTop, itemTop + ui_tileSize_H + TILE_H_BORDER, ui_view, ui_view + gtk_widget_get_allocated_height (GTK_WIDGET (ui_drawingArea)));
-        return TRUE;
+        //g_print ("NOT in list\n");
+        return FALSE;
     }
 }
 
@@ -1390,7 +1436,7 @@ inline static gint
 ui_getTileCol (gint idx)
 {
     gint maxCol = ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
-    
+
     return idx % maxCol;
 }
 
@@ -1403,52 +1449,52 @@ ui_getTileRow (gint idx)
 }
 
 static gint
-ui_getTilePixbufW (gint idx)
+ui_getTilePixbufW (gint idxModel)
 {
-    g_assert (idx >= 0);
+    g_assert (idxModel >= 0);
 
-    const GdkPixbuf* pix = rom_getItemTile (rom_getItem (idx));
+    const GdkPixbuf* pix = rom_getItemTile (view_getItem (ui_viewModel, idxModel));
 
     if (!pix) pix = rom_tileNoImage;
-    
+
     g_assert (pix);
 
     return gdk_pixbuf_get_width (pix);
 }
 
 inline static gint
-ui_getTilePixbufH (gint idx)
+ui_getTilePixbufH (gint idxModel)
 {
-    g_assert (idx >= 0);
+    g_assert (idxModel >= 0);
 
-    const GdkPixbuf* pix = rom_getItemTile (rom_getItem (idx));
+    const GdkPixbuf* pix = rom_getItemTile (view_getItem (ui_viewModel, idxModel));
 
     if (!pix) pix = rom_tileNoImage;
-    
+
     g_assert (pix);
 
     return gdk_pixbuf_get_height (pix);
 }
 
 inline static gdouble
-ui_getTileX (gint idx)
+ui_getTileX (gint idxModel)
 {
-    g_assert (idx >= 0);
+    g_assert (idxModel >= 0);
 
     gint tileBorder = ui_getTileWBorderSize ();
-    gint pixbuf_w = ui_getTilePixbufW (idx);
+    gint pixbuf_w = ui_getTilePixbufW (idxModel);
 
-    return ui_getTileCol (idx) * (ui_tileSize_W + tileBorder) + tileBorder + (ui_tileSize_W - pixbuf_w) / 2;
+    return ui_getTileCol (idxModel) * (ui_tileSize_W + tileBorder) + tileBorder + (ui_tileSize_W - pixbuf_w) / 2;
 
 }
 
 inline static gdouble
-ui_getTileY (gint idx)
+ui_getTileY (gint idxModel)
 {
-    g_assert (idx >= 0);
+    g_assert (idxModel >= 0);
 
-    gint rowNum = ui_getTileRow (idx);
-    gint pixbuf_h = ui_getTilePixbufH (idx);
+    gint rowNum = ui_getTileRow (idxModel);
+    gint pixbuf_h = ui_getTilePixbufH (idxModel);
 
     return rowNum * (ui_tileSize_H + TILE_H_BORDER) + UI_OFFSET_Y + (ui_tileSize_H - pixbuf_h);
 }
@@ -1460,12 +1506,12 @@ ui_prefManager (gdouble x, gdouble y)
 
     if (idx >=0) {
         gint fav_w = gdk_pixbuf_get_width (ui_selPrefOn);
-        gint fav_h = gdk_pixbuf_get_height (ui_selPrefOn);        
+        gint fav_h = gdk_pixbuf_get_height (ui_selPrefOn);
 
         gint baseTileX = ui_getTileX (idx) + EMBLEM_PADDING;
         gint baseTileY = ui_getTileY (idx) + EMBLEM_PADDING;
 
-        if (pointInside (x, y + ui_view, baseTileX, baseTileY, baseTileX + fav_w, baseTileY + fav_h)) {        
+        if (pointInside (x, y + ui_viewModel->view, baseTileX, baseTileY, baseTileX + fav_w, baseTileY + fav_h)) {
             ui_preference_cb ();
         }
     }
@@ -1478,16 +1524,110 @@ ui_rankManager (gdouble x, gdouble y)
 
     if (idx >=0) {
         gint fav_w = gdk_pixbuf_get_width (ui_selRankOn);
-        gint fav_h = gdk_pixbuf_get_height (ui_selRankOn);        
+        gint fav_h = gdk_pixbuf_get_height (ui_selRankOn);
 
         for (gint i = 0; i < ROM_MAXRANK; ++i) {
             gint baseTileX = ui_getTileX (idx) + EMBLEM_PADDING + fav_w * i;
             gint baseTileY = ui_getTileY (idx) - EMBLEM_PADDING - fav_h + ui_getTilePixbufH (idx);
 
-            if (pointInside (x, y + ui_view, baseTileX, baseTileY, baseTileX + fav_w, baseTileY + fav_h)) {        
+            if (pointInside (x, y + ui_viewModel->view, baseTileX, baseTileY, baseTileX + fav_w, baseTileY + fav_h)) {
                 ui_rank_cb (i+1);
                 return;
             }
-        }            
+        }
     }
+}
+
+
+void
+ui_setDefaultView (struct view_viewModel *view)
+{
+    ui_viewModel = view;
+    ui_mouseOver = -1;
+    ui_mouseOverOld = 0;
+
+    /* no rom, no play... */
+    if (ui_viewModel->romCount <= 0) {
+        ui_setPlayBtnState (FALSE);
+        ui_setToolBarState (FALSE);
+    } else {
+        ui_setPlayBtnState (TRUE);
+        ui_setToolBarState (TRUE);
+    }
+
+    gtk_widget_hide (GTK_WIDGET (ui_scrollBar));
+}
+
+// TODO FIXME
+void
+ui_setView (struct view_viewModel *view)
+{
+    g_print ("*SetView \n");
+
+    ui_viewModel = view;
+    ui_mouseOver = -1;
+    ui_mouseOverOld = 0;
+
+    /* no rom, no play... */
+    if (ui_viewModel->romCount <= 0) {
+        ui_setPlayBtnState (FALSE);
+        ui_setToolBarState (FALSE);
+    } else {
+        ui_setPlayBtnState (TRUE);
+        ui_setToolBarState (TRUE);
+    }
+
+    if (ui_viewModel->romCount <= 0) {
+        gtk_widget_hide (GTK_WIDGET (ui_scrollBar));
+        return ;
+    }
+
+
+    g_object_freeze_notify (G_OBJECT(ui_adjust));
+    g_object_freeze_notify (G_OBJECT(ui_drawingArea));
+    ui_drawingAreaConfigureEvent ();
+    g_object_thaw_notify  (G_OBJECT(ui_drawingArea));
+    g_object_thaw_notify  (G_OBJECT(ui_adjust));
+    //ui_focusAt (ui_viewModel->focus);
+
+    //
+    // g_object_freeze_notify (G_OBJECT(ui_adjust));
+    // g_print ("\nValue was %f ", gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust)));
+    // g_print (" Lower was %f Upper was %f", gtk_adjustment_get_lower (GTK_ADJUSTMENT (ui_adjust)), gtk_adjustment_get_upper(GTK_ADJUSTMENT (ui_adjust)));
+    // g_print (" try to write %i ",  ui_viewModel->view);
+    // g_print (" windowarea %i ", gtk_widget_get_allocated_width (GTK_WIDGET (ui_window)));
+
+    // g_print ("\n FIXME Here %i \n", gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
+    // int newItemOnRow = ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
+    // gint rowNum  = posval (ui_viewModel->romCount - 1) / newItemOnRow;
+    // gint upper = (rowNum + 1) * (ui_tileSize_H + TILE_H_BORDER) + UI_OFFSET_Y;
+    // gint pageHeight = gtk_widget_get_allocated_height (GTK_WIDGET (ui_drawingArea));
+
+    // g_print (" upper willbe %i (rownum %i, rom %i, iteonrow %i)",  upper, rowNum, ui_viewModel->romCount, newItemOnRow);
+
+    // gtk_adjustment_configure (GTK_ADJUSTMENT (ui_adjust), 0, 0, upper, UI_SCROLL_STEP, pageHeight, pageHeight);
+    // gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), (float) ui_viewModel->view);
+
+    // g_print (" Value now %f ", gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust)));
+    // ui_drawingAreaConfigureEvent ();
+    // g_print (" Value now2 %f\n", gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust)));
+
+    //
+
+    gtk_widget_queue_draw (GTK_WIDGET (ui_window));
+
+}
+
+
+inline gboolean
+ui_invalidateDrawingArea (void)
+{
+    // from other thread (!= MainThread), we must invalidate the da to force a repaint
+    GtkAllocation allocation;
+    GdkWindow *win = gtk_widget_get_window (GTK_WIDGET (ui_window));
+    if (win) {
+        gtk_widget_get_allocation (GTK_WIDGET (ui_window), &allocation);
+        gdk_window_invalidate_rect (win, &allocation, FALSE);
+    }
+    return TRUE;
 }

@@ -55,11 +55,11 @@ max (gint a, gint b)
 }
 
 inline gboolean
-pointInside (gint x, gint y, gint ax, gint ay, gint bx, gint by) 
+pointInside (gint x, gint y, gint ax, gint ay, gint bx, gint by)
 {
     /* standard AABB test */
     if ((x < ax) || (x > bx) || (y < ay) || (y > by)) {
-        return FALSE;    
+        return FALSE;
     } else {
         return TRUE;
     }
@@ -68,11 +68,11 @@ pointInside (gint x, gint y, gint ax, gint ay, gint bx, gint by)
 
 #ifdef DEBUG_TIMING
 
-inline void 
+inline void
 logTimer (const gchar* message)
 {
     GTimeVal time;
-    
+
     g_get_current_time (&time);
     gchar *date = g_time_val_to_iso8601(&time);
     g_print ("*%s* %s\n", date, message);

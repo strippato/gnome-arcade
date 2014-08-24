@@ -21,41 +21,68 @@
 #include <stdio.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
-#include <string.h> 
+#include <string.h>
 
 #include "global.h"
-#include "rom.h"
 #include "view.h"
+#include "rom.h"
+#include "ui.h"
 
-// TODO
- 
-void 
-view_init (void)
+
+static struct view_viewModel* modelUser; // user set
+static struct view_viewModel* modelPref; // user favourite rom
+
+static void
+view_modelAdd (struct view_viewModel* model, struct rom_romItem* item)
 {
-
+	model->romList = g_list_insert (model->romList, item, -1);
+	model->romCount++;
 }
 
-void 
-view_free (void)
-{
-
-}
-
-struct view_model*
+static struct view_viewModel*
 view_modelCreate (void)
 {
 
-	struct view_model* model = NULL;
-	model = g_malloc (sizeof (struct view_model));
-	model->curretItem = 0;
+	struct view_viewModel* model = NULL;
+	model = g_malloc (sizeof (struct view_viewModel));
+	model->romList = NULL;
+	model->romCount = 0;
+	model->focus = 0;
+	model->view = 0;
 
 	return model;
 }
 
-void 
-view_modelFree (struct view_model* model)
+void
+view_init (void)
 {
-    model->curretItem = 0;
+	g_print ("creating model: user & favourite");
+	modelUser = view_modelCreate (); // user romsett
+	modelPref = view_modelCreate (); // favourite rom
+
+    for (GList *l = rom_romList; l != NULL; l = l->next) {
+        struct rom_romItem *item = l->data;
+        if (item->romFound) {
+        	view_modelAdd (modelUser, item);
+        }
+
+        if (item->pref) {
+        	view_modelAdd (modelPref, item);
+        }
+
+    }
+
+	g_print (SUCCESS_MSG "\n");
+
+	ui_setDefaultView (modelUser);
+}
+
+static void
+view_modelFree (struct view_viewModel* model)
+{
+	model->romCount = 0;
+	model->focus = 0;
+	model->view = 0;
 
     g_list_free (model->romList);
     model->romList = NULL;
@@ -64,31 +91,31 @@ view_modelFree (struct view_model* model)
     model = NULL;
 }
 
-
-void 
-view_modelAdd (struct view_model* model, struct rom_romItem* item)
+void
+view_free (void)
 {
-	model->romList = g_list_insert (model->romList, item, 0);
+	view_modelFree (modelUser);
+	view_modelFree (modelPref);
 }
 
-/*
-static void
-view_test (void)
+
+inline struct rom_romItem*
+view_getItem (struct view_viewModel *view, int numGame)
 {
+    g_assert (numGame < view->romCount);
 
-	struct rom_romItem* item = NULL;
-
-	view_init ();
-
-	struct view_model* myModel = view_modelCreate ();
-
-	item = rom_getItem (1);
-	view_modelAdd (myModel, item);
-
-	view_modelFree (myModel);
-
-	view_free ();
-
+    return g_list_nth_data (view->romList, numGame);
 }
-*/
 
+//FIXME
+// void
+// view_test1 (void)
+// {
+// 	ui_setView (modelUser);
+// }
+
+// void
+// view_test2 (void)
+// {
+// 	ui_setView (modelPref);
+// }

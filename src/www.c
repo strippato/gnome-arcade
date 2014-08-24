@@ -26,6 +26,7 @@
 
 #include "global.h"
 #include "rom.h"
+#include "view.h"
 #include "ui.h"
 #include "config.h"
 #include "util.h"
@@ -35,7 +36,7 @@
 
 static const gchar* www_webProvider = NULL;
 
-void 
+void
 www_init (void)
 {
     if (g_str_has_prefix (cfg_keyStr ("WEB_PATH"), "~")) {
@@ -61,7 +62,7 @@ www_init (void)
     }
 }
 
-void 
+void
 www_free (void)
 {
 	g_free (www_tilePath);
@@ -70,7 +71,7 @@ www_free (void)
     www_webProvider = NULL;
 }
 
-static void 
+static void
 www_closeStream_cb (GObject *source_object, GAsyncResult *res, gpointer user_data)
 {
     g_input_stream_close_finish (G_INPUT_STREAM (source_object), res, NULL);
@@ -81,13 +82,13 @@ static void
 www_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem *item)
 {
     GError *error = NULL;
-    GInputStream *stream = G_INPUT_STREAM (source_object);    
+    GInputStream *stream = G_INPUT_STREAM (source_object);
     item->tile = gdk_pixbuf_new_from_stream_finish (res, &error);
 
     g_object_unref (item->tileFile);
     item->tileFile = NULL;
 
-    g_input_stream_close_async (stream, G_PRIORITY_DEFAULT, NULL, (GAsyncReadyCallback) www_closeStream_cb, NULL);
+    g_input_stream_close_async (stream, G_PRIORITY_HIGH, NULL, (GAsyncReadyCallback) www_closeStream_cb, NULL);
 
 	gchar* localName = www_getFileNameWWW (item->name);
 
@@ -111,8 +112,8 @@ www_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem
 
     g_free (localName);
 
-    if (ui_tileIsVisible (g_list_index (rom_romList, item))) {
-        ui_repaint ();
+    if (ui_tileIsVisible (item)) {
+        ui_invalidateDrawingArea ();
     }
 }
 
@@ -134,28 +135,29 @@ www_fileRead_cb (GFile *file, GAsyncResult *res, struct rom_romItem *item)
         item->tileLoaded = TRUE;
         item->tileLoading = FALSE;
 
-        if (ui_tileIsVisible (g_list_index (rom_romList, item))) {
-            ui_repaint ();
+        if (ui_tileIsVisible (item)) {
+            ui_invalidateDrawingArea ();
         }
     }
-} 
+}
 
-void 
+void
 www_download (struct rom_romItem* item)
 {
 	gchar *fileNameWeb = g_strdup_printf (www_webProvider, item->name);
-	g_print ("fetching [%s] %s\n", item->name, fileNameWeb);	
+	g_print ("fetching [%s] %s\n", item->name, fileNameWeb);
 
 	item->tileFile = g_file_new_for_uri (fileNameWeb);
 
-    g_file_read_async (item->tileFile, G_PRIORITY_HIGH_IDLE, FALSE, (GAsyncReadyCallback) www_fileRead_cb, item);
+    g_file_read_async (item->tileFile, G_PRIORITY_HIGH, FALSE, (GAsyncReadyCallback) www_fileRead_cb, item);
 
 	g_free (fileNameWeb);
 
 }
 
-inline gchar* 
+inline gchar*
 www_getFileNameWWW (const gchar* romName)
 {
-	return g_strdup_printf ("%s%s.%s", www_tilePath, romName, WWW_EXTENSION_PNG);	
+	return g_strdup_printf ("%s%s.%s", www_tilePath, romName, WWW_EXTENSION_PNG);
 }
+
