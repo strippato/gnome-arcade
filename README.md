@@ -8,7 +8,7 @@ a minimal MAME frontend
 
 
 ### Download prebuilt binaries (all credit goes to Gallocri)
-![Linux](http://software.opensuse.org/download.html?project=home%3Agallochri%3AStrippato&package=gnome-arcade)
+- [Linux](http://software.opensuse.org/download.html?project=home%3Agallochri%3AStrippato&package=gnome-arcade)
 
 
 
