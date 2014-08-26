@@ -85,10 +85,10 @@ www_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem
     GInputStream *stream = G_INPUT_STREAM (source_object);
     item->tile = gdk_pixbuf_new_from_stream_finish (res, &error);
 
+    g_input_stream_close_async (stream, G_PRIORITY_HIGH, NULL, (GAsyncReadyCallback) www_closeStream_cb, NULL);
+
     g_object_unref (item->tileFile);
     item->tileFile = NULL;
-
-    g_input_stream_close_async (stream, G_PRIORITY_HIGH, NULL, (GAsyncReadyCallback) www_closeStream_cb, NULL);
 
 	gchar* localName = www_getFileNameWWW (item->name);
 
