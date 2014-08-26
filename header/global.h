@@ -37,9 +37,10 @@
 #define COLOR_MAGENTA "\x1B[35m"
 #define COLOR_CYAN    "\x1B[36m"
 #define COLOR_WHITE   "\x1B[37m"
+#define COLOR_RESET   "\033[0m"
 
-#define SUCCESS_MSG COLOR_GREEN "✓" COLOR_NORMAL
-#define FAIL_MSG 	COLOR_RED "✗" COLOR_NORMAL
+#define SUCCESS_MSG COLOR_GREEN "✓" COLOR_RESET
+#define FAIL_MSG 	COLOR_RED "✗" COLOR_RESET
 
 
 #endif

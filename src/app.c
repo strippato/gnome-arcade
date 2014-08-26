@@ -84,7 +84,7 @@ main (gint argc, gchar *argv[])
     g_print ("WARNING DEBUG IS ACTIVE (max %i rom loaded)\n", DEBUG_ROM_LIMIT);
 #endif
 
-    g_print (COLOR_RED APP_NAME " rel. " APP_VERSION COLOR_NORMAL"\n");
+    g_print (COLOR_RED APP_NAME " rel. " APP_VERSION COLOR_RESET"\n");
     g_print (APP_DESCRIPTION "\n\n");
     g_print (APP_COPYRIGHT " " APP_AUTHOR_EMAIL "\n");
     g_print (APP_LICENSE "\n");
