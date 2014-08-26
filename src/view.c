@@ -56,7 +56,7 @@ view_modelCreate (void)
 void
 view_init (void)
 {
-	g_print ("creating model: user & favourite");
+	g_print ("creating model ");
 	modelUser = view_modelCreate (); // user romsett
 	modelPref = view_modelCreate (); // favourite rom
 
