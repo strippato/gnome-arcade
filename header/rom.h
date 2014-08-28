@@ -51,11 +51,12 @@ struct rom_romItem {
 	guint	 rank;
 	guint	 nplay;
 
+
 	// pixbuf
 	gboolean  tileLoading;
 	gboolean  tileLoaded;
 	GdkPixbuf *tile;
-	GFile     *tileFile;
+	//GFile     *tileFile;
 };
 
 extern GList *rom_romList; // all game (NOT clone, NOT bios)

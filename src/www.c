@@ -87,9 +87,6 @@ www_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem
 
     g_input_stream_close_async (stream, G_PRIORITY_HIGH, NULL, (GAsyncReadyCallback) www_closeStream_cb, NULL);
 
-    g_object_unref (item->tileFile);
-    item->tileFile = NULL;
-
 	gchar* localName = www_getFileNameWWW (item->name);
 
     if (!error) {
@@ -124,6 +121,9 @@ www_fileRead_cb (GFile *file, GAsyncResult *res, struct rom_romItem *item)
     gboolean keepratio = cfg_keyBool ("TILE_KEEP_ASPECT_RATIO");
     GFileInputStream *input = g_file_read_finish (file, res, &error);
 
+    g_object_unref (file);
+    file = NULL;
+
     if (!error) {
         gdk_pixbuf_new_from_stream_at_scale_async ((GInputStream*) input, ui_tileSize_W, ui_tileSize_H, keepratio, NULL, (GAsyncReadyCallback) www_pixbufRead_cb, item);
     } else {
@@ -147,9 +147,9 @@ www_download (struct rom_romItem* item)
 	gchar *fileNameWeb = g_strdup_printf (www_webProvider, item->name);
 	g_print ("fetching [%s] %s\n", item->name, fileNameWeb);
 
-	item->tileFile = g_file_new_for_uri (fileNameWeb);
+	GFile *tileFile = g_file_new_for_uri (fileNameWeb);
 
-    g_file_read_async (item->tileFile, G_PRIORITY_HIGH, FALSE, (GAsyncReadyCallback) www_fileRead_cb, item);
+    g_file_read_async (tileFile, G_PRIORITY_HIGH, FALSE, (GAsyncReadyCallback) www_fileRead_cb, item);
 
 	g_free (fileNameWeb);
 

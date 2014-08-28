@@ -127,7 +127,6 @@ rom_listFree (struct rom_romItem *item)
     if (item->description) g_free (item->description);
     if (item->desc) g_free (item->desc);
     if (item->tile) g_object_unref (item->tile);
-    if (item->tileFile) g_object_unref (item->tileFile);
 
     item->name = NULL;
     item->description = NULL;
@@ -135,7 +134,6 @@ rom_listFree (struct rom_romItem *item)
     item->tileLoaded = FALSE;
     item->tileLoading = FALSE;
     item->tile = NULL;
-    item->tileFile = NULL;
     item->rank = 0;
     item->pref = FALSE;
     item->nplay = 0;
@@ -242,7 +240,6 @@ rom_parentOf (const gchar *romName)
 inline struct rom_romItem*
 rom_newItem (void)
 {
-    //struct rom_romItem* item = g_malloc (sizeof (struct rom_romItem));
     struct rom_romItem* item = g_new (struct rom_romItem, 1);
 
     item->name = NULL;
@@ -251,13 +248,11 @@ rom_newItem (void)
     item->tileLoaded = FALSE;
     item->tileLoading = FALSE;
     item->tile = NULL;
-    item->tileFile = NULL;
     item->rank = 0;
     item->pref = FALSE;
     item->nplay = 0;
     item->romFound = FALSE;
 
-    //rom_romList = g_list_insert (rom_romList, item, rom_count++);
     rom_romList = g_list_prepend (rom_romList, item);
     rom_count++;
 
@@ -390,8 +385,6 @@ rom_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem
 
     g_input_stream_close_async (stream, G_PRIORITY_HIGH, NULL, (GAsyncReadyCallback) rom_closeStream_cb, NULL);
 
-    g_object_unref (item->tileFile);
-    item->tileFile = NULL;
 
     if (error) {
         g_warning ("pixbuf stream error:%s\n", error->message);
@@ -413,6 +406,9 @@ rom_fileRead_cb (GFile *file, GAsyncResult *res, struct rom_romItem *item)
     GError *error = NULL;
     gboolean keepratio = cfg_keyBool ("TILE_KEEP_ASPECT_RATIO");
     GFileInputStream *input = g_file_read_finish (file, res, &error);
+
+    g_object_unref (file);
+    file = NULL;
 
     if (!error) {
         gdk_pixbuf_new_from_stream_at_scale_async ((GInputStream*) input, ui_tileSize_W, ui_tileSize_H, keepratio, NULL, (GAsyncReadyCallback) rom_pixbufRead_cb, item);
@@ -438,6 +434,9 @@ rom_fileReadNoScale_cb (GFile *file, GAsyncResult *res, struct rom_romItem *item
 {
     GError *error = NULL;
     GFileInputStream *input = g_file_read_finish (file, res, &error);
+
+    g_object_unref (file);
+    file = NULL;
 
     if (!error) {
         gdk_pixbuf_new_from_stream_async ((GInputStream*) input, NULL, (GAsyncReadyCallback) rom_pixbufRead_cb, item);
@@ -476,15 +475,16 @@ rom_loadItemAsync (struct rom_romItem* item)
     // web downloaded (png)
     gchar *fileNameWWW = www_getFileNameWWW (romName);
 
+    GFile *tileFile = NULL;
     if (g_file_test (fileNamePng, G_FILE_TEST_EXISTS)) {
-        item->tileFile = g_file_new_for_path (fileNamePng);
-        g_file_read_async (item->tileFile, G_PRIORITY_HIGH, FALSE, (GAsyncReadyCallback) rom_fileRead_cb, item);
+        tileFile = g_file_new_for_path (fileNamePng);
+        g_file_read_async (tileFile , G_PRIORITY_HIGH, FALSE, (GAsyncReadyCallback) rom_fileRead_cb, item);
     } else if (g_file_test (fileNameJpg, G_FILE_TEST_EXISTS)) {
-        item->tileFile = g_file_new_for_path (fileNameJpg);
-        g_file_read_async (item->tileFile, G_PRIORITY_HIGH, FALSE, (GAsyncReadyCallback) rom_fileRead_cb, item);
+        tileFile = g_file_new_for_path (fileNameJpg);
+        g_file_read_async (tileFile , G_PRIORITY_HIGH, FALSE, (GAsyncReadyCallback) rom_fileRead_cb, item);
     } else if (g_file_test (fileNameWWW, G_FILE_TEST_EXISTS)) {
-        item->tileFile = g_file_new_for_path (fileNameWWW);
-        g_file_read_async (item->tileFile, G_PRIORITY_HIGH, FALSE, (GAsyncReadyCallback) rom_fileReadNoScale_cb, item);
+        tileFile  = g_file_new_for_path (fileNameWWW);
+        g_file_read_async (tileFile , G_PRIORITY_HIGH, FALSE, (GAsyncReadyCallback) rom_fileReadNoScale_cb, item);
     } else {
         if (www_autoDownload) {
             www_download (item);
@@ -519,10 +519,7 @@ rom_invalidateUselessTile (void)
                     item->tileLoading = FALSE;
 
                     if (item->tile) g_object_unref (item->tile);
-                    if (item->tileFile) g_object_unref (item->tileFile);
-
                     item->tile = NULL;
-                    item->tileFile = NULL;
                 }
             }
         }
