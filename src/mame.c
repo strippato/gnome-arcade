@@ -319,15 +319,17 @@ zoo               "Zoo (Ver. ZO.02.D)"
             romName7Zip = g_strdup_printf ("%s%s.%s", romPath, name, ROM_EXTENSION_7ZIP);
             romNameDir = g_strdup_printf ("%s%s", romPath, name);
 
-            // if (rom_isClone(name)) g_print ("%s is cloneof %s\n", name, rom_parentOf(name));
             gboolean foundRom = FALSE;
 
-            if (g_file_test (romNameZip, G_FILE_TEST_EXISTS)) {
-                foundRom = TRUE;
-            } else if (g_file_test (romName7Zip, G_FILE_TEST_EXISTS)) {
-                foundRom = TRUE;
-            } else if (g_file_test (romNameDir, G_FILE_TEST_IS_DIR)) {
-                foundRom = TRUE;
+            // clones romset will not be checked for performance reasons
+            if (rom_isParent (name)) {
+                if (g_file_test (romNameZip, G_FILE_TEST_EXISTS)) {
+                    foundRom = TRUE;
+                } else if (g_file_test (romName7Zip, G_FILE_TEST_EXISTS)) {
+                    foundRom = TRUE;
+                } else if (g_file_test (romNameDir, G_FILE_TEST_IS_DIR)) {
+                    foundRom = TRUE;
+                }
             }
 
             tempstr = strstr (buf, "\"");

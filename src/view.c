@@ -62,14 +62,17 @@ view_init (void)
 
     for (GList *l = rom_romList; l != NULL; l = l->next) {
         struct rom_romItem *item = l->data;
-        if (item->romFound) {
-        	view_modelAdd (modelUser, item);
-        }
 
-        if (item->pref) {
-        	view_modelAdd (modelPref, item);
-        }
+        // only parent
+        if (rom_isParent (item->name)) {
+	        if (item->romFound) {
+	        	view_modelAdd (modelUser, item);
+	        }
 
+	        if (item->pref) {
+	        	view_modelAdd (modelPref, item);
+	        }
+        }
     }
 
 	g_print (SUCCESS_MSG "\n");

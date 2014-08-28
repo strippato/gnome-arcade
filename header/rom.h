@@ -31,8 +31,6 @@ extern GdkPixbuf *rom_tileLoading;
 extern GdkPixbuf *rom_tileFavorite;
 extern GdkPixbuf *rom_tileRank;
 
-//extern guint rom_count;
-
 enum rom_sortOrder {
     ROM_SORT_AZ,
     ROM_SORT_ZA
@@ -42,7 +40,9 @@ struct rom_romItem {
 	// mame
 	gchar *name;                //	1941
 	gchar *description;	        //	1941: The Counter Attack (World 900227)
-	gboolean romFound;
+
+	gboolean romFound;  		// 	only for PARENT
+
 	// view/sort
 	gchar *desc;                //  1941: Counter Attack, The
 
@@ -51,12 +51,10 @@ struct rom_romItem {
 	guint	 rank;
 	guint	 nplay;
 
-
 	// pixbuf
 	gboolean  tileLoading;
 	gboolean  tileLoaded;
 	GdkPixbuf *tile;
-	//GFile     *tileFile;
 };
 
 extern GList *rom_romList; // all game (NOT clone, NOT bios)
