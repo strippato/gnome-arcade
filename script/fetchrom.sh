@@ -21,7 +21,7 @@ roms/alienar/alienar.zip \
 roms/carpolo/carpolo.zip \
 roms/circus/circus.zip \
 roms/crash/crash.zip \
-roms/fax2/fax2.zip \
+roms/fax/fax2.zip \
 roms/fax/fax.zip \
 roms/fireone/fireone.zip \
 roms/gridlee/gridlee.zip \
@@ -32,15 +32,14 @@ roms/robby/robby.zip \
 roms/robotbwl/robotbwl.zip \
 roms/sidetrac/sidetrac.zip \
 roms/spectar/spectar.zip \
-roms/starfir2/starfir2.zip \
+roms/starfire/starfir2.zip \
 roms/starfire/starfire.zip \
 roms/supertnk/supertnk.zip \
 roms/targ/targ.zip \
 roms/teetert/teetert.zip \
 roms/topgunnr/topgunnr.zip \
-roms/victorba/victorba.zip \
+roms/victory/victorba.zip \
 roms/victory/victory.zip \
-roms/wrally/wrally.zip \
 "
 
 SERVER=" \
@@ -115,7 +114,6 @@ for i in *.zip; do
 done
 
 chmod 644 *.zip
-
 
 mv -f *.zip $ROM_DEST
 echo
