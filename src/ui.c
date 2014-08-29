@@ -123,9 +123,9 @@ static inline void
 ui_repaint (void)
 {
     /* redraw drawing area */
-    gtk_widget_queue_draw (GTK_WIDGET (ui_window));
-    //while (gtk_events_pending ())
-    //        gtk_main_iteration ();
+    gtk_widget_queue_draw (GTK_WIDGET (ui_drawingArea));
+    while (gtk_events_pending ())
+            gtk_main_iteration ();
 }
 
 gboolean
@@ -1303,6 +1303,7 @@ ui_init (void)
     ui_drawingArea = gtk_drawing_area_new ();
     gtk_widget_set_size_request (ui_drawingArea, 2 * TILE_W_BORDER_MIN + ui_tileSize_W, UI_OFFSET_Y + ui_tileSize_H + TILE_H_BORDER);
     gtk_box_pack_start (GTK_BOX (box), ui_drawingArea, TRUE, TRUE, 0);
+    gtk_widget_realize(ui_drawingArea);
 
     /* scrollbar & adj widget*/
     ui_adjust = gtk_adjustment_new (0, 0, 0, 0, 0, 0);
@@ -1645,11 +1646,9 @@ inline gboolean
 ui_invalidateDrawingArea (void)
 {
     // from other thread (!= MainThread), we must invalidate the da to force a repaint
-    GtkAllocation allocation;
-    GdkWindow *win = gtk_widget_get_window (GTK_WIDGET (ui_window));
+    GdkWindow *win = gtk_widget_get_window (GTK_WIDGET (ui_drawingArea));
     if (win) {
-        gtk_widget_get_allocation (GTK_WIDGET (ui_window), &allocation);
-        gdk_window_invalidate_rect (win, &allocation, FALSE);
+        gdk_window_invalidate_rect (win, NULL, FALSE);
     }
     return TRUE;
 }
