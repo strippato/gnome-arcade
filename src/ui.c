@@ -123,7 +123,7 @@ static inline void
 ui_repaint (void)
 {
     /* redraw drawing area */
-    gtk_widget_queue_draw (GTK_WIDGET (ui_drawingArea));
+    gtk_widget_queue_draw (GTK_WIDGET (ui_window));
     //while (gtk_events_pending ())
     //        gtk_main_iteration ();
 }
@@ -487,58 +487,74 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
     switch (event->keyval) {
     case GDK_KEY_Up:
         if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
-
         ui_focusPrevRow ();
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_repaint ();
+        ui_invalidateDrawingArea ();
         break;
 
     case GDK_KEY_Down:
         if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusNextRow ();
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_repaint ();
+        ui_invalidateDrawingArea ();
         break;
 
     case GDK_KEY_Right:
         if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusNext ();
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_repaint ();
+        ui_invalidateDrawingArea ();
         break;
 
     case GDK_KEY_Left:
         if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusPrev ();
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_repaint ();
+        ui_invalidateDrawingArea ();
         break;
 
     case GDK_KEY_Home:
         if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusAt (0);
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_repaint ();
+        ui_invalidateDrawingArea ();
         break;
 
     case GDK_KEY_End:
         if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
         ui_focusAt (ui_viewModel->romCount - 1);
         ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_repaint ();
+        ui_invalidateDrawingArea ();
         break;
 
+
     case GDK_KEY_space:
+        if (!ui_inSelectState ()) {
+            ui_playClicked ();
+        } else {
+            item = view_getItem (ui_viewModel, ui_viewModel->focus);
+            int rnk = rom_getItemRank (item) + 1;
+            if (rnk > ROM_MAXRANK) rnk = 0;
+            rom_setItemRank (item, rnk);
+            pref_setRank (rom_getItemName (item), rom_getItemRank (item));
+            ui_invalidateDrawingArea ();
+        }
+        break;
+
     case GDK_KEY_KP_Enter:
     case GDK_KEY_Return:
         if (!ui_inSelectState ()) {
             ui_playClicked ();
+        } else {
+            item = view_getItem (ui_viewModel, ui_viewModel->focus);
+            rom_setItemPref (item, !rom_getItemPref (item));
+            pref_setPreferred (rom_getItemName (item), rom_getItemPref (item));
+            ui_invalidateDrawingArea ();
         }
         break;
 
     case GDK_KEY_plus:
     case GDK_KEY_KP_Add:
-
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
             rom_setItemRank (item, rom_getItemRank (item) + 1);
@@ -557,6 +573,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         }
         break;
 
+    case GDK_KEY_0:
     case GDK_KEY_KP_0:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
@@ -566,6 +583,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         }
         break;
 
+    case GDK_KEY_1:
     case GDK_KEY_KP_1:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
@@ -575,6 +593,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         }
         break;
 
+    case GDK_KEY_2:
     case GDK_KEY_KP_2:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
@@ -584,6 +603,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         }
         break;
 
+    case GDK_KEY_3:
     case GDK_KEY_KP_3:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
@@ -593,6 +613,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         }
         break;
 
+    case GDK_KEY_4:
     case GDK_KEY_KP_4:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
@@ -602,6 +623,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         }
         break;
 
+    case GDK_KEY_5:
     case GDK_KEY_KP_5:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);

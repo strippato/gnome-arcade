@@ -48,7 +48,7 @@ GdkPixbuf *rom_tileLoading = NULL;
 GdkPixbuf *rom_tileFavorite = NULL;
 GdkPixbuf *rom_tileRank = NULL;
 
-// rom (all, NO CLONE, NO BIOS)
+// rom (all, NO BIOS)
 GList *rom_romList = NULL;
 static guint  rom_count = 0;
 
@@ -499,7 +499,6 @@ rom_loadItemAsync (struct rom_romItem* item)
     g_free (fileNameJpg);
     g_free (fileNameWWW);
 }
-
 /* pixbuf async:end */
 
 
@@ -510,8 +509,6 @@ rom_invalidateUselessTile (void)
         struct rom_romItem *item = l->data;
         if (item->tileLoaded) {
             if (!item->tileLoading) {
-
-                //if (!ui_tileIsVisible (g_list_index (rom_romList, item))) {
                 if (!ui_tileIsVisible (item)) {
                     // unloading all loaded tile
 

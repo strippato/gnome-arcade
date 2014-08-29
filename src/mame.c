@@ -338,7 +338,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
             gchar *nameDes = g_strndup (tempstr, strlen (tempstr) - 2);
 
             // g_print ("*%s*%zu\n", nameDes, strlen(nameDes));
-
             if (!rom_filterBios (nameDes)) {
                 struct rom_romItem *item = rom_newItem ();
 
