@@ -49,8 +49,8 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	dialog = gtk_dialog_new_with_buttons ("Preferences",
 	                                    GTK_WINDOW (win),
 	                                    GTK_DIALOG_DESTROY_WITH_PARENT,
-	                                    "_OK", GTK_RESPONSE_OK,
-	                                    "_Cancel", GTK_RESPONSE_CANCEL,
+//	                                    "_Cancel", GTK_RESPONSE_CANCEL,
+	                                    "_Close", GTK_RESPONSE_OK,
 	                                    NULL);
 
 	GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
@@ -111,8 +111,15 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 		g_print ("ROM PATH->%s\n", gtk_entry_get_text (GTK_ENTRY (romPath)));
 		g_print ("TILE PATH->%s\n", gtk_entry_get_text (GTK_ENTRY (tilePath)));
 		g_print ("WEB PATH->%s\n", gtk_entry_get_text (GTK_ENTRY (webPath)));
-		g_print ("WEB PRIVIDER->%s\n", gtk_entry_get_text (GTK_ENTRY (webProvider)));
+		g_print ("WEB PROVIDER->%s\n", gtk_entry_get_text (GTK_ENTRY (webProvider)));
+
 		// TODO input cehck & save
+		cfg_setConfig ("MAME_EXE", gtk_entry_get_text (GTK_ENTRY (mamePath)));
+		cfg_setConfig ("ROM_PATH", gtk_entry_get_text (GTK_ENTRY (romPath)));
+		cfg_setConfig ("TILE_PATH", gtk_entry_get_text (GTK_ENTRY (tilePath)));
+		cfg_setConfig ("WEB_PATH", gtk_entry_get_text (GTK_ENTRY (webPath)));
+		cfg_setConfig ("WEB_PROVIDER", gtk_entry_get_text (GTK_ENTRY (webProvider)));
+
 	}
 	gtk_widget_destroy (dialog);
 	dialog = NULL;

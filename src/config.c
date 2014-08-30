@@ -40,28 +40,34 @@ static GError 	*err = NULL;
 static void
 cfg_fillDefaultConfig (void)
 {
-	g_hash_table_insert (cfg_default, "MAME_EXE", "/usr/bin/mame");
-	g_hash_table_insert (cfg_default, "MAME_OPTIONS", "-skip_gameinfo -multithreading -video opengl");
+	g_hash_table_insert (cfg_default, g_strdup ("MAME_EXE"), g_strdup ("/usr/bin/mame"));
+	g_hash_table_insert (cfg_default, g_strdup ("MAME_OPTIONS"), g_strdup ("-skip_gameinfo -multithreading -video opengl"));
 
-	g_hash_table_insert (cfg_default, "USE_DARK_THEME", "1");
+	g_hash_table_insert (cfg_default, g_strdup ("USE_DARK_THEME"), g_strdup ("1"));
 
-	g_hash_table_insert (cfg_default, "ROM_PATH", "/usr/share/gnome-arcade/data/rom/");
+	g_hash_table_insert (cfg_default, g_strdup ("ROM_PATH"), g_strdup ("/usr/share/gnome-arcade/data/rom/"));
 
-	g_hash_table_insert (cfg_default, "ROMLIST_FROM_FILE", "1");
+	g_hash_table_insert (cfg_default, g_strdup ("ROMLIST_FROM_FILE"), g_strdup ("1"));
 
-	g_hash_table_insert (cfg_default, "TILE_SIZE_W", "210");
-	g_hash_table_insert (cfg_default, "TILE_SIZE_H", "210");
-	g_hash_table_insert (cfg_default, "TILE_KEEP_ASPECT_RATIO", "1");
-	g_hash_table_insert (cfg_default, "TILE_TITLE_CENTERED", "1");
-	g_hash_table_insert (cfg_default, "TILE_PATH", "/usr/share/gnome-arcade/data/tile/");
-	g_hash_table_insert (cfg_default, "TILE_BORDER_DYNAMIC", "1");
-	g_hash_table_insert (cfg_default, "TILE_SHORT_DESCRIPTION", "1");
-	g_hash_table_insert (cfg_default, "TILE_SHORT_DESCRIPTION_HIDE_PREFIX", "1");
-	g_hash_table_insert (cfg_default, "TILE_SHADOW", "1");
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_SIZE_W"), g_strdup ("210"));
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_SIZE_H"), g_strdup ("210"));
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_KEEP_ASPECT_RATIO"), g_strdup ("1"));
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_TITLE_CENTERED"), g_strdup ("1"));
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_PATH"), g_strdup ("/usr/share/gnome-arcade/data/tile/"));
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_BORDER_DYNAMIC"), g_strdup ("1"));
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_SHORT_DESCRIPTION"), g_strdup ("1"));
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_SHORT_DESCRIPTION_HIDE_PREFIX"), g_strdup ("1"));
+	g_hash_table_insert (cfg_default, g_strdup ( "TILE_SHADOW"), g_strdup ("1"));
 
-	g_hash_table_insert (cfg_default, "WEB_PROVIDER", "http://www.progettoemma.net/snap/%s/0000.png");
-	g_hash_table_insert (cfg_default, "WEB_PATH", "~/gnome-arcade/data/www/");
-	g_hash_table_insert (cfg_default, "WEB_DOWNLOAD", "1");
+	g_hash_table_insert (cfg_default, g_strdup ("WEB_PROVIDER"), g_strdup ("http://www.progettoemma.net/snap/%s/0000.png"));
+	g_hash_table_insert (cfg_default, g_strdup ("WEB_PATH"), g_strdup ("~/gnome-arcade/data/www/"));
+	g_hash_table_insert (cfg_default, g_strdup ("WEB_DOWNLOAD"), g_strdup ("1"));
+}
+
+void
+cfg_setConfig (const gchar* key, const gchar* data)
+{
+	g_hash_table_replace (cfg_config, g_strdup (key), g_strdup (data));
 }
 
 /*
@@ -89,8 +95,8 @@ cfg_init (void)
 
 	cfg_keyFile = NULL;
 	err = NULL;
-	cfg_default = g_hash_table_new (g_str_hash, g_str_equal);
-	cfg_config = g_hash_table_new (g_str_hash, g_str_equal);
+	cfg_default = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+	cfg_config = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 
 	cfg_fillDefaultConfig ();
 
@@ -228,10 +234,10 @@ cfg_load (void)
 			if (g_key_file_has_key (cfg_keyFile, CFG_SECTION, (gchar*) key, NULL)) {
 				// found in config
 				gchar *cfgValue = g_key_file_get_string (cfg_keyFile, CFG_SECTION, (gchar*) key, NULL);
-				g_hash_table_insert (cfg_config, (gchar*) key, cfgValue);
+				g_hash_table_insert (cfg_config, g_strdup ((gchar*) key), g_strdup (cfgValue));
 			} else {
 				// not found, let's use the default
-				g_hash_table_insert (cfg_config, (gchar*) key, (gchar*) value);
+				g_hash_table_insert (cfg_config, g_strdup ((gchar*) key), g_strdup ((gchar*) value));
 				// insert in config file?!? umph... no
 				//g_key_file_set_string (cfg_keyFile, CFG_SECTION, (gchar*) key, (gchar*) value);
 			}
@@ -304,3 +310,4 @@ cfg_keyBool (const gchar* key)
 
 	return strtod ((gchar*) g_hash_table_lookup (cfg_config, key), NULL) == 0? FALSE: TRUE;
 }
+
