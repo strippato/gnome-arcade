@@ -39,7 +39,6 @@ void ui_setPlayBtnState (gboolean state);
 void ui_setToolBarState (gboolean state);
 void ui_setScrollBarState (gboolean state);
 
-
 gboolean ui_tileIsVisible (struct rom_romItem *item);
 
 void ui_actionFullscreen (GSimpleAction *simple, GVariant *parameter, gpointer user_data);
@@ -53,5 +52,7 @@ void ui_setDefaultView (struct view_viewModel *view);
 gboolean ui_inSelectState (void);
 
 gboolean ui_invalidateDrawingArea (void);
+void ui_showInfobar (void);
+
 #endif
 

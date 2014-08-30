@@ -50,7 +50,9 @@ GdkPixbuf *rom_tileRank = NULL;
 
 // rom (all, NO BIOS)
 GList *rom_romList = NULL;
-static guint  rom_count = 0;
+
+static guint rom_count = 0; // nTot rom + clone (NO BIOS)
+static guint rom_available = 0; // nTot rom available (NO CLONE) (NO BIOS)
 
 // clone (only clone, NO BIOS)
 GHashTable* rom_cloneTable = NULL;
@@ -185,6 +187,7 @@ void
 rom_free (void)
 {
     rom_count = 0;
+    rom_available = 0;
 
     g_list_foreach (rom_romList, (GFunc) rom_listFree, NULL);
     g_list_free (rom_romList);
@@ -216,6 +219,11 @@ rom_free (void)
     mame_gameList ();
 
     rom_romList = g_list_reverse (rom_romList);
+
+    if ((rom_count <= 0) || (rom_available <=0)) {
+        ui_showInfobar ();
+    }
+
  }
 
 inline gboolean
@@ -269,6 +277,12 @@ rom_getItem (int numGame)
 inline void
 rom_setItemRomFound (struct rom_romItem* item, gboolean value)
 {
+
+    if (value) {
+        if (!item->romFound) rom_available++;
+    } else {
+        if (item->romFound) rom_available--;
+    }
     item->romFound = value;
 }
 

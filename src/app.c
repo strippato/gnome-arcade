@@ -28,6 +28,7 @@
 #include "app.h"
 #include "view.h"
 #include "ui.h"
+#include "uipref.h"
 
 const gchar *app_authors[] = { "Strippato <strippato@gmail.com>",
                                NULL };
@@ -43,6 +44,7 @@ static gint app_status = 0;
 
 GActionEntry app_entries[] = {
     { "fullscreen", ui_actionFullscreen, NULL, "false", ui_actionChangeFullscreen},
+    { "preference", uipref_showDialog, NULL, NULL, NULL},
     { "sort"      , ui_actionSort, NULL, "true", NULL },
     { "about"     , ui_showAbout, NULL, NULL, NULL },
     { "quit"      , ui_quit     , NULL, NULL, NULL },

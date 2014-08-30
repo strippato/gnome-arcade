@@ -97,6 +97,7 @@ static GtkWidget *ui_scrollBar   = NULL;
 static GtkWidget *ui_playBtn     = NULL;
 static GtkWidget *ui_tbSelection = NULL;
 static GtkWidget *ui_headerBar   = NULL;
+static GtkWidget *ui_infobar     = NULL;
 
 static GdkPixbuf *ui_selRankOn  = NULL;
 static GdkPixbuf *ui_selRankOff = NULL;
@@ -1146,8 +1147,6 @@ ui_init (void)
 {
     const gchar* cssFile = APP_RESOURCE APP_CSS;
 
-    GtkWidget* box;
-
     ui_mouseOver = -1;
     ui_mouseOverOld = 0;
 
@@ -1182,6 +1181,13 @@ ui_init (void)
                                "          <attribute name='label' translatable='yes'>_Fullscreen</attribute>"
                                "          <attribute name='action'>app.fullscreen</attribute>"
                                "          <attribute name='accel'>F11</attribute>"
+                               "      </item>"
+                               "    </section>"
+                               "    <section>"
+                               "      <item>"
+                               "          <attribute name='label' translatable='yes'>_Preferences</attribute>"
+                               "          <attribute name='action'>app.preference</attribute>"
+                               "        <attribute name='accel'>&lt;Primary&gt;p</attribute>"
                                "      </item>"
                                "    </section>"
                                "    <section>"
@@ -1296,21 +1302,38 @@ ui_init (void)
     gtk_window_set_titlebar (GTK_WINDOW (ui_window), (ui_headerBar));
 
     /* vbox  */
-    box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 1);
-    gtk_container_add (GTK_CONTAINER (ui_window), box);
+    GtkWidget *vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+    gtk_container_add (GTK_CONTAINER (ui_window), vbox);
+
+    /* infobar */
+    ui_infobar = gtk_info_bar_new ();
+
+    gtk_box_pack_start (GTK_BOX (vbox), ui_infobar, FALSE, FALSE, 0);
+    gtk_info_bar_set_message_type (GTK_INFO_BAR (ui_infobar), GTK_MESSAGE_ERROR);
+    GtkWidget *label = gtk_label_new ("No games found on your computer.\n" \
+                "This may depend on mame executable not found or invalid rompath.\n" \
+                "Please configure and restart gnome-arcade.");
+    gtk_box_pack_start (GTK_BOX (gtk_info_bar_get_content_area (GTK_INFO_BAR (ui_infobar))), label, FALSE, FALSE, 0);
+
+    gtk_widget_realize(ui_infobar);
+    gtk_widget_set_no_show_all (ui_infobar, TRUE);
+
+    /* hbox  */
+    GtkWidget *hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_box_pack_end (GTK_BOX (vbox), hbox, TRUE, TRUE, 0);
 
     /* drawing area */
     ui_drawingArea = gtk_drawing_area_new ();
     gtk_widget_set_size_request (ui_drawingArea, 2 * TILE_W_BORDER_MIN + ui_tileSize_W, UI_OFFSET_Y + ui_tileSize_H + TILE_H_BORDER);
-    gtk_box_pack_start (GTK_BOX (box), ui_drawingArea, TRUE, TRUE, 0);
-    gtk_widget_realize(ui_drawingArea);
+    gtk_box_pack_start (GTK_BOX (hbox), ui_drawingArea, TRUE, TRUE, 0);
+    gtk_widget_realize (ui_drawingArea);
 
     /* scrollbar & adj widget*/
     ui_adjust = gtk_adjustment_new (0, 0, 0, 0, 0, 0);
     ui_scrollBar = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL, ui_adjust);
+
     /* hide */
-    gtk_widget_hide (ui_scrollBar);
-    gtk_box_pack_end (GTK_BOX (box), ui_scrollBar, FALSE, FALSE, 0);
+    gtk_box_pack_end (GTK_BOX (hbox), ui_scrollBar, FALSE, FALSE, 0);
 
     g_signal_connect (ui_scrollBar, "value_changed", G_CALLBACK (ui_barValueChanged), ui_adjust);
 
@@ -1363,7 +1386,6 @@ ui_init (void)
     g_signal_connect (G_OBJECT (ui_drawingArea), "configure-event", G_CALLBACK (ui_drawingAreaConfigureEvent), NULL);
 
     gtk_widget_show_all (GTK_WIDGET (ui_window));
-
 }
 
 void
@@ -1407,6 +1429,7 @@ ui_free (void)
 
     g_object_unref (ui_aboutLogo);
     ui_aboutLogo = NULL;
+
 }
 
 void
@@ -1651,4 +1674,11 @@ ui_invalidateDrawingArea (void)
         gdk_window_invalidate_rect (win, NULL, FALSE);
     }
     return TRUE;
+}
+
+void
+ui_showInfobar (void)
+{
+    gtk_widget_set_no_show_all (ui_infobar, FALSE);
+    gtk_widget_show_all (GTK_WIDGET (ui_infobar));
 }
