@@ -34,7 +34,7 @@
 static GHashTable *cfg_default = NULL;
 static GHashTable *cfg_config  = NULL;
 
-static GKeyFile *cfg_keyFile = NULL;
+//static GKeyFile *cfg_keyFile = NULL;
 static GError 	*err = NULL;
 
 static void
@@ -90,10 +90,9 @@ cfg_dump (void)
 void
 cfg_init (void)
 {
-	g_assert (!cfg_keyFile);
+	g_assert (!cfg_config);
 	g_assert (!cfg_default);
 
-	cfg_keyFile = NULL;
 	err = NULL;
 	cfg_default = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 	cfg_config = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
@@ -106,10 +105,6 @@ cfg_init (void)
 void
 cfg_free (void)
 {
-
-	if (cfg_keyFile) g_key_file_free (cfg_keyFile);
-	cfg_keyFile = NULL;
-
 	g_hash_table_unref (cfg_default);
 	g_hash_table_unref (cfg_config);
 
@@ -120,9 +115,6 @@ cfg_free (void)
 gboolean
 cfg_createDefaultConfigFile (void)
 {
-	gchar *data;
-	GKeyFile* keyFile = NULL;
-	GFile *file;
 	gsize len;
 	gboolean created = TRUE;
 
@@ -134,7 +126,7 @@ cfg_createDefaultConfigFile (void)
 	g_assert (fileName);
 	g_assert (pathName);
 
-	keyFile = g_key_file_new ();
+	GKeyFile* keyFile = g_key_file_new ();
 
 	/* adding default config */
 	GHashTableIter iter;
@@ -165,11 +157,11 @@ cfg_createDefaultConfigFile (void)
 	    err = NULL;
 	}
 
-	data = g_key_file_to_data (keyFile, &len, &err);
+	gchar *data = g_key_file_to_data (keyFile, &len, &err);
 	if (data) {
 		if (!g_mkdir_with_parents (pathName, 0700)) {
 
-		    file = g_file_new_for_path (fileName);
+		    GFile *file = g_file_new_for_path (fileName);
 
 		    GFileOutputStream *outStream = g_file_replace (file, NULL, TRUE, G_FILE_CREATE_PRIVATE, NULL, &err);
 		    if (outStream) {
@@ -218,7 +210,7 @@ cfg_load (void)
 	gchar *file = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, CFG_FILENAME, NULL);
 	g_assert (file);
 
-	cfg_keyFile = g_key_file_new ();
+	GKeyFile *cfg_keyFile = g_key_file_new ();
 
 	g_print ("loading config from %s ", file);
 
@@ -242,15 +234,18 @@ cfg_load (void)
 				//g_key_file_set_string (cfg_keyFile, CFG_SECTION, (gchar*) key, (gchar*) value);
 			}
 		}
-		g_free (file);
-		return TRUE;
-	} else  {
 		g_key_file_free (cfg_keyFile);
+		g_free (file);
+
+		return TRUE;
+
+	} else  {
 		g_print ("\n");
 		g_print ("Opps, can't read config (%s): %s\n", file, err->message);
-
-		g_free (file);
 		g_error_free (err);
+
+		g_key_file_free (cfg_keyFile);
+		g_free (file);
 		err = NULL;
 
 		return FALSE;
@@ -311,3 +306,11 @@ cfg_keyBool (const gchar* key)
 	return strtod ((gchar*) g_hash_table_lookup (cfg_config, key), NULL) == 0? FALSE: TRUE;
 }
 
+// TODO
+gboolean
+cfg_saveConfig (void)
+{
+	gboolean saved = FALSE;
+	g_print ("NOT IMPLEMENTED!\n");
+	return saved;
+}

@@ -34,7 +34,8 @@ const gchar* cfg_keyStr (const gchar *key);
 gint cfg_keyInt (const gchar *key);
 gdouble cfg_keyDbl (const gchar *key);
 gboolean cfg_keyBool (const gchar *key);
-
+void cfg_setConfig (const gchar *key, const gchar *data);
+gboolean cfg_saveConfig (void);
 
 #endif
 

@@ -107,12 +107,13 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	gint response = gtk_dialog_run (GTK_DIALOG (dialog));
 
 	if (response == GTK_RESPONSE_OK) {
+		/*
 		g_print ("MAME PATH->%s\n", gtk_entry_get_text (GTK_ENTRY (mamePath)));
 		g_print ("ROM PATH->%s\n", gtk_entry_get_text (GTK_ENTRY (romPath)));
 		g_print ("TILE PATH->%s\n", gtk_entry_get_text (GTK_ENTRY (tilePath)));
 		g_print ("WEB PATH->%s\n", gtk_entry_get_text (GTK_ENTRY (webPath)));
 		g_print ("WEB PROVIDER->%s\n", gtk_entry_get_text (GTK_ENTRY (webProvider)));
-
+		*/
 		// TODO input cehck & save
 		cfg_setConfig ("MAME_EXE", gtk_entry_get_text (GTK_ENTRY (mamePath)));
 		cfg_setConfig ("ROM_PATH", gtk_entry_get_text (GTK_ENTRY (romPath)));
@@ -120,6 +121,11 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 		cfg_setConfig ("WEB_PATH", gtk_entry_get_text (GTK_ENTRY (webPath)));
 		cfg_setConfig ("WEB_PROVIDER", gtk_entry_get_text (GTK_ENTRY (webProvider)));
 
+		if (cfg_saveConfig ()) {
+			g_print ("config saved " SUCCESS_MSG "\n");
+		} else {
+			g_print ("can't save config " FAIL_MSG "\n");
+		}
 	}
 	gtk_widget_destroy (dialog);
 	dialog = NULL;
