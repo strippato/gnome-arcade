@@ -115,8 +115,8 @@ cfg_free (void)
 gboolean
 cfg_createDefaultConfigFile (void)
 {
-	gsize len;
 	gboolean created = TRUE;
+	gsize len;
 
 	gchar *fileName = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, CFG_FILENAME, NULL);
 	gchar *pathName = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, NULL);
@@ -311,6 +311,92 @@ gboolean
 cfg_saveConfig (void)
 {
 	gboolean saved = FALSE;
-	g_print ("NOT IMPLEMENTED!\n");
+	gsize len;
+
+	gchar *fileName = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, CFG_FILENAME, NULL);
+	gchar *pathName = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, NULL);
+
+	g_print ("saving config file (%s)\n", fileName);
+
+	g_assert (fileName);
+	g_assert (pathName);
+
+	GKeyFile* keyFile = g_key_file_new ();
+
+	/* adding config */
+	GHashTableIter iter;
+	gpointer key, value;
+
+	g_hash_table_iter_init (&iter, cfg_config);
+	while (g_hash_table_iter_next (&iter, &key, &value)) {
+		g_key_file_set_string (keyFile, CFG_SECTION, (gchar*) key, (gchar*) value);
+	}
+
+	g_key_file_set_comment (keyFile, CFG_SECTION, "WEB_PROVIDER", "WEB_PROVIDER\n" \
+																  	"http://www.progettoemma.net/snap/%s/0000.png\n" \
+																  	"http://www.progettoemma.net/snap/%s/title.png\n" \
+																  	"http://www.progettoemma.net/snap/%s/flyer.png\n" \
+																  	"http://www.progettoemma.net/snap/%s/score.png\n" \
+																  	"http://www.progettoemma.net/snap/%s/gameover.png\n" \
+																  	"\n" \
+																  	"http://mrdo.mameworld.info/mame_artwork/%s.png\n" \
+																  	"\n" \
+																  	"http://www.mamedb.com/snap/%s.png\n" \
+																	"http://www.mamedb.com/titles/%s.png\n" \
+																	"http://www.mamedb.com/cabinets/%s.png\n"
+							, &err);
+
+	if (err) {
+		g_print ("Can't write to output stream: %s\n", err->message);
+	    g_error_free (err);
+	    err = NULL;
+	}
+
+	gchar *data = g_key_file_to_data (keyFile, &len, &err);
+	if (data) {
+		if (!g_mkdir_with_parents (pathName, 0700)) {
+
+		    GFile *file = g_file_new_for_path (fileName);
+
+		    GFileOutputStream *outStream = g_file_replace (file, NULL, TRUE, G_FILE_CREATE_PRIVATE, NULL, &err);
+		    if (outStream) {
+		    	if (g_output_stream_write (G_OUTPUT_STREAM (outStream), data, strlen (data), NULL, &err) == -1) {
+					g_print ("Can't write to output stream: %s\n", err->message);
+				    g_error_free (err);
+				    err = NULL;
+				    saved = FALSE;
+		    	} else {
+					saved = TRUE;
+		    	}
+
+		    	g_output_stream_close (G_OUTPUT_STREAM (outStream), NULL, NULL);
+		    	g_object_unref (outStream);
+
+		    } else {
+				g_print ("Can't create output stream: %s\n", err->message);
+			    g_error_free (err);
+			    err = NULL;
+			    saved = FALSE;
+		    }
+	    	g_object_unref (file);
+
+
+		} else {
+			g_print ("Can't create config directory\n");
+			saved = FALSE;
+		}
+		g_free (data);
+
+	} else {
+		g_print ("Can't convert data to string: %s\n", err->message);
+	    g_error_free (err);
+	    err = NULL;
+	    saved = FALSE;
+	}
+
+	g_key_file_free (keyFile);
+	g_free (fileName);
+	g_free (pathName);
+
 	return saved;
 }

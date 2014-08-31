@@ -49,9 +49,10 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	dialog = gtk_dialog_new_with_buttons ("Preferences",
 	                                    GTK_WINDOW (win),
 	                                    GTK_DIALOG_DESTROY_WITH_PARENT,
-//	                                    "_Cancel", GTK_RESPONSE_CANCEL,
-	                                    "_Close", GTK_RESPONSE_OK,
+	                                    "_Cancel", GTK_RESPONSE_CANCEL,
+	                                    "_OK", GTK_RESPONSE_OK,
 	                                    NULL);
+	gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_OK);
 
 	GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
 
@@ -59,49 +60,64 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	gtk_grid_set_row_spacing (GTK_GRID (table), 4);
 	gtk_grid_set_column_spacing (GTK_GRID (table), 4);
 
-	gtk_box_pack_start (GTK_BOX (content_area), table, TRUE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (content_area), table, TRUE, TRUE, 20);
 
 	// mame
 	label = gtk_label_new_with_mnemonic ("_M.A.M.E. path");
+	gtk_widget_set_tooltip_text (label, "Path to MAME program");
+	gtk_misc_set_alignment (GTK_MISC (label), 1.0, 0.5);
 	gtk_grid_attach (GTK_GRID (table), label, 0, 0, 1, 1);
 	GtkWidget *mamePath = gtk_entry_new ();
-	gtk_entry_set_width_chars (GTK_ENTRY(mamePath), 40);
+	gtk_widget_set_tooltip_text (mamePath, "/usr/bin/mame");
+	gtk_entry_set_width_chars (GTK_ENTRY (mamePath), 50);
 	gtk_entry_set_text (GTK_ENTRY (mamePath), cfg_keyStr ("MAME_EXE"));
 	gtk_grid_attach (GTK_GRID (table), mamePath, 1, 0, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), mamePath);
 
 	// rom
 	label = gtk_label_new_with_mnemonic ("_rom path");
+	gtk_widget_set_tooltip_text (label, "Path to your romset");
+	gtk_misc_set_alignment (GTK_MISC (label), 1.0, 0.5);
 	gtk_grid_attach (GTK_GRID (table), label, 0, 1, 1, 1);
 	GtkWidget *romPath = gtk_entry_new ();
+	gtk_widget_set_tooltip_text (romPath, "/usr/share/gnome-arcade/data/rom/");
 	gtk_entry_set_text (GTK_ENTRY (romPath), cfg_keyStr ("ROM_PATH"));
 	gtk_grid_attach (GTK_GRID (table), romPath, 1, 1, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), romPath);
 
 	// tile
 	label = gtk_label_new_with_mnemonic ("_tile path");
+	gtk_widget_set_tooltip_text (label, "Path to your tileset");
+	gtk_misc_set_alignment (GTK_MISC (label), 1.0, 0.5);
 	gtk_grid_attach (GTK_GRID (table), label, 0, 2, 1, 1);
 	GtkWidget *tilePath = gtk_entry_new ();
+	gtk_widget_set_tooltip_text (tilePath, "/usr/share/gnome-arcade/data/tile/");
 	gtk_entry_set_text (GTK_ENTRY (tilePath), cfg_keyStr ("TILE_PATH"));
 	gtk_grid_attach (GTK_GRID (table), tilePath, 1, 2, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), tilePath);
 
-	// www
-	label = gtk_label_new_with_mnemonic ("_web path");
-	gtk_grid_attach (GTK_GRID (table), label, 0, 3, 1, 1);
-	GtkWidget *webPath = gtk_entry_new ();
-	gtk_entry_set_text (GTK_ENTRY (webPath), cfg_keyStr ("WEB_PATH"));
-	gtk_grid_attach (GTK_GRID (table), webPath, 1, 3, 1, 1);
-	gtk_label_set_mnemonic_widget (GTK_LABEL (label), webPath);
-
 	// FIXME better a combobox
 	// web provider
 	label = gtk_label_new_with_mnemonic ("web _provider");
+	gtk_widget_set_tooltip_text (label, "Tile will be downloaded from this link");
+	gtk_misc_set_alignment (GTK_MISC (label), 1.0, 0.5);
 	gtk_grid_attach (GTK_GRID (table), label, 0, 4, 1, 1);
 	GtkWidget *webProvider = gtk_entry_new ();
+	gtk_widget_set_tooltip_text (webProvider, "http://www.progettoemma.net/snap/%s/0000.png");
 	gtk_entry_set_text (GTK_ENTRY (webProvider), cfg_keyStr ("WEB_PROVIDER"));
 	gtk_grid_attach (GTK_GRID (table), webProvider, 1, 4, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), webProvider);
+
+	// www
+	label = gtk_label_new_with_mnemonic ("_web path");
+	gtk_widget_set_tooltip_text (label, "Tile downloaded form the web provider, will be stored in this directory");
+	gtk_misc_set_alignment (GTK_MISC (label), 1.0, 0.5);
+	gtk_grid_attach (GTK_GRID (table), label, 0, 3, 1, 1);
+	GtkWidget *webPath = gtk_entry_new ();
+	gtk_widget_set_tooltip_text (webPath, "~/gnome-arcade/data/www/");
+	gtk_entry_set_text (GTK_ENTRY (webPath), cfg_keyStr ("WEB_PATH"));
+	gtk_grid_attach (GTK_GRID (table), webPath, 1, 3, 1, 1);
+	gtk_label_set_mnemonic_widget (GTK_LABEL (label), webPath);
 
 	gtk_widget_show_all (table);
 	gint response = gtk_dialog_run (GTK_DIALOG (dialog));
