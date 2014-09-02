@@ -96,32 +96,44 @@ pushd $tmpdir &> /dev/null
 
 echo
 
+DOWNLOADED=0
+
 for rom in $ROMS; do
- for i in $SERVER; do
-  url=http://$i/$rom
-  file=`echo $url|awk -F "/" '{print $NF}'`
-  rm -f $file
-  echo -n "Fetching $file from $url ... "
-  curl $CURL_OPTIONS -o $file $url
-  if [ $? -ne 0 ]; then
-     rm -f $file
-     echo "failed ... deleted!"
-     continue
-  fi
+  for i in $SERVER; do
+	url=http://$i/$rom
+	file=`echo $url|awk -F "/" '{print $NF}'`
+	rm -f $file
+	if [ -f $ROM_DEST$file ]; then
+	  echo "$file rom already exist, skipping"
+	  continue
+	else
+	  echo -n "Fetching $file from $url ... "
+	fi
+	curl $CURL_OPTIONS -o $file $url
+	if [ $? -ne 0 ]; then
+	  rm -f $file
+	  echo "failed ... deleted!"
+	  continue
+	else
+	  DOWNLOADED=1
+	fi
   echo done
- done
+  done
 done
 
-for i in *.zip; do
-  lower=`echo $i|tr [:upper:] [:lower:]`
-  test "$i" != "$lower" && mv $i $lower
-done
+if [ $DOWNLOADED -eq 1 ]; then
+	for i in *.zip; do
+	  lower=`echo $i|tr [:upper:] [:lower:]`
+	  test "$i" != "$lower" && mv $i $lower
+	  chmod 644 $lower
+	  mv -f $lower $ROM_DEST
+	done
 
-chmod 644 *.zip
-
-mv -f *.zip $ROM_DEST
-echo
-echo "*** roms installed in $ROM_DEST ***"
-
+	echo
+	echo "*** roms installed in $ROM_DEST ***"
+else
+  echo
+  echo "*** roms already installed ***"
+fi
 popd &> /dev/null
 
