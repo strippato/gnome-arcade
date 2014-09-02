@@ -70,7 +70,6 @@ pref_load (void)
 
 	g_print ("loading preference %s", pref_fileName);
 	if (!g_key_file_load_from_file (pref_keyFile, pref_fileName, PREF_FLAGS, &error)) {
-    	g_warning ("\n%s\n", error->message);
     	g_error_free (error);
   	} else {
   		g_print (" " SUCCESS_MSG "\n");

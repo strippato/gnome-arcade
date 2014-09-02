@@ -46,7 +46,11 @@ SERVER=" \
 mamedev.org    \
 "
 
-CURL_OPTIONS="-L -s --speed-limit 3500 --speed-time 15"
+RETRY=3
+CONNECT_TIMEOUT=5
+MAX_TIME=10
+CURL_OPTIONS="-L -s --retry $RETRY --connect-timeout $CONNECT_TIMEOUT --max-time $MAX_TIME"
+
 
 if [ ! -f /usr/bin/id ]; then
  echo "Running in non-chrooted (install into directory) mode... Exit safely."

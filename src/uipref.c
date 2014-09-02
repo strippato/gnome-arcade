@@ -29,22 +29,23 @@
 #include "uipref.h"
 #include "config.h"
 
+#include "rom.h"
+#include "www.h"
+
 // TODO check all the path
 void
 uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_data)
 {
 
 	static GtkWidget *dialog = NULL;
-
-
 	GtkWidget *label;
-
-	GtkWindow *win = gtk_application_get_active_window (app_application);
 
 	if (dialog) {
         gtk_window_present (GTK_WINDOW (dialog));
         return;
     }
+
+	GtkWindow *win = gtk_application_get_active_window (app_application);
 
 	dialog = gtk_dialog_new_with_buttons ("Preferences",
 	                                    GTK_WINDOW (win),
@@ -96,17 +97,32 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	gtk_grid_attach (GTK_GRID (table), tilePath, 1, 2, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), tilePath);
 
-	// FIXME better a combobox
 	// web provider
 	label = gtk_label_new_with_mnemonic ("web _provider");
 	gtk_widget_set_tooltip_text (label, "Tile will be downloaded from this link");
 	gtk_misc_set_alignment (GTK_MISC (label), 1.0, 0.5);
 	gtk_grid_attach (GTK_GRID (table), label, 0, 4, 1, 1);
-	GtkWidget *webProvider = gtk_entry_new ();
-	gtk_widget_set_tooltip_text (webProvider, "http://www.progettoemma.net/snap/%s/0000.png");
-	gtk_entry_set_text (GTK_ENTRY (webProvider), cfg_keyStr ("WEB_PROVIDER"));
-	gtk_grid_attach (GTK_GRID (table), webProvider, 1, 4, 1, 1);
+
+ 	GtkWidget *webProvider = gtk_combo_box_text_new ();
+
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://www.progettoemma.net/snap/%s/0000.png", "snapshot@www.progettoemma.net");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://mrdo.mameworld.info/mame_artwork/%s.png", "snapshot@mrdo.mameworld.info");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://www.mamedb.com/snap/%s.png", "snapshot@www.mamedb.com");
+
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://www.progettoemma.net/snap/%s/title.png", "title@www.progettoemma.net");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://www.mamedb.com/titles/%s.png", "title@www.mamedb.com");
+
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://www.progettoemma.net/snap/%s/flyer.png", "flyer@www.progettoemma.net");
+
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://www.progettoemma.net/snap/%s/score.png", "score@www.progettoemma.net");
+
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://www.mamedb.com/cabinets/%s.png", "cabinet@www.mamedb.com");
+
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://www.progettoemma.net/snap/%s/gameover.png", "gameover@www.progettoemma.net");
+
+    gtk_grid_attach (GTK_GRID (table), webProvider, 1, 4, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), webProvider);
+	g_object_set (webProvider, "active-id", cfg_keyStr ("WEB_PROVIDER"), NULL);
 
 	// www
 	label = gtk_label_new_with_mnemonic ("_web path");
@@ -123,26 +139,30 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	gint response = gtk_dialog_run (GTK_DIALOG (dialog));
 
 	if (response == GTK_RESPONSE_OK) {
-		/*
-		g_print ("MAME PATH->%s\n", gtk_entry_get_text (GTK_ENTRY (mamePath)));
-		g_print ("ROM PATH->%s\n", gtk_entry_get_text (GTK_ENTRY (romPath)));
-		g_print ("TILE PATH->%s\n", gtk_entry_get_text (GTK_ENTRY (tilePath)));
-		g_print ("WEB PATH->%s\n", gtk_entry_get_text (GTK_ENTRY (webPath)));
-		g_print ("WEB PROVIDER->%s\n", gtk_entry_get_text (GTK_ENTRY (webProvider)));
-		*/
-		// TODO input cehck & save
+		// TODO input check
 		cfg_setConfig ("MAME_EXE", gtk_entry_get_text (GTK_ENTRY (mamePath)));
 		cfg_setConfig ("ROM_PATH", gtk_entry_get_text (GTK_ENTRY (romPath)));
 		cfg_setConfig ("TILE_PATH", gtk_entry_get_text (GTK_ENTRY (tilePath)));
 		cfg_setConfig ("WEB_PATH", gtk_entry_get_text (GTK_ENTRY (webPath)));
-		cfg_setConfig ("WEB_PROVIDER", gtk_entry_get_text (GTK_ENTRY (webProvider)));
+
+		gchar *link = NULL;
+		g_object_get (webProvider, "active-id", &link, NULL);
+		cfg_setConfig ("WEB_PROVIDER", link);
+		g_free (link);
 
 		if (cfg_saveConfig ()) {
 			g_print ("config saved " SUCCESS_MSG "\n");
+
+			// reconfigure web downloader
+			www_free ();
+			www_init ();
+
+			// fixme reconfigure on mame/tile/path change
 		} else {
 			g_print ("can't save config " FAIL_MSG "\n");
 		}
 	}
+
 	gtk_widget_destroy (dialog);
 	dialog = NULL;
 }
