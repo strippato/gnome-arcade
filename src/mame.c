@@ -170,7 +170,8 @@ zoo               "Zoo (Ver. ZO.02.D)"
         mameVersion = mame_getVersion ();
         g_print ("%s\n", mameVersion);
     } else {
-        g_print ("Can't find M.A.M.E. (%s), please edit your config\n", MAME_EXE);
+        g_print ("Can't find M.A.M.E. (%s), please edit your config", MAME_EXE);
+        g_print (" " FAIL_MSG "\n");
     }
 
     FILE *file;

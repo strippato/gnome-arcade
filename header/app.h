@@ -40,6 +40,11 @@
 #else
 	#define APP_RESOURCE 		APP_RES "/res/"
 #endif
+
+#ifndef MAME_BIN
+	#define MAME_BIN 		"/usr/bin/mame"
+#endif
+
 #define APP_DIRCONFIG  		"gnome-arcade"
 #define APP_CSS				"gnome-arcade.css"
 

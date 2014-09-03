@@ -34,13 +34,13 @@
 static GHashTable *cfg_default = NULL;
 static GHashTable *cfg_config  = NULL;
 
-//static GKeyFile *cfg_keyFile = NULL;
 static GError 	*err = NULL;
 
 static void
 cfg_fillDefaultConfig (void)
 {
-	g_hash_table_insert (cfg_default, g_strdup ("MAME_EXE"), g_strdup ("/usr/bin/mame"));
+
+	g_hash_table_insert (cfg_default, g_strdup ("MAME_EXE"), g_strdup (MAME_BIN));
 	g_hash_table_insert (cfg_default, g_strdup ("MAME_OPTIONS"), g_strdup ("-skip_gameinfo -multithreading -video opengl"));
 
 	g_hash_table_insert (cfg_default, g_strdup ("USE_DARK_THEME"), g_strdup ("1"));
@@ -400,3 +400,4 @@ cfg_saveConfig (void)
 
 	return saved;
 }
+

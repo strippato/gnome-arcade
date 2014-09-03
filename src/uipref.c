@@ -69,7 +69,7 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	gtk_misc_set_alignment (GTK_MISC (label), 1.0, 0.5);
 	gtk_grid_attach (GTK_GRID (table), label, 0, 0, 1, 1);
 	GtkWidget *mamePath = gtk_entry_new ();
-	gtk_widget_set_tooltip_text (mamePath, "/usr/bin/mame");
+	gtk_widget_set_tooltip_text (mamePath, MAME_BIN);
 	gtk_entry_set_width_chars (GTK_ENTRY (mamePath), 50);
 	gtk_entry_set_text (GTK_ENTRY (mamePath), cfg_keyStr ("MAME_EXE"));
 	gtk_grid_attach (GTK_GRID (table), mamePath, 1, 0, 1, 1);
