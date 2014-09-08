@@ -677,17 +677,17 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
 
     // FIXME TODO
 
-    // case GDK_KEY_KP_7:
-    //     if (!ui_inSelectState ()) {
-    //         view_test1 ();
-    //     }
-    //     break;
+    //  case GDK_KEY_KP_7:
+    //      if (!ui_inSelectState ()) {
+    //          view_test1 ();
+    //      }
+    //      break;
 
-    // case GDK_KEY_KP_9:
-    //     if (!ui_inSelectState ()) {
-    //         view_test2 ();
-    //     }
-    //     break;
+    //  case GDK_KEY_KP_9:
+    //      if (!ui_inSelectState ()) {
+    //          view_test2 ();
+    //      }
+    //      break;
 
     }
     return FALSE;
@@ -1604,12 +1604,9 @@ ui_setDefaultView (struct view_viewModel *view)
     gtk_widget_hide (GTK_WIDGET (ui_scrollBar));
 }
 
-// TODO FIXME
 void
 ui_setView (struct view_viewModel *view)
 {
-    g_print ("*SetView \n");
-
     ui_viewModel = view;
     ui_mouseOver = -1;
     ui_mouseOverOld = 0;
@@ -1628,40 +1625,33 @@ ui_setView (struct view_viewModel *view)
         return ;
     }
 
+    ui_repaint ();
 
-    g_object_freeze_notify (G_OBJECT(ui_adjust));
-    g_object_freeze_notify (G_OBJECT(ui_drawingArea));
+    g_object_freeze_notify (G_OBJECT (ui_adjust));
+    g_object_freeze_notify (G_OBJECT (ui_drawingArea));
+    g_object_freeze_notify (G_OBJECT (ui_scrollBar));
+
+    ui_focusAt (ui_viewModel->focus);
+
+    int newItemOnRow = ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
+    gint rowNum  = posval (ui_viewModel->romCount - 1) / newItemOnRow;
+    gint upper = (rowNum + 1) * (ui_tileSize_H + TILE_H_BORDER) + UI_OFFSET_Y;
+    gint pageHeight = gtk_widget_get_allocated_height (GTK_WIDGET (ui_drawingArea));
+
+    gtk_adjustment_configure (GTK_ADJUSTMENT (ui_adjust), 0, (float) ui_viewModel->view, upper, UI_SCROLL_STEP, pageHeight, pageHeight);
+
     ui_drawingAreaConfigureEvent ();
-    g_object_thaw_notify  (G_OBJECT(ui_drawingArea));
-    g_object_thaw_notify  (G_OBJECT(ui_adjust));
-    //ui_focusAt (ui_viewModel->focus);
 
-    //
-    // g_object_freeze_notify (G_OBJECT(ui_adjust));
-    // g_print ("\nValue was %f ", gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust)));
-    // g_print (" Lower was %f Upper was %f", gtk_adjustment_get_lower (GTK_ADJUSTMENT (ui_adjust)), gtk_adjustment_get_upper(GTK_ADJUSTMENT (ui_adjust)));
-    // g_print (" try to write %i ",  ui_viewModel->view);
-    // g_print (" windowarea %i ", gtk_widget_get_allocated_width (GTK_WIDGET (ui_window)));
+    g_object_thaw_notify (G_OBJECT(ui_scrollBar));
+    g_object_thaw_notify (G_OBJECT(ui_drawingArea));
+    g_object_thaw_notify (G_OBJECT(ui_adjust));
 
-    // g_print ("\n FIXME Here %i \n", gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
-    // int newItemOnRow = ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
-    // gint rowNum  = posval (ui_viewModel->romCount - 1) / newItemOnRow;
-    // gint upper = (rowNum + 1) * (ui_tileSize_H + TILE_H_BORDER) + UI_OFFSET_Y;
-    // gint pageHeight = gtk_widget_get_allocated_height (GTK_WIDGET (ui_drawingArea));
+    gtk_adjustment_changed (ui_adjust);
 
-    // g_print (" upper willbe %i (rownum %i, rom %i, iteonrow %i)",  upper, rowNum, ui_viewModel->romCount, newItemOnRow);
+    ui_viewModel = view;
 
-    // gtk_adjustment_configure (GTK_ADJUSTMENT (ui_adjust), 0, 0, upper, UI_SCROLL_STEP, pageHeight, pageHeight);
-    // gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), (float) ui_viewModel->view);
-
-    // g_print (" Value now %f ", gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust)));
-    // ui_drawingAreaConfigureEvent ();
-    // g_print (" Value now2 %f\n", gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust)));
-
-    //
-
-    gtk_widget_queue_draw (GTK_WIDGET (ui_window));
-
+    ui_repaint ();
+    ui_invalidateDrawingArea ();
 }
 
 
@@ -1682,3 +1672,4 @@ ui_showInfobar (void)
     gtk_widget_set_no_show_all (ui_infobar, FALSE);
     gtk_widget_show_all (GTK_WIDGET (ui_infobar));
 }
+
