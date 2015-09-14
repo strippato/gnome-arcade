@@ -148,7 +148,11 @@ cfg_createDefaultConfigFile (void)
 																  	"\n" \
 																  	"http://www.mamedb.com/snap/%s.png\n" \
 																	"http://www.mamedb.com/titles/%s.png\n" \
-																	"http://www.mamedb.com/cabinets/%s.png\n"
+																	"http://www.mamedb.com/cabinets/%s.png\n" \
+																	"\n" \
+																	"http://adb.arcadeitalia.net/media/mame.current/ingames/%s.png\n" \
+																	"http://adb.arcadeitalia.net/media/mame.current/titles/%s.png\n" \
+																	"http://adb.arcadeitalia.net/media/mame.current/cabinets/%s.png\n" \
 							, &err);
 
 	if (err) {
@@ -343,7 +347,11 @@ cfg_saveConfig (void)
 																  	"\n" \
 																  	"http://www.mamedb.com/snap/%s.png\n" \
 																	"http://www.mamedb.com/titles/%s.png\n" \
-																	"http://www.mamedb.com/cabinets/%s.png\n"
+																	"http://www.mamedb.com/cabinets/%s.png\n" \
+																	"\n" \
+																	"http://adb.arcadeitalia.net/media/mame.current/ingames/%s.png\n" \
+																	"http://adb.arcadeitalia.net/media/mame.current/titles/%s.png\n" \
+																	"http://adb.arcadeitalia.net/media/mame.current/cabinets/%s.png\n" \
 							, &err);
 
 	if (err) {

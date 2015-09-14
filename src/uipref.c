@@ -127,6 +127,10 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://www.progettoemma.net/snap/%s/gameover.png", "gameover@www.progettoemma.net");
 
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://adb.arcadeitalia.net/media/mame.current/ingames/%s.png", "snapshot@adb.arcadeitalia.net");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://adb.arcadeitalia.net/media/mame.current/titles/%s.png", "title@adb.arcadeitalia.net");
+    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (webProvider), "http://adb.arcadeitalia.net/media/mame.current/cabinets/%s.png", "cabinet@adb.arcadeitalia.net");
+
 	gtk_widget_set_margin_end (GTK_WIDGET (webProvider), 10);
     gtk_grid_attach (GTK_GRID (table), webProvider, 1, 4, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), webProvider);
