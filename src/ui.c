@@ -125,8 +125,8 @@ ui_repaint (void)
 {
     /* redraw drawing area */
     gtk_widget_queue_draw (GTK_WIDGET (ui_drawingArea));
-    while (gtk_events_pending ())
-            gtk_main_iteration ();
+    //while (gtk_events_pending ())
+    //        gtk_main_iteration ();
 }
 
 gboolean
@@ -776,6 +776,7 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
         switch (event->button) {
 
         case 1: // left
+        case 3: // right
             tileIdx = ui_getTileIdx (event->x, event->y, TRUE);
             if (tileIdx >= 0) {
                 ui_focusAt (tileIdx);
@@ -793,8 +794,6 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
         case 2: // middle
             break;
 
-        case 3: // right
-            break;
         }
         break;
 
@@ -1646,7 +1645,7 @@ ui_setView (struct view_viewModel *view)
     g_object_thaw_notify (G_OBJECT(ui_drawingArea));
     g_object_thaw_notify (G_OBJECT(ui_adjust));
 
-    gtk_adjustment_changed (ui_adjust);
+//    gtk_adjustment_changed (ui_adjust);
 
     ui_viewModel = view;
 
