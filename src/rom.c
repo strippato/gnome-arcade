@@ -151,9 +151,9 @@ rom_init (void)
 {
     /* pixbuf */
     if (g_str_has_prefix (cfg_keyStr ("TILE_PATH"), "~")) {
-        rom_tilePath = g_strdup_printf ("%s%s", g_get_home_dir (), cfg_keyStr ("TILE_PATH")+1);
+        rom_tilePath = g_strdup_printf ("%s%s/", g_get_home_dir (), cfg_keyStr ("TILE_PATH")+1);
     } else {
-        rom_tilePath = g_strdup_printf ("%s", cfg_keyStr ("TILE_PATH"));
+        rom_tilePath = g_strdup_printf ("%s/", cfg_keyStr ("TILE_PATH"));
     }
 
     g_assert(!rom_tileNoImage);

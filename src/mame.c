@@ -198,9 +198,9 @@ zoo               "Zoo (Ver. ZO.02.D)"
 #endif
 
     if (g_str_has_prefix (cfg_keyStr ("ROM_PATH"), "~")) {
-        romPath = g_strdup_printf ("%s%s", g_get_home_dir (), cfg_keyStr ("ROM_PATH")+1);
+        romPath = g_strdup_printf ("%s%s/", g_get_home_dir (), cfg_keyStr ("ROM_PATH")+1);
     } else {
-        romPath = g_strdup_printf ("%s", cfg_keyStr ("ROM_PATH"));
+        romPath = g_strdup_printf ("%s/", cfg_keyStr ("ROM_PATH"));
     }
 
     g_assert (g_file_test (romPath, G_FILE_TEST_IS_DIR));

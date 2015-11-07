@@ -40,9 +40,9 @@ void
 www_init (void)
 {
     if (g_str_has_prefix (cfg_keyStr ("WEB_PATH"), "~")) {
-        www_tilePath = g_strdup_printf ("%s%s", g_get_home_dir (), cfg_keyStr ("WEB_PATH") + 1);
+        www_tilePath = g_strdup_printf ("%s%s/", g_get_home_dir (), cfg_keyStr ("WEB_PATH") + 1);
     } else {
-        www_tilePath = g_strdup_printf ("%s", cfg_keyStr ("WEB_PATH"));
+        www_tilePath = g_strdup_printf ("%s/", cfg_keyStr ("WEB_PATH"));
     }
 
     if (cfg_keyBool ("WEB_DOWNLOAD")) {
