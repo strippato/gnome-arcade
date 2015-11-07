@@ -93,6 +93,7 @@ enum rom_sortOrder
 rom_getSort (void)
 {
     return rom_sortOrder;
+
 }
 
 void

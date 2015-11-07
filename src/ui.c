@@ -613,7 +613,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
             ui_invalidateDrawingArea ();
         }
         break;
-
+/*
     case GDK_KEY_4:
     case GDK_KEY_KP_4:
         if (ui_inSelectState ()) {
@@ -633,7 +633,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
             ui_invalidateDrawingArea ();
         }
         break;
-
+*/
     case GDK_KEY_KP_Multiply:
     case GDK_KEY_asterisk:
         if (ui_inSelectState ()) {
@@ -1189,6 +1189,13 @@ ui_init (void)
                                "        <attribute name='accel'>&lt;Primary&gt;p</attribute>"
                                "      </item>"
                                "    </section>"
+//                               "    <section>"
+//                               "      <item>"
+//                               "          <attribute name='label' translatable='yes'>Re_scan</attribute>"
+//                               "          <attribute name='action'>app.rescan</attribute>"
+//                               "        <attribute name='accel'>&lt;Primary&gt;s</attribute>"
+//                               "      </item>"
+//                               "    </section>"
                                "    <section>"
                                "      <item>"
                                "        <attribute name='label' translatable='yes'>Abo_ut arcade</attribute>"

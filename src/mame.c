@@ -207,31 +207,27 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
     if (g_file_test (MAME_EXE, G_FILE_TEST_IS_EXECUTABLE)) {
 
-        if (cfg_keyBool ("ROMLIST_FROM_FILE")) {
-            //g_print ("\n%s %s\n", fileRom, fileClone);
-            if (!g_file_test (fileRom, G_FILE_TEST_EXISTS)) {
-                g_print ("%s not found, rebuilding... ", MAME_LIST_FULL_FILE);
-                cmdLine = g_strdup_printf ("%s -" MAME_LIST_FULL, MAME_EXE);
-                if (!mame_dumpTo (cmdLine, fileRom)) {
-                    g_print (FAIL_MSG "\n");
-                }
-                g_print (SUCCESS_MSG "\n");
-                g_free (cmdLine);
+        //g_print ("\n%s %s\n", fileRom, fileClone);
+        if (!g_file_test (fileRom, G_FILE_TEST_EXISTS)) {
+            g_print ("%s not found, rebuilding... ", MAME_LIST_FULL_FILE);
+            cmdLine = g_strdup_printf ("%s -" MAME_LIST_FULL, MAME_EXE);
+            if (!mame_dumpTo (cmdLine, fileRom)) {
+                g_print (FAIL_MSG "\n");
             }
-            if (!g_file_test (fileClone, G_FILE_TEST_EXISTS)) {
-                g_print ("%s not found, rebuilding... ", MAME_LIST_CLONES_FILE);
-                cmdLine = g_strdup_printf ("%s -" MAME_LIST_CLONES, MAME_EXE);
-                if (!mame_dumpTo (cmdLine, fileClone)) {
-                    g_print (FAIL_MSG "\n");
-                }
-                g_print (SUCCESS_MSG "\n");
-                g_free (cmdLine);
-            }
-
-            g_print ("gamelist from %s %s\n", MAME_LIST_FULL_FILE, MAME_LIST_CLONES_FILE);
-        } else {
-            g_print ("gamelist from %s\n", MAME_EXE);
+            g_print (SUCCESS_MSG "\n");
+            g_free (cmdLine);
         }
+        if (!g_file_test (fileClone, G_FILE_TEST_EXISTS)) {
+            g_print ("%s not found, rebuilding... ", MAME_LIST_CLONES_FILE);
+            cmdLine = g_strdup_printf ("%s -" MAME_LIST_CLONES, MAME_EXE);
+            if (!mame_dumpTo (cmdLine, fileClone)) {
+                g_print (FAIL_MSG "\n");
+            }
+            g_print (SUCCESS_MSG "\n");
+            g_free (cmdLine);
+        }
+
+        g_print ("gamelist from %s %s\n", MAME_LIST_FULL_FILE, MAME_LIST_CLONES_FILE);
 
         g_print ("rom from %s\n", romPath);
         g_print ("tile from %s\n", rom_tilePath);
@@ -240,12 +236,9 @@ zoo               "Zoo (Ver. ZO.02.D)"
         g_print ("loading clonetable");
         cmdLine = g_strdup_printf ("%s -" MAME_LIST_CLONES, MAME_EXE);
 
-        if (cfg_keyBool ("ROMLIST_FROM_FILE")) {
-            assert (g_file_test (fileClone, G_FILE_TEST_EXISTS));
-            file = g_fopen (fileClone, "r");
-        } else {
-            file = popen (cmdLine, "r");
-        }
+
+        assert (g_file_test (fileClone, G_FILE_TEST_EXISTS));
+        file = g_fopen (fileClone, "r");
 
         skipFirst = TRUE;
         while (fgets (buf, sizeof (buf), file)) {
@@ -264,11 +257,10 @@ zoo               "Zoo (Ver. ZO.02.D)"
             g_strfreev (lineVec);
 
             cloneof = g_strdup (g_strstrip (buf + CLONE_OFFSET));
-            //g_print ("roms *%s* is clone of *%s*\n", romname, cloneof);
 
             g_hash_table_insert (rom_cloneTable, romName, cloneof);
 
-            if (numClone % 500 == 0) g_print (".");
+            if (numClone % 600 == 0) g_print (".");
 
             // don't free romname and cloneof
             //g_free (romname);
@@ -277,11 +269,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
         g_free (cmdLine);
 
-        if (cfg_keyBool ("ROMLIST_FROM_FILE")) {
-            fclose (file);
-        } else {
-            pclose (file);
-        }
+        fclose (file);
 
         g_print (" " SUCCESS_MSG " (%i)\n", numClone);
 
@@ -290,12 +278,8 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
         cmdLine = g_strdup_printf ("%s -" MAME_LIST_FULL, MAME_EXE);
 
-        if (cfg_keyBool ("ROMLIST_FROM_FILE")) {
-            assert (g_file_test (fileRom, G_FILE_TEST_EXISTS));
-            file = g_fopen (fileRom, "r");
-        } else {
-            file = popen (cmdLine, "r");
-        }
+        assert (g_file_test (fileRom, G_FILE_TEST_EXISTS));
+        file = g_fopen (fileRom, "r");
 
         skipFirst = TRUE;
         while (fgets (buf, sizeof (buf), file)) {
@@ -305,10 +289,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
             }
 
             numGameSupported++;
-
-#ifdef DEBUG_ROM_LIMIT
-            if (numGame >= DEBUG_ROM_LIMIT) continue;
-#endif
 
             gchar *tempstr = strstr (buf, " ");
             assert (tempstr);
@@ -338,7 +318,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
             tempstr++;
             gchar *nameDes = g_strndup (tempstr, strlen (tempstr) - 2);
 
-            // g_print ("*%s*%zu\n", nameDes, strlen(nameDes));
             if (!rom_filterBios (nameDes)) {
                 struct rom_romItem *item = rom_newItem ();
 
@@ -365,16 +344,11 @@ zoo               "Zoo (Ver. ZO.02.D)"
             if (numGameSupported % 600 == 0) g_print (".");
 
         }
-        if (cfg_keyBool ("ROMLIST_FROM_FILE")) {
-            fclose (file);
-        } else {
-            pclose (file);
-        }
 
+        fclose (file);
         g_free (cmdLine);
 
         g_print (" " SUCCESS_MSG " (%i)\n", numGameSupported);
-
         g_print ("found %i of %i rom (%i bios skipped)\n", numGame, numGameSupported, numBios);
     }
 
@@ -383,10 +357,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
     g_free (fileClone);
 
     g_free (mameVersion);
-#ifdef DEBUG_TIMING
-    logTimer ("end loading romlist");
-#endif
-
 }
 
 void
