@@ -41,7 +41,7 @@ cfg_fillDefaultConfig (void)
 {
 
 	g_hash_table_insert (cfg_default, g_strdup ("MAME_EXE"), g_strdup (MAME_BIN));
-	g_hash_table_insert (cfg_default, g_strdup ("MAME_OPTIONS"), g_strdup ("-skip_gameinfo -multithreading -video opengl"));
+	g_hash_table_insert (cfg_default, g_strdup ("MAME_OPTIONS"), g_strdup ("-autosave -skip_gameinfo -multithreading -video opengl"));
 
 	g_hash_table_insert (cfg_default, g_strdup ("USE_DARK_THEME"), g_strdup ("1"));
 
