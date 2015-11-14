@@ -45,8 +45,6 @@
 #define MAME_LIST_FULL   "listfull"
 #define MAME_LIST_CLONES "listclones"
 
-#define MAME_LIST_FULL_FILE   "listfull.txt"
-#define MAME_LIST_CLONES_FILE "listclones.txt"
 
 #define MAME_LIST_BUFSIZE 255
 
@@ -187,15 +185,10 @@ zoo               "Zoo (Ver. ZO.02.D)"
     gint numGameSupported = 0;
     gint numClone = 0;
     gint numBios = 0;
-    gboolean skipFirst = TRUE;
     gchar* romPath;
 
     gchar *fileRom = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_FULL_FILE, NULL);
     gchar *fileClone = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_CLONES_FILE, NULL);
-
-#ifdef DEBUG_TIMING
-    logTimer ("Start loading romlist");
-#endif
 
     if (g_str_has_prefix (cfg_keyStr ("ROM_PATH"), "~")) {
         romPath = g_strdup_printf ("%s%s/", g_get_home_dir (), cfg_keyStr ("ROM_PATH")+1);
@@ -207,7 +200,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
     if (g_file_test (MAME_EXE, G_FILE_TEST_IS_EXECUTABLE)) {
 
-        //g_print ("\n%s %s\n", fileRom, fileClone);
         if (!g_file_test (fileRom, G_FILE_TEST_EXISTS)) {
             g_print ("%s not found, rebuilding... ", MAME_LIST_FULL_FILE);
             cmdLine = g_strdup_printf ("%s -" MAME_LIST_FULL, MAME_EXE);
@@ -240,12 +232,10 @@ zoo               "Zoo (Ver. ZO.02.D)"
         assert (g_file_test (fileClone, G_FILE_TEST_EXISTS));
         file = g_fopen (fileClone, "r");
 
-        skipFirst = TRUE;
+        // skip first line
+        fgets (buf, sizeof (buf), file);
+
         while (fgets (buf, sizeof (buf), file)) {
-            if (skipFirst) {
-                skipFirst = FALSE;
-                continue;
-            }
             numClone++;
 
             gchar **lineVec;
@@ -281,13 +271,10 @@ zoo               "Zoo (Ver. ZO.02.D)"
         assert (g_file_test (fileRom, G_FILE_TEST_EXISTS));
         file = g_fopen (fileRom, "r");
 
-        skipFirst = TRUE;
-        while (fgets (buf, sizeof (buf), file)) {
-            if (skipFirst) {
-                skipFirst = FALSE;
-                continue;
-            }
+        // skip first line
+        fgets (buf, sizeof (buf), file);
 
+        while (fgets (buf, sizeof (buf), file)) {
             numGameSupported++;
 
             gchar *tempstr = strstr (buf, " ");
