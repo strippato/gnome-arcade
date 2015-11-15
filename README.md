@@ -11,6 +11,28 @@ a minimal MAME frontend
 - [Linux](http://software.opensuse.org/download.html?project=home%3Agallochri%3AStrippato&package=gnome-arcade)
 
 
+### Compile
+```
+# git clone http://github.com/strippato/gnome-arcade
+# cd gnome-arcade
+# mkdir build
+# cd build
+# cmake ..
+# make
+```
+
+### Run
+```
+# cd gnome-arcade
+# ./gnome-arcade
+```
+
+*Dependencies:*
+ * GTK+ >= 3.14
+ * gdk 3.0
+ * gdk-pixbuf-2.0
 
 
-
+**Author**
+ * Strippato <strippato@gmail.com>
+ 
