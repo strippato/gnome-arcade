@@ -37,5 +37,7 @@ struct view_viewModel
 
 struct rom_romItem* view_getItem (struct view_viewModel *view, int numGame);
 
+void view_gotoDefaultView (void);
+
 #endif
 

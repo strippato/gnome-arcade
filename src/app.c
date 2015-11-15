@@ -46,7 +46,7 @@ static gint app_status = 0;
 GActionEntry app_entries[] = {
     { "fullscreen", ui_actionFullscreen, NULL, "false", ui_actionChangeFullscreen},
     { "preference", uipref_showDialog, NULL, NULL, NULL},
-    //TODO { "rescan"    , rescan, NULL, NULL, NULL},
+    { "rescan"    , rescan, NULL, NULL, NULL},
     { "sort"      , ui_actionSort, NULL, "true", NULL },
     { "about"     , ui_showAbout, NULL, NULL, NULL },
     { "quit"      , ui_quit     , NULL, NULL, NULL },
@@ -83,10 +83,6 @@ main (gint argc, gchar *argv[])
     setlocale (LC_CTYPE, "");
     bindtextdomain (LOCALE_PACKAGE, LOCALE_DIR);
     textdomain (LOCALE_PACKAGE);
-
-#ifdef DEBUG_ROM_LIMIT
-    g_print ("WARNING DEBUG IS ACTIVE (max %i rom loaded)\n", DEBUG_ROM_LIMIT);
-#endif
 
     g_print (COLOR_RED APP_NAME " rel. " APP_VERSION COLOR_RESET"\n");
     g_print (APP_DESCRIPTION "\n\n");

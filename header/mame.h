@@ -27,5 +27,8 @@ gboolean mame_playGame (struct rom_romItem *item);
 gboolean mame_isRunning(void);
 //gboolean mame_dumpTo (gchar *cmdline, gchar *file);
 
+#define MAME_LIST_FULL_FILE   "listfull.txt"
+#define MAME_LIST_CLONES_FILE "listclones.txt"
+
 #endif
 

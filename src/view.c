@@ -57,8 +57,8 @@ void
 view_init (void)
 {
 	g_print ("creating model ");
-	modelUser = view_modelCreate (); // user romsett
-	modelPref = view_modelCreate (); // favourite rom
+	modelUser = view_modelCreate (); // user romset
+	modelPref = view_modelCreate (); // favorite rom
 
     for (GList *l = rom_romList; l != NULL; l = l->next) {
         struct rom_romItem *item = l->data;
@@ -108,6 +108,12 @@ view_getItem (struct view_viewModel *view, int numGame)
     g_assert (numGame < view->romCount);
 
     return g_list_nth_data (view->romList, numGame);
+}
+
+void
+view_gotoDefaultView (void)
+{
+	ui_setView (modelUser);
 }
 
 //FIXME

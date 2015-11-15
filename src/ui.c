@@ -1189,13 +1189,13 @@ ui_init (void)
                                "        <attribute name='accel'>&lt;Primary&gt;p</attribute>"
                                "      </item>"
                                "    </section>"
-//                               "    <section>"
-//                               "      <item>"
-//                               "          <attribute name='label' translatable='yes'>Re_scan</attribute>"
-//                               "          <attribute name='action'>app.rescan</attribute>"
-//                               "        <attribute name='accel'>&lt;Primary&gt;s</attribute>"
-//                               "      </item>"
-//                               "    </section>"
+                               "    <section>"
+                               "      <item>"
+                               "          <attribute name='label' translatable='yes'>Re_scan</attribute>"
+                               "          <attribute name='action'>app.rescan</attribute>"
+                               "        <attribute name='accel'>&lt;Primary&gt;s</attribute>"
+                               "      </item>"
+                               "    </section>"
                                "    <section>"
                                "      <item>"
                                "        <attribute name='label' translatable='yes'>Abo_ut arcade</attribute>"
@@ -1652,8 +1652,6 @@ ui_setView (struct view_viewModel *view)
     g_object_thaw_notify (G_OBJECT(ui_drawingArea));
     g_object_thaw_notify (G_OBJECT(ui_adjust));
 
-//    gtk_adjustment_changed (ui_adjust);
-
     ui_viewModel = view;
 
     ui_repaint ();
@@ -1664,7 +1662,6 @@ ui_setView (struct view_viewModel *view)
 inline gboolean
 ui_invalidateDrawingArea (void)
 {
-    // from other thread (!= MainThread), we must invalidate the da to force a repaint
     GdkWindow *win = gtk_widget_get_window (GTK_WIDGET (ui_drawingArea));
     if (win) {
         gdk_window_invalidate_rect (win, NULL, FALSE);
