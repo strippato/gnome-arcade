@@ -28,6 +28,7 @@ void www_free (void);
 
 gboolean  	www_autoDownload;
 gchar*		www_tilePath;
+int 		www_dowloadingItm;
 
 void www_download (struct rom_romItem* item);
 gchar* www_getFileNameWWW (const gchar* romName);

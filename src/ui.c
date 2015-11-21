@@ -422,21 +422,10 @@ static gboolean
 ui_drawingAreaConfigureEvent (void)
 {
     // no rom found
-    //g_print ("*Configure event \n");
     if (ui_viewModel->romCount <= 0) {
         gtk_widget_hide (GTK_WIDGET (ui_scrollBar));
         return FALSE;
     }
-
-    // {
-    //     if (gtk_widget_get_visible (GTK_WIDGET (ui_scrollBar))) {
-    //         g_print ("C scrollbar is visible %i\n", gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
-    //     } else {
-    //         g_print ("C scrollbar is NOT visible %i\n", gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
-    //     }
-    // }
-
-    //gtk_adjustment_set_value (GTK_ADJUSTMENT (ui_adjust), ui_viewModel->view);
 
     int newItemOnRow = ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)));
 
@@ -447,12 +436,7 @@ ui_drawingAreaConfigureEvent (void)
 
     gdouble position = gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust));
 
-//g_print ("->in  position %f\n", position);
-
     gtk_adjustment_configure (GTK_ADJUSTMENT (ui_adjust), position, 0, upper, UI_SCROLL_STEP, pageHeight, pageHeight);
-
-//position = gtk_adjustment_get_value (GTK_ADJUSTMENT (ui_adjust));
-//g_print ("->out position %f\n", position);
 
     if (pageHeight >= upper) {
         gtk_widget_hide (GTK_WIDGET (ui_scrollBar));
@@ -1113,34 +1097,6 @@ ui_actionChangeFullscreen (GSimpleAction *simple, GVariant *parameter, gpointer 
 }
 
 
-/*
-static gboolean
-ui_windowWindowStateEvent (GtkWidget *widget, GdkEventWindowState *event, gpointer user_data)
-{
-    g_print("event\n");
-
-    if (event->type != GDK_WINDOW_STATE) {
-           g_print("event 2\n");
-        return FALSE;
-    }
-
-    if (event->changed_mask != GDK_WINDOW_STATE_FULLSCREEN) {
-           g_print("event 2\n");
-            return FALSE;
-    }
-
-    if (event->new_window_state == GDK_WINDOW_STATE_FULLSCREEN) {
-        ui_fullscreen = TRUE;
-        g_print(">event fullscreen\n");
-    } else  {
-        g_print(">event normal\n");
-        ui_fullscreen = FALSE;
-    }
-
-    return FALSE;
-}
-*/
-
 void
 ui_init (void)
 {
@@ -1675,4 +1631,5 @@ ui_showInfobar (void)
     gtk_widget_set_no_show_all (ui_infobar, FALSE);
     gtk_widget_show_all (GTK_WIDGET (ui_infobar));
 }
+
 
