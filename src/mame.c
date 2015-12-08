@@ -97,7 +97,11 @@ mame_dumpTo (gchar *cmdline, gchar *file)
 
     } else {
 
-        g_file_set_contents (file, stdout, -1, &error);
+        // skip the first line:
+        // Name:             Description:
+        gchar* outbuf = g_strrstr (stdout, ":\n") + 2;
+
+        g_file_set_contents (file, outbuf, -1, &error);
 
         if (error) g_error_free (error);
         if (stdout) g_free (stdout);
@@ -232,9 +236,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
         assert (g_file_test (fileClone, G_FILE_TEST_EXISTS));
         file = g_fopen (fileClone, "r");
 
-        // skip first line
-        fgets (buf, sizeof (buf), file);
-
         while (fgets (buf, sizeof (buf), file)) {
             numClone++;
 
@@ -270,9 +271,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
         assert (g_file_test (fileRom, G_FILE_TEST_EXISTS));
         file = g_fopen (fileRom, "r");
-
-        // skip first line
-        fgets (buf, sizeof (buf), file);
 
         while (fgets (buf, sizeof (buf), file)) {
             numGameSupported++;
