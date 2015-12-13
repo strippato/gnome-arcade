@@ -219,7 +219,7 @@ rom_free (void)
  {
     mame_gameList ();
 
-    rom_romList = g_list_reverse (rom_romList);
+    //rom_romList = g_list_reverse (rom_romList);
 
     if ((rom_count <= 0) || (rom_available <=0)) {
         ui_showInfobar ();
@@ -441,7 +441,6 @@ rom_fileRead_cb (GFile *file, GAsyncResult *res, struct rom_romItem *item)
 
         }
     }
-
 }
 
 static void

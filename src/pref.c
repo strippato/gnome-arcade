@@ -124,9 +124,7 @@ pref_save (void)
 
  			g_free (data);
 		}
-
 	}
-
 }
 
 void

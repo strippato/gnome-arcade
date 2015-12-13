@@ -309,7 +309,6 @@ cfg_keyBool (const gchar* key)
 	return strtod ((gchar*) g_hash_table_lookup (cfg_config, key), NULL) == 0? FALSE: TRUE;
 }
 
-// TODO
 gboolean
 cfg_saveConfig (void)
 {

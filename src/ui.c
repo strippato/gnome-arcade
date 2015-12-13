@@ -1188,7 +1188,6 @@ ui_init (void)
     g_object_unref (builder);
 
     gtk_window_set_title (GTK_WINDOW (ui_window), APP_NAME);
-    //gtk_window_set_hide_titlebar_when_maximized (GTK_WINDOW(ui_window), TRUE);
 
     /* config */
     cfg_init ();
