@@ -46,10 +46,16 @@ MESSAGE(STATUS "CMAKE_C_FLAGS:" ${CMAKE_C_FLAGS})
 # Use the package PkgConfig to detect GTK+ headers/library files
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK3 REQUIRED gtk+-3.0>=3.14)
+pkg_check_modules(PC_LIBEVDEV REQUIRED libevdev)
 
 include_directories(${GTK3_INCLUDE_DIRS})
 link_directories(${GTK3_LIBRARY_DIRS})
 add_definitions(${GTK3_CFLAGS_OTHER})
+
+include_directories(${PC_LIBEVDEV_INCLUDE_DIRS})
+link_directories(${PC_LIBEVDEV_LIBRARY_DIRS})
+add_definitions(${PC_LIBEVDEV_CFLAGS_OTHER})
+
 
 # Add src
 add_subdirectory(src)

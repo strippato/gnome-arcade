@@ -56,11 +56,13 @@ cfg_fillDefaultConfig (void)
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_BORDER_DYNAMIC"), g_strdup ("1"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_SHORT_DESCRIPTION"), g_strdup ("1"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_SHORT_DESCRIPTION_HIDE_PREFIX"), g_strdup ("1"));
-	g_hash_table_insert (cfg_default, g_strdup ( "TILE_SHADOW"), g_strdup ("1"));
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_SHADOW"), g_strdup ("1"));
 
 	g_hash_table_insert (cfg_default, g_strdup ("WEB_PROVIDER"), g_strdup ("http://www.progettoemma.net/snap/%s/0000.png"));
 	g_hash_table_insert (cfg_default, g_strdup ("WEB_PATH"), g_strdup ("~/gnome-arcade/data/www/"));
 	g_hash_table_insert (cfg_default, g_strdup ("WEB_DOWNLOAD"), g_strdup ("1"));
+
+	g_hash_table_insert (cfg_default, g_strdup ("JOY_ENABLED"), g_strdup ("0"));
 }
 
 void
@@ -350,7 +352,7 @@ cfg_saveConfig (void)
 																	"http://adb.arcadeitalia.net/media/mame.current/ingames/%s.png\n" \
 																	"http://adb.arcadeitalia.net/media/mame.current/titles/%s.png\n" \
 																	"http://adb.arcadeitalia.net/media/mame.current/cabinets/%s.png\n" \
-							, &err);
+																, &err);
 
 	if (err) {
 		g_print ("Can't write to output stream: %s\n", err->message);

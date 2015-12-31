@@ -49,8 +49,15 @@ void ui_showAbout (GSimpleAction *action, GVariant *parameter, gpointer user_dat
 void ui_setView (struct view_viewModel *view);
 void ui_setDefaultView (struct view_viewModel *view);
 
-gboolean ui_inSelectState (void);
+void ui_cmdUp (void);
+void ui_cmdDown (void);
+void ui_cmdLeft (void);
+void ui_cmdRight (void);
+void ui_cmdHome (void);
+void ui_cmdEnd (void);
+gboolean ui_cmdPlay (void);
 
+gboolean ui_inSelectState (void);
 gboolean ui_invalidateDrawingArea (void);
 void ui_showInfobar (void);
 

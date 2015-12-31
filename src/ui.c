@@ -35,6 +35,7 @@
 #include "config.h"
 #include "pref.h"
 #include "www.h"
+#include "joy.h"
 
 #define TILE_MIN_SIZE       150
 #define TILE_W_BORDER_MIN   24
@@ -59,7 +60,7 @@
 #define TEXT_FONT               "sans-serif"
 #define TEXT_SIZE               11
 #define TEXT_OFFSET             20
-#define TEXT_FONT_COLOR         0.7, 0.7, 0.7
+#define TEXT_FONT_COLOR         0.75, 0.75, 0.75
 #define TEXT_FONT_COLOR_FOCUS   1.0, 1.0, 1.0
 
 /* layout
@@ -147,7 +148,7 @@ ui_headerBarShowInfo (int romIndex)
 {
     struct rom_romItem *item = view_getItem (ui_viewModel, romIndex);
 
-    gchar *subTitle=NULL;
+    gchar *subTitle = NULL;
 
     const gchar *desc = rom_getItemDescription (item);
     const gchar *name = rom_getItemName (item);
@@ -262,22 +263,21 @@ ui_itemOnRow (gint width)
 static gboolean
 ui_playClicked (void)
 {
-    guint nplay;
-
     if (mame_isRunning ()) return FALSE;
 
     if (ui_viewModel->romCount > 0) {
         struct rom_romItem  *itm = view_getItem (ui_viewModel, ui_viewModel->focus);
+
         if (mame_playGame (itm)) {
-            nplay = rom_getItemNPlay (itm) + 1;
+            guint nplay = rom_getItemNPlay (itm) + 1;
             rom_setItemNPlay (itm, nplay);
             pref_setNPlay (rom_getItemName (itm), nplay);
             pref_save ();
         };
-    } else {
-        g_print ("romlist is empty!\n");
-    }
 
+    } else {
+        g_print ("romlist is empty %s\n", FAIL_MSG);
+    }
     return TRUE;
 }
 
@@ -298,6 +298,21 @@ ui_focusAt (int index)
     if (ui_inSelectState ()) {
         ui_headerBarShowInfo (ui_viewModel->focus);
     }
+
+    /*
+    g_print ("\n Rom %s\n", rom_getItemName (view_getItem (ui_viewModel, ui_viewModel->focus)));
+    iter;
+    gpointer key, value;
+
+    g_hash_table_iter_init (&iter, rom_cloneTable);
+    while (g_hash_table_iter_next (&iter, &key, &value)) {
+        // do something with key and value
+    (g_strcmp0(rom_getItemName (view_getItem (ui_viewModel, ui_viewModel->focus)),value) == 0) {
+            g_print ("found %s %s\n", (char*) key, (char*) value);
+        }
+
+    }
+    //*/
 
     // play button
     gchar *tips = g_strdup_printf ("Play at %s", rom_getItemDescription (view_getItem (ui_viewModel, ui_viewModel->focus)));
@@ -463,6 +478,74 @@ ui_barValueChanged (GtkWidget *widget, GtkAdjustment *adj)
     return TRUE;
 }
 
+gboolean
+ui_cmdPlay (void)
+{
+    ui_playClicked ();
+    return FALSE;
+}
+
+void
+ui_cmdUp (void)
+{
+    if (mame_isRunning ()) return;
+    if (ui_viewModel->romCount <= 0) return;
+
+    ui_focusPrevRow ();
+    ui_drawingAreaShowItem (ui_viewModel->focus);
+    ui_invalidateDrawingArea ();
+}
+
+void
+ui_cmdDown (void)
+{
+    if (mame_isRunning ()) return;
+    if (ui_viewModel->romCount <= 0) return;
+    ui_focusNextRow ();
+    ui_drawingAreaShowItem (ui_viewModel->focus);
+    ui_invalidateDrawingArea ();
+}
+
+void
+ui_cmdLeft (void)
+{
+    if (mame_isRunning ()) return;
+    if (ui_viewModel->romCount <= 0) return;
+    ui_focusPrev ();
+    ui_drawingAreaShowItem (ui_viewModel->focus);
+    ui_invalidateDrawingArea ();
+}
+
+void
+ui_cmdRight (void)
+{
+    if (mame_isRunning ()) return;
+    if (ui_viewModel->romCount <= 0) return;
+    ui_focusNext ();
+    ui_drawingAreaShowItem (ui_viewModel->focus);
+    ui_invalidateDrawingArea ();
+}
+
+void
+ui_cmdHome (void)
+{
+    if (mame_isRunning ()) return;
+    if (ui_viewModel->romCount <= 0) return;
+    ui_focusAt (0);
+    ui_drawingAreaShowItem (ui_viewModel->focus);
+    ui_invalidateDrawingArea ();
+}
+
+void
+ui_cmdEnd (void)
+{
+    if (mame_isRunning ()) return;
+    if (ui_viewModel->romCount <= 0) return;
+    ui_focusAt (ui_viewModel->romCount - 1);
+    ui_drawingAreaShowItem (ui_viewModel->focus);
+    ui_invalidateDrawingArea ();
+}
+
 static gboolean
 ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer data)
 {
@@ -471,45 +554,27 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
 
     switch (event->keyval) {
     case GDK_KEY_Up:
-        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
-        ui_focusPrevRow ();
-        ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_cmdUp ();
         break;
 
     case GDK_KEY_Down:
-        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
-        ui_focusNextRow ();
-        ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_cmdDown ();
         break;
 
     case GDK_KEY_Right:
-        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
-        ui_focusNext ();
-        ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_cmdRight ();
         break;
 
     case GDK_KEY_Left:
-        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
-        ui_focusPrev ();
-        ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_cmdLeft ();
         break;
 
     case GDK_KEY_Home:
-        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
-        ui_focusAt (0);
-        ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_cmdHome ();
         break;
 
     case GDK_KEY_End:
-        if (ui_viewModel->romCount <= 0) return FALSE; // no rom found
-        ui_focusAt (ui_viewModel->romCount - 1);
-        ui_drawingAreaShowItem (ui_viewModel->focus);
-        ui_invalidateDrawingArea ();
+        ui_cmdEnd ();
         break;
 
 
@@ -783,7 +848,6 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
 
     default:
         break;
-
     }
 
     return TRUE;
@@ -1034,6 +1098,7 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
             }
         }
     }
+
     return TRUE;
 }
 
@@ -1287,6 +1352,8 @@ ui_init (void)
     ui_drawingArea = gtk_drawing_area_new ();
     gtk_widget_set_size_request (ui_drawingArea, 2 * TILE_W_BORDER_MIN + ui_tileSize_W, UI_OFFSET_Y + ui_tileSize_H + TILE_H_BORDER);
     gtk_box_pack_start (GTK_BOX (hbox), ui_drawingArea, TRUE, TRUE, 0);
+    gtk_widget_set_hexpand (ui_drawingArea, TRUE);
+    gtk_widget_set_vexpand (ui_drawingArea, TRUE);
     gtk_widget_realize (ui_drawingArea);
 
     /* scrollbar & adj widget*/
@@ -1318,8 +1385,11 @@ ui_init (void)
     /* view */
     view_init ();
 
-    /* web */
+    /* web scrapper */
     www_init ();
+
+    /* joy support */
+    joy_init ();
 
     ui_focusAdd (0);
 
@@ -1347,6 +1417,12 @@ ui_init (void)
     g_signal_connect (G_OBJECT (ui_drawingArea), "configure-event", G_CALLBACK (ui_drawingAreaConfigureEvent), NULL);
 
     gtk_widget_show_all (GTK_WIDGET (ui_window));
+
+    //g_idle_add ((GSourceFunc) joy_debugFull, NULL);
+    //g_timeout_add (1000, (GSourceFunc) joy_debugFull, NULL);
+
+
+
 }
 
 void
@@ -1363,7 +1439,11 @@ ui_free (void)
     /* free romlist */
     rom_free ();
 
+    /* web scrapper */
     www_free ();
+
+    /* joy */
+    joy_free ();
 
     /* free config */
     cfg_free ();

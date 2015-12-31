@@ -37,6 +37,7 @@
 #include "config.h"
 #include "pref.h"
 #include "util.h"
+#include "joy.h"
 
 
 #define MAME_EXE       cfg_keyStr("MAME_EXE")
@@ -128,8 +129,9 @@ mame_run (gchar *cmdline, GPid *pid, gint *stdout, gint *stderr) {
         g_error_free (error);
         error = NULL;
     } else {
-        g_print ("mame pid is %lu\n", (gulong)*pid);
+        g_print ("mame pid is %lu\n", (gulong) *pid);
         runOk = TRUE;
+
     }
 
     g_strfreev (argv);
@@ -326,7 +328,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
             g_free (romName7Zip);
             g_free (romNameDir);
 
-            if (numGameSupported % 600 == 0) g_print (".");
+            if (numGameSupported % 1000 == 0) g_print (".");
 
         }
 
@@ -358,6 +360,8 @@ mame_quit (GPid pid)
     ui_setScrollBarState (TRUE);
     ui_invalidateDrawingArea ();
     ui_setFocus ();
+
+    joy_init (); // restart joypad
 }
 
 gboolean
@@ -386,6 +390,10 @@ mame_playGame (struct rom_romItem *item)
     g_print ("playing %s\n", romName);
 
     if (mame_run (cmdline, &pid, NULL, NULL)) {
+
+        // detach joypad
+        joy_free ();
+
         played = TRUE;
         ui_setPlayBtnState (FALSE);
         ui_setToolBarState (FALSE);
@@ -393,6 +401,7 @@ mame_playGame (struct rom_romItem *item)
 
         mame_mameIsRunning = TRUE;
         g_child_watch_add (pid, (GChildWatchFunc) mame_quit, &pid);
+
     } else {
         g_print ("oops, something goes wrong again...\n");
         mame_mameIsRunning = FALSE;
