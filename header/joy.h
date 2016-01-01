@@ -30,10 +30,12 @@ struct Tjoy {
 	guint            watch; // watch (event id)
 
 	// joy controls
-	gboolean         up;
-	gboolean         down;
-	gboolean         left;
-	gboolean         right;
+	gint MAX_ABS_X;
+	gint MIN_ABS_X;
+
+	gint MAX_ABS_Y;
+	gint MIN_ABS_Y;
+
 };
 
 extern GList *joy_list;

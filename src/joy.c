@@ -101,6 +101,13 @@ joy_init (void)
 							jitem->name = jname;
 							jitem->dev = dev;
 					 		jitem->gio = gio;
+
+							jitem->MAX_ABS_X = libevdev_get_abs_maximum (jitem->dev, ABS_X);
+							jitem->MIN_ABS_X = libevdev_get_abs_minimum (jitem->dev, ABS_X);
+
+							jitem->MAX_ABS_Y = libevdev_get_abs_maximum (jitem->dev, ABS_Y);
+							jitem->MIN_ABS_Y = libevdev_get_abs_minimum (jitem->dev, ABS_Y);
+
 					 		jitem->watch = g_io_add_watch (jitem->gio, G_IO_IN, (GIOFunc) joy_event, NULL);
 
 					 		g_io_channel_unref (jitem->gio);
@@ -137,8 +144,8 @@ joy_init (void)
 	}
 }
 
-void
-joy_listFree (struct Tjoy *item)
+static void
+joy_listFreeItem (struct Tjoy *item)
 {
 	if (!cfg_keyBool ("JOY_ENABLED")) return;
 
@@ -160,7 +167,7 @@ joy_free (void)
 {
 	if (!cfg_keyBool ("JOY_ENABLED")) return;
 
-    g_list_foreach (joy_list, (GFunc)joy_listFree, NULL);
+    g_list_foreach (joy_list, (GFunc) joy_listFreeItem, NULL);
     g_list_free (joy_list);
 
 	joy_list = NULL;
@@ -187,7 +194,7 @@ joy_debugFull (void)
 {
   	GList *iter;
   	for (iter = joy_list; iter != NULL; iter = g_list_next (iter)) {
-    	g_print ("*joy[%s]*\n", ((struct Tjoy *)(iter->data))->name);
+		g_print ("*joy[%s]*\n", ((struct Tjoy *)(iter->data))->name);
 		joy_debug (iter->data);
   	}
 	return TRUE;
@@ -217,13 +224,13 @@ joy_event (void)
 
 	        		switch (ev.code) {
 	        		case ABS_X:
-	        			if (ev.value == 1) ui_cmdLeft ();
-	        			if (ev.value == 254) ui_cmdRight ();
+	        			if (ev.value == joy->MIN_ABS_X) ui_cmdLeft ();
+	        			if (ev.value == joy->MAX_ABS_X) ui_cmdRight ();
 	        			break;
 
 	        		case ABS_Y:
-	        			if (ev.value == 1) ui_cmdUp ();
-	        			if (ev.value == 254) ui_cmdDown ();
+	        			if (ev.value == joy->MIN_ABS_Y) ui_cmdUp ();
+	        			if (ev.value == joy->MAX_ABS_Y) ui_cmdDown ();
 	        			break;
 
 	        		case ABS_HAT0X:
@@ -260,15 +267,16 @@ joy_event (void)
 	        		break;
 	        	}
 
-	        	/*
+        		/*
 				g_print ("Event: %s %s %d\n",
 	            	libevdev_event_type_get_name (ev.type),
 	                libevdev_event_code_get_name (ev.type, ev.code),
 	            	ev.value);
-	            */
+				*/
 			}
 	 	} while (libevdev_has_event_pending (joy->dev) != 0);
 
   	}
 	return TRUE;
 }
+
