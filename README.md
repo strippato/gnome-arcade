@@ -1,15 +1,9 @@
 #gnome-arcade
-============
-
 a minimal MAME frontend
-
 ![Demo](https://raw.githubusercontent.com/strippato/gnome-arcade/master/gnomearcade.gif)
-
-
 
 ### Download prebuilt binaries
 - [Linux](http://software.opensuse.org/download.html?project=home%3Agallochri%3AStrippato&package=gnome-arcade)
-
 
 ### Compile
 ```
@@ -20,18 +14,19 @@ a minimal MAME frontend
 # cmake ..
 # make
 ```
-
 ### Run
 ```
 # cd gnome-arcade
 # ./gnome-arcade
 ```
 
-*Dependencies:*
- * GTK+ >= 3.14
- * gdk 3.0
- * gdk-pixbuf-2.0
-
+**Dependencies**
+```
+GTK+ >= 3.14
+gdk 3.0
+gdk-pixbuf-2.0
+libevdev-1.4.5
+```
 
 **Author**
  * Strippato <strippato@gmail.com>
