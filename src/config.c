@@ -33,8 +33,7 @@
 
 static GHashTable *cfg_default = NULL;
 static GHashTable *cfg_config  = NULL;
-
-static GError 	*err = NULL;
+static GError 	  *err         = NULL;
 
 static void
 cfg_fillDefaultConfig (void)
@@ -46,7 +45,6 @@ cfg_fillDefaultConfig (void)
 	g_hash_table_insert (cfg_default, g_strdup ("USE_DARK_THEME"), g_strdup ("1"));
 
 	g_hash_table_insert (cfg_default, g_strdup ("ROM_PATH"), g_strdup ("/usr/share/gnome-arcade/data/rom/"));
-
 
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_SIZE_W"), g_strdup ("210"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_SIZE_H"), g_strdup ("210"));
@@ -272,15 +270,14 @@ cfg_configFileExist (void)
 	return exist;
 }
 
-inline const gchar*
+const gchar*
 cfg_keyStr (const gchar* key)
 {
 	g_assert (cfg_config);
-
 	return (gchar*) g_hash_table_lookup (cfg_config, key);
 }
 
-inline gint
+gint
 cfg_keyInt (const gchar* key)
 {
 	g_assert (cfg_config);
@@ -293,7 +290,7 @@ cfg_keyInt (const gchar* key)
 	}
 }
 
-inline gdouble
+gdouble
 cfg_keyDbl (const gchar* key)
 {
 	g_assert (cfg_config);
@@ -301,7 +298,7 @@ cfg_keyDbl (const gchar* key)
 	return strtod (g_hash_table_lookup (cfg_config, key), NULL);
 }
 
-inline gboolean
+gboolean
 cfg_keyBool (const gchar* key)
 {
 	// 0 -> FALSE

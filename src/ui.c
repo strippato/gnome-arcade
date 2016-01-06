@@ -1530,13 +1530,13 @@ ui_setScrollBarState (gboolean state)
     gtk_widget_set_sensitive (ui_scrollBar, state);
 }
 
-inline void
+void
 ui_setFocus (void)
 {
     gtk_window_present (GTK_WINDOW (ui_window));
 }
 
-inline gboolean
+gboolean
 ui_tileIsVisible (struct rom_romItem *item)
 {
     gint index = g_list_index (ui_viewModel->romList, item);
@@ -1733,7 +1733,7 @@ ui_setView (struct view_viewModel *view)
 }
 
 
-inline gboolean
+gboolean
 ui_invalidateDrawingArea (void)
 {
     GdkWindow *win = gtk_widget_get_window (GTK_WIDGET (ui_drawingArea));

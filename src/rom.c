@@ -59,7 +59,7 @@ GHashTable* rom_cloneTable = NULL;
 
 static enum rom_sortOrder rom_sortOrder = ROM_SORT_AZ;
 
-static int
+inline static int
 rom_sortAZ (struct rom_romItem *itemA, struct rom_romItem *itemB)
 {
 
@@ -74,7 +74,7 @@ rom_sortAZ (struct rom_romItem *itemA, struct rom_romItem *itemB)
     return result;
 }
 
-static int
+inline static int
 rom_sortZA (struct rom_romItem *itemA, struct rom_romItem *itemB)
 {
     gchar *romA = g_utf8_casefold ((gchar*) itemA->desc, -1);
@@ -93,7 +93,6 @@ enum rom_sortOrder
 rom_getSort (void)
 {
     return rom_sortOrder;
-
 }
 
 void
@@ -224,7 +223,6 @@ rom_free (void)
     if ((rom_count <= 0) || (rom_available <=0)) {
         ui_showInfobar ();
     }
-
  }
 
 inline gboolean
@@ -246,7 +244,7 @@ rom_parentOf (const gchar *romName)
 }
 
 
-inline struct rom_romItem*
+struct rom_romItem*
 rom_newItem (void)
 {
     struct rom_romItem* item = g_new (struct rom_romItem, 1);
@@ -268,17 +266,16 @@ rom_newItem (void)
     return item;
 }
 
-inline struct rom_romItem*
+struct rom_romItem*
 rom_getItem (int numGame)
 {
     g_assert (numGame < rom_count);
     return g_list_nth_data (rom_romList, numGame);
 }
 
-inline void
+void
 rom_setItemRomFound (struct rom_romItem* item, gboolean value)
 {
-
     if (value) {
         if (!item->romFound) rom_available++;
     } else {

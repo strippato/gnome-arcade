@@ -412,7 +412,7 @@ mame_playGame (struct rom_romItem *item)
     return played;
 }
 
-inline gboolean
+gboolean
 mame_isRunning (void)
 {
     return mame_mameIsRunning;

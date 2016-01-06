@@ -73,7 +73,7 @@ www_free (void)
     www_webProvider = NULL;
 }
 
-static void
+inline static void
 www_closeStream_cb (GObject *source_object, GAsyncResult *res, gpointer user_data)
 {
     g_input_stream_close_finish (G_INPUT_STREAM (source_object), res, NULL);
@@ -158,7 +158,6 @@ www_download (struct rom_romItem* item)
     g_file_read_async (tileFile, G_PRIORITY_HIGH, FALSE, (GAsyncReadyCallback) www_fileRead_cb, item);
 
 	g_free (fileNameWeb);
-
 }
 
 inline gchar*
