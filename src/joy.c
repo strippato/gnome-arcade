@@ -30,6 +30,7 @@
 #include "view.h"
 #include "ui.h"
 #include "config.h"
+#include "pref.h"
 #include "joy.h"
 
 #define JOY_DEV 	"/dev/input/by-id/"
@@ -252,9 +253,32 @@ joy_event (void)
     			case EV_KEY:
 	        		switch (ev.code) {
 
-	        		case BTN_THUMB:
+    				case BTN_THUMB2: // rank++
 	        			if (ev.value == 1) {
-	        				g_idle_add ((GSourceFunc) ui_cmdPlay, NULL);
+	        				ui_cmdRankUp ();
+	        				pref_save ();
+	        			}
+    					break;
+
+	        		case BTN_THUMB: // rank--
+	        			if (ev.value == 1) {
+	        				ui_cmdRankDown ();
+	        				pref_save ();
+	        			}
+    					break;
+
+	        		case BTN_TOP: // pref
+	        			if (ev.value == 1) {
+	        				ui_cmdPreference ();
+	        				pref_save ();
+	        			}
+	        			break;
+
+	        		case BTN_TRIGGER: // play
+	        			if (ev.value == 1) {
+	        				if (!ui_inSelectState ()) {
+	        					g_idle_add ((GSourceFunc) ui_cmdPlay, NULL);
+	        				}
 	        			}
 	        			break;
 
@@ -266,13 +290,12 @@ joy_event (void)
 	        	default:
 	        		break;
 	        	}
-
         		/*
 				g_print ("Event: %s %s %d\n",
 	            	libevdev_event_type_get_name (ev.type),
 	                libevdev_event_code_get_name (ev.type, ev.code),
 	            	ev.value);
-				*/
+	            */
 			}
 	 	} while (libevdev_has_event_pending (joy->dev) != 0);
 

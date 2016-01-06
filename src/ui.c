@@ -174,14 +174,13 @@ ui_headerBarShowInfo (int romIndex)
 static void
 ui_preference_cb (void)
 {
-    struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
-    rom_setItemPref (item, !rom_getItemPref (item));
     if (ui_inSelectState ()) {
+        struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
+        rom_setItemPref (item, !rom_getItemPref (item));
         pref_setPreferred (rom_getItemName (item), rom_getItemPref (item));
+        ui_repaint ();
     }
-    ui_repaint ();
 }
-
 
 static void
 ui_rank_cb (gint i)
@@ -544,6 +543,46 @@ ui_cmdEnd (void)
     ui_focusAt (ui_viewModel->romCount - 1);
     ui_drawingAreaShowItem (ui_viewModel->focus);
     ui_invalidateDrawingArea ();
+}
+
+void
+ui_cmdPreference (void)
+{
+    if (mame_isRunning ()) return;
+    if (ui_viewModel->romCount <= 0) return;
+
+    struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
+    rom_setItemPref (item, !rom_getItemPref (item));
+    pref_setPreferred (rom_getItemName (item), rom_getItemPref (item));
+    ui_repaint ();
+}
+
+void
+ui_cmdRankUp (void)
+{
+    if (mame_isRunning ()) return;
+    if (ui_viewModel->romCount <= 0) return;
+
+    struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
+    gint oldRank = rom_getItemRank (item);
+
+    rom_setItemRank (item, ++oldRank);
+    pref_setRank (rom_getItemName (item), rom_getItemRank (item));
+    ui_repaint ();
+}
+
+void
+ui_cmdRankDown (void)
+{
+    if (mame_isRunning ()) return;
+    if (ui_viewModel->romCount <= 0) return;
+
+    struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
+    gint oldRank = rom_getItemRank (item);
+
+    rom_setItemRank (item, --oldRank);
+    pref_setRank (rom_getItemName (item), rom_getItemRank (item));
+    ui_repaint ();
 }
 
 static gboolean

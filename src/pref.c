@@ -115,7 +115,7 @@ pref_save (void)
 	    	g_error_free (error);
 		} else {
 			if (g_file_set_contents (pref_fileName, data, size,  &error)) {
-				g_print ("preferrence saved " SUCCESS_MSG "\n");
+				g_print ("preference saved " SUCCESS_MSG "\n");
 
 			} else {
 		    	g_warning ("%s", error->message);
