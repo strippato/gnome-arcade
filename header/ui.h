@@ -29,7 +29,8 @@ gint ui_tileSize_H;
 void ui_init (void);
 void ui_free (void);
 
-gboolean ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data);
+gboolean ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr);
+
 void ui_setFocus (void);
 
 void ui_freePixbuffer (void);

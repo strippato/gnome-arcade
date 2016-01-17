@@ -126,6 +126,7 @@ ui_repaint (void)
 {
     /* redraw drawing area */
     gtk_widget_queue_draw (GTK_WIDGET (ui_drawingArea));
+    //gdk_window_process_all_updates();
     //while (gtk_events_pending ())
     //        gtk_main_iteration ();
 }
@@ -195,7 +196,6 @@ ui_rank_cb (gint i)
         rom_setItemRank (item, i);
     }
     pref_setRank (rom_getItemName (item), rom_getItemRank (item));
-
     ui_repaint ();
 }
 
@@ -489,7 +489,6 @@ ui_cmdUp (void)
 {
     if (mame_isRunning ()) return;
     if (ui_viewModel->romCount <= 0) return;
-
     ui_focusPrevRow ();
     ui_drawingAreaShowItem (ui_viewModel->focus);
     ui_invalidateDrawingArea ();
@@ -894,7 +893,7 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
 
 
 gboolean
-ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
+ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr)
 {
     gint x, y;
 
@@ -981,10 +980,6 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
             cairo_stroke (cr);
 
             /* pixbuf */
-            cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
-
-            cairo_rectangle (cr, diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER), pixbuf_w, pixbuf_h);
-
             gdk_cairo_set_source_pixbuf (cr, pix, diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER));
 
             if (mame_isRunning ()) {
@@ -996,9 +991,7 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
             } else {
                 cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
             }
-
-            cairo_fill (cr);
-
+            cairo_paint (cr);
 
             cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
 
@@ -1006,40 +999,38 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
             if ((ui_inSelectState ()) && (ui_mouseOver == idx)) {
                 /* emblem fav */
                 if (rom_getItemPref (item)) {
-                    cairo_rectangle (cr, EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + EMBLEM_PADDING + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER), gdk_pixbuf_get_width (ui_selPrefOn), gdk_pixbuf_get_height (ui_selPrefOn));
                     gdk_cairo_set_source_pixbuf (cr, ui_selPrefOn, EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + EMBLEM_PADDING + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER));
                 } else {
-                    cairo_rectangle (cr, EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + EMBLEM_PADDING + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER), gdk_pixbuf_get_width (ui_selPrefOff), gdk_pixbuf_get_height (ui_selPrefOff));
                     gdk_cairo_set_source_pixbuf (cr, ui_selPrefOff, EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + EMBLEM_PADDING + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER));
                 }
-                cairo_fill (cr);
+                cairo_paint (cr);
+                //cairo_fill (cr);
 
                 /* emblem rank */
                 for (int i = 0; i < ROM_MAXRANK; ++i) {
                     if (i < rom_getItemRank (item)) {
-                        cairo_rectangle (cr, (i * gdk_pixbuf_get_width (ui_selRankOn)) + EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base - EMBLEM_PADDING + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER) + ui_tileSize_H - gdk_pixbuf_get_height (ui_selRankOn), gdk_pixbuf_get_width (ui_selRankOn), gdk_pixbuf_get_height (ui_selRankOn));
                         gdk_cairo_set_source_pixbuf (cr, ui_selRankOn, (i * gdk_pixbuf_get_width (ui_selRankOn)) + EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base - EMBLEM_PADDING + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER) + ui_tileSize_H - gdk_pixbuf_get_height (ui_selRankOn));
                     } else {
-                        cairo_rectangle (cr, (i * gdk_pixbuf_get_width (ui_selRankOff)) + EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base - EMBLEM_PADDING + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER) + ui_tileSize_H - gdk_pixbuf_get_height (ui_selRankOff), gdk_pixbuf_get_width (ui_selRankOff), gdk_pixbuf_get_height (ui_selRankOff));
                         gdk_cairo_set_source_pixbuf (cr, ui_selRankOff, (i * gdk_pixbuf_get_width (ui_selRankOff)) + EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base - EMBLEM_PADDING + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER) + ui_tileSize_H - gdk_pixbuf_get_height (ui_selRankOff));
                     }
-                    cairo_fill (cr);
+                    cairo_paint (cr);
+                    //cairo_fill (cr);
                 }
 
             } else {
                 /* emblem fav */
                 if (rom_getItemPref (item)) {
-                    cairo_rectangle (cr, EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + EMBLEM_PADDING + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER), gdk_pixbuf_get_width (rom_tileFavorite), gdk_pixbuf_get_height (rom_tileFavorite));
                     gdk_cairo_set_source_pixbuf (cr, rom_tileFavorite, EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + EMBLEM_PADDING + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER));
-                    cairo_fill (cr);
+                    cairo_paint (cr);
+                    //cairo_fill (cr);
                 }
 
                 /* emblem rank */
                 if (rom_getItemRank (item) > 0) {
                     for (int i = 0; i < rom_getItemRank (item); ++i) {
-                        cairo_rectangle (cr, (i * gdk_pixbuf_get_width (rom_tileRank)) + EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base - EMBLEM_PADDING + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER) + ui_tileSize_H - gdk_pixbuf_get_height (rom_tileRank), gdk_pixbuf_get_width (rom_tileRank), gdk_pixbuf_get_height (rom_tileRank));
                         gdk_cairo_set_source_pixbuf (cr, rom_tileRank, (i * gdk_pixbuf_get_width (rom_tileRank)) + EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base - EMBLEM_PADDING + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER) + ui_tileSize_H - gdk_pixbuf_get_height (rom_tileRank));
-                        cairo_fill (cr);
+                        cairo_paint (cr);
+                        //cairo_fill (cr);
                     }
                 }
             }
@@ -1097,6 +1088,7 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
             /* focus border */
             if (ui_viewModel->focus == idx) {
                 /* set the line width */
+
                 cairo_set_line_width (cr, TILE_FOCUS_SIZE);
                 cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
 
@@ -1128,16 +1120,14 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr, gpointer data)
 
                 /* stroke the rectangle */
                 cairo_stroke (cr);
-
             }
 
             ++idx;
             if (idx >= ui_viewModel->romCount) {
-                 return TRUE;
+                return TRUE;
             }
         }
     }
-
     return TRUE;
 }
 
@@ -1449,7 +1439,7 @@ ui_init (void)
     g_signal_connect (G_OBJECT (ui_drawingArea), "motion_notify_event", G_CALLBACK (ui_drawingAreaMotionNotifyEvent), NULL);
 
     gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_SCROLL_MASK);
-    gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_BUTTON_RELEASE_MASK);
+    //gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_BUTTON_RELEASE_MASK);
     gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_BUTTON_PRESS_MASK);
     gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_POINTER_MOTION_MASK);
 
@@ -1728,7 +1718,6 @@ ui_setView (struct view_viewModel *view)
 
     ui_viewModel = view;
 
-    ui_repaint ();
     ui_invalidateDrawingArea ();
 }
 
@@ -1749,5 +1738,4 @@ ui_showInfobar (void)
     gtk_widget_set_no_show_all (ui_infobar, FALSE);
     gtk_widget_show_all (GTK_WIDGET (ui_infobar));
 }
-
 

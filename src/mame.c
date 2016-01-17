@@ -117,27 +117,24 @@ mame_run (gchar *cmdline, GPid *pid, gint *stdout, gint *stderr) {
 
     gchar **argv  = NULL;
     GError *error = NULL;
-    gboolean runOk = FALSE;
 
     if (!g_shell_parse_argv (cmdline, NULL, &argv, &error)) {
         g_error_free (error);
         error = NULL;
-        return runOk;
+        return FALSE;
     }
 
     if (!g_spawn_async_with_pipes (NULL, argv, NULL, G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, pid, NULL, stdout, stderr, &error)) {
         g_error_free (error);
         error = NULL;
+        g_strfreev (argv);
+        return FALSE;
     } else {
         g_print ("mame pid is %lu\n", (gulong) *pid);
-        runOk = TRUE;
-
+        g_strfreev (argv);
+        return TRUE;
     }
 
-    g_strfreev (argv);
-    argv = NULL;
-
-    return runOk;
 }
 
 void
