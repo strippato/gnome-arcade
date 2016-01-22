@@ -36,6 +36,7 @@
 #include "pref.h"
 #include "www.h"
 #include "joy.h"
+#include "ssaver.h"
 
 #define TILE_MIN_SIZE       150
 #define TILE_W_BORDER_MIN   24
@@ -1420,6 +1421,9 @@ ui_init (void)
     /* joy support */
     joy_init ();
 
+    /* screen saver */
+    ssaver_init ();
+
     ui_focusAdd (0);
 
     ui_aboutLogo = gdk_pixbuf_new_from_file (APP_RESOURCE APP_ICON_ABOUT, NULL);
@@ -1458,6 +1462,9 @@ void
 ui_free (void)
 {
     ui_mouseOver = -1;
+
+    /* screen saver */
+    ssaver_free ();
 
     /* user preference*/
     pref_free ();

@@ -38,6 +38,7 @@
 #include "pref.h"
 #include "util.h"
 #include "joy.h"
+#include "ssaver.h"
 
 
 #define MAME_EXE       cfg_keyStr("MAME_EXE")
@@ -359,6 +360,7 @@ mame_quit (GPid pid)
     ui_setFocus ();
 
     joy_init (); // restart joypad
+    ssaver_enable ();
 }
 
 gboolean
@@ -387,6 +389,7 @@ mame_playGame (struct rom_romItem *item)
     g_print ("playing %s\n", romName);
 
     if (mame_run (cmdline, &pid, NULL, NULL)) {
+        ssaver_disable ();
 
         // detach joypad
         joy_free ();
