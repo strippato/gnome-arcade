@@ -61,6 +61,13 @@ cfg_fillDefaultConfig (void)
 	g_hash_table_insert (cfg_default, g_strdup ("WEB_DOWNLOAD"), g_strdup ("1"));
 
 	g_hash_table_insert (cfg_default, g_strdup ("JOY_ENABLED"), g_strdup ("1"));
+
+	// SCREEN SAVER MODE:
+	// 0 SYSTEM DEFAULT
+	// 1 IN GAME DISABLED
+	// 2 ALWAY DISABLED
+	g_hash_table_insert (cfg_default, g_strdup ("SCREENSAVER_MODE"), g_strdup ("1"));
+
 }
 
 void

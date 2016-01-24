@@ -360,7 +360,10 @@ mame_quit (GPid pid)
     ui_setFocus ();
 
     joy_init (); // restart joypad
-    ssaver_enable ();
+
+    if (cfg_keyInt ("SCREENSAVER_MODE") == 1) {
+        ssaver_resume ();
+    }
 }
 
 gboolean
@@ -389,7 +392,11 @@ mame_playGame (struct rom_romItem *item)
     g_print ("playing %s\n", romName);
 
     if (mame_run (cmdline, &pid, NULL, NULL)) {
-        ssaver_disable ();
+
+        // disable the screen saver
+        if (cfg_keyInt ("SCREENSAVER_MODE") == 1) {
+            ssaver_suspend ();
+        }
 
         // detach joypad
         joy_free ();

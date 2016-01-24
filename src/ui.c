@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#include <gdk/gdkx.h>
 #include <string.h>
 
 #include "global.h"
@@ -1454,8 +1455,6 @@ ui_init (void)
     //g_idle_add ((GSourceFunc) joy_debugFull, NULL);
     //g_timeout_add (1000, (GSourceFunc) joy_debugFull, NULL);
 
-
-
 }
 
 void
@@ -1744,5 +1743,12 @@ ui_showInfobar (void)
 {
     gtk_widget_set_no_show_all (ui_infobar, FALSE);
     gtk_widget_show_all (GTK_WIDGET (ui_infobar));
+}
+
+unsigned int
+ui_getWindowXid (void)
+{
+    GdkWindow* win = gtk_widget_get_window (GTK_WIDGET (ui_window));
+    return GDK_WINDOW_XID (win);
 }
 

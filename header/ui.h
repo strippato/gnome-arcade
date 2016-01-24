@@ -49,6 +49,7 @@ void ui_actionSort (GSimpleAction *simple, GVariant *parameter, gpointer user_da
 void ui_showAbout (GSimpleAction *action, GVariant *parameter, gpointer user_data);
 void ui_setView (struct view_viewModel *view);
 void ui_setDefaultView (struct view_viewModel *view);
+unsigned int ui_getWindowXid (void);
 
 void ui_cmdUp (void);
 void ui_cmdDown (void);

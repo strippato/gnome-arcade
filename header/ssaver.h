@@ -25,8 +25,8 @@
 
 void ssaver_init (void);
 void ssaver_free (void);
-void ssaver_enable (void);
-void ssaver_disable (void);
+void ssaver_suspend (void);
+void ssaver_resume (void);
 
 #endif
 

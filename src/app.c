@@ -30,6 +30,8 @@
 #include "ui.h"
 #include "rescan.h"
 #include "uipref.h"
+#include "config.h"
+#include "ssaver.h"
 
 const gchar *app_authors[] = { "Strippato <strippato@gmail.com>",
                                NULL };
@@ -68,12 +70,21 @@ static void
 app_startup (void)
 {
     ui_init ();
+    // screen saver always disabled
+    if (cfg_keyInt ("SCREENSAVER_MODE") == 2) {
+        ssaver_suspend ();
+    }
+
 }
 
 
 static void
 app_shutdown (GtkApplication *app)
 {
+    // screen saver always disabled
+    //if (cfg_keyInt ("SCREENSAVER_MODE") == 2) {
+    //    ssaver_resume ();
+    //}
     ui_free ();
 }
 
