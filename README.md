@@ -26,6 +26,7 @@ GTK+ >= 3.14
 gdk 3.0
 gdk-pixbuf-2.0
 libevdev-1.4.5
+xdg-utils (screen saver support)
 ```
 
 **Author**
