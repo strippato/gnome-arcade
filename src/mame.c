@@ -194,11 +194,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
     gchar *fileRom = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_FULL_FILE, NULL);
     gchar *fileClone = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_CLONES_FILE, NULL);
 
-    if (g_str_has_prefix (cfg_keyStr ("ROM_PATH"), "~")) {
-        romPath = g_strdup_printf ("%s%s/", g_get_home_dir (), cfg_keyStr ("ROM_PATH")+1);
-    } else {
-        romPath = g_strdup_printf ("%s/", cfg_keyStr ("ROM_PATH"));
-    }
+    romPath = g_strdup (cfg_keyStr ("ROM_PATH"));
 
     g_assert (g_file_test (romPath, G_FILE_TEST_IS_DIR));
 
@@ -281,9 +277,9 @@ zoo               "Zoo (Ver. ZO.02.D)"
             gchar *name = g_strndup (buf, tempstr - buf);
 
             /* show the tile, only if we find the rom */
-            romNameZip = g_strdup_printf ("%s%s.%s", romPath, name, ROM_EXTENSION_ZIP);
-            romName7Zip = g_strdup_printf ("%s%s.%s", romPath, name, ROM_EXTENSION_7ZIP);
-            romNameDir = g_strdup_printf ("%s%s", romPath, name);
+            romNameZip = g_strdup_printf ("%s/%s.%s", romPath, name, ROM_EXTENSION_ZIP);
+            romName7Zip = g_strdup_printf ("%s/%s.%s", romPath, name, ROM_EXTENSION_7ZIP);
+            romNameDir = g_strdup_printf ("%s/%s", romPath, name);
 
             gboolean foundRom = FALSE;
 
@@ -376,11 +372,7 @@ mame_playGame (struct rom_romItem *item)
     gchar *romPath;
     gchar *romPathQuoted;
 
-    if (g_str_has_prefix (cfg_keyStr ("ROM_PATH"), "~")) {
-        romPath = g_strdup_printf ("%s%s", g_get_home_dir (), cfg_keyStr ("ROM_PATH") + 1);
-    } else {
-        romPath = g_strdup_printf ("%s", cfg_keyStr ("ROM_PATH"));
-    }
+    romPath = g_strdup (cfg_keyStr ("ROM_PATH"));
     romPathQuoted = g_shell_quote (romPath);
 
     romName = rom_getItemName (item);

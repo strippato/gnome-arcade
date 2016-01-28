@@ -93,7 +93,6 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	gtk_grid_attach (GTK_GRID (table), romPath, 1, 1, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), romPath);
 
-
 	// tile
 	label = gtk_label_new_with_mnemonic ("_tile path");
 	gtk_widget_set_tooltip_text (label, "Path to your tileset");

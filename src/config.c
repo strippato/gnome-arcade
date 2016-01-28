@@ -57,7 +57,8 @@ cfg_fillDefaultConfig (void)
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_SHADOW"), g_strdup ("1"));
 
 	g_hash_table_insert (cfg_default, g_strdup ("WEB_PROVIDER"), g_strdup ("http://www.progettoemma.net/snap/%s/0000.png"));
-	g_hash_table_insert (cfg_default, g_strdup ("WEB_PATH"), g_strdup ("~/gnome-arcade/data/www/"));
+	g_hash_table_insert (cfg_default, g_strdup ("WEB_PATH"), g_build_filename (g_get_home_dir (), "gnome-arcade/data/www/", NULL));
+
 	g_hash_table_insert (cfg_default, g_strdup ("WEB_DOWNLOAD"), g_strdup ("1"));
 
 	g_hash_table_insert (cfg_default, g_strdup ("JOY_ENABLED"), g_strdup ("1"));

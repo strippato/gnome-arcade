@@ -40,11 +40,14 @@ void
 www_init (void)
 {
     www_dowloadingItm = 0;
+    /*
     if (g_str_has_prefix (cfg_keyStr ("WEB_PATH"), "~")) {
         www_tilePath = g_strdup_printf ("%s%s/", g_get_home_dir (), cfg_keyStr ("WEB_PATH") + 1);
     } else {
         www_tilePath = g_strdup_printf ("%s/", cfg_keyStr ("WEB_PATH"));
     }
+    */
+    www_tilePath = g_strdup (cfg_keyStr ("WEB_PATH"));
 
     if (cfg_keyBool ("WEB_DOWNLOAD")) {
 		www_autoDownload = TRUE;
@@ -163,6 +166,6 @@ www_download (struct rom_romItem* item)
 inline gchar*
 www_getFileNameWWW (const gchar* romName)
 {
-	return g_strdup_printf ("%s%s.%s", www_tilePath, romName, WWW_EXTENSION_PNG);
+	return g_strdup_printf ("%s/%s.%s", www_tilePath, romName, WWW_EXTENSION_PNG);
 }
 
