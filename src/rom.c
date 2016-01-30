@@ -100,9 +100,6 @@ rom_setSort (enum rom_sortOrder order)
 {
     rom_sortOrder = order;
 
-#ifdef DEBUG_TIMING
-    logTimer ("start sorting");
-#endif
     g_print ("sorting romlist... ");
     switch (order) {
     case ROM_SORT_AZ:
@@ -116,9 +113,6 @@ rom_setSort (enum rom_sortOrder order)
         break;
     }
     g_print (SUCCESS_MSG "\n");
-#ifdef DEBUG_TIMING
-    logTimer ("sorting time");
-#endif
 
 }
 
@@ -149,11 +143,7 @@ void
 rom_init (void)
 {
     /* pixbuf */
-    if (g_str_has_prefix (cfg_keyStr ("TILE_PATH"), "~")) {
-        rom_tilePath = g_strdup_printf ("%s%s/", g_get_home_dir (), cfg_keyStr ("TILE_PATH")+1);
-    } else {
-        rom_tilePath = g_strdup_printf ("%s/", cfg_keyStr ("TILE_PATH"));
-    }
+    rom_tilePath = g_strdup (cfg_keyStr ("TILE_PATH"));
 
     g_assert(!rom_tileNoImage);
     rom_tileNoImage = gdk_pixbuf_new_from_file_at_size (APP_RESOURCE APP_NOIMAGE, ui_tileSize_W, ui_tileSize_H, NULL);
@@ -218,7 +208,7 @@ rom_free (void)
  {
     mame_gameList ();
 
-    //rom_romList = g_list_reverse (rom_romList);
+    rom_romList = g_list_reverse (rom_romList);
 
     if ((rom_count <= 0) || (rom_available <=0)) {
         ui_showInfobar ();
@@ -480,8 +470,8 @@ rom_loadItemAsync (struct rom_romItem* item)
 
     g_assert (g_file_test (rom_tilePath, G_FILE_TEST_IS_DIR));
 
-    gchar *fileNamePng = g_strdup_printf ("%s%s.%s", rom_tilePath, romName, TILE_EXTENSION_PNG);
-    gchar *fileNameJpg = g_strdup_printf ("%s%s.%s", rom_tilePath, romName, TILE_EXTENSION_JPG);
+    gchar *fileNamePng = g_strdup_printf ("%s/%s.%s", rom_tilePath, romName, TILE_EXTENSION_PNG);
+    gchar *fileNameJpg = g_strdup_printf ("%s/%s.%s", rom_tilePath, romName, TILE_EXTENSION_JPG);
 
     // web downloaded (png)
     gchar *fileNameWWW = www_getFileNameWWW (romName);

@@ -123,6 +123,7 @@ static GdkPixbuf *ui_aboutLogo = NULL;
 static void ui_prefManager (gdouble x, gdouble y);
 static void ui_rankManager (gdouble x, gdouble y);
 
+__attribute__ ((hot))
 static inline void
 ui_repaint (void)
 {
@@ -817,6 +818,7 @@ ui_drawingAreaScrollEvent (GtkWidget *widget, GdkEventScroll *event, gpointer da
     return TRUE;
 }
 
+__attribute__ ((hot))
 static gboolean
 ui_drawingAreaMotionNotifyEvent (GtkWidget *widget, GdkEventMotion *event, gpointer data)
 {
@@ -893,7 +895,7 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
     return TRUE;
 }
 
-
+__attribute__ ((hot))
 gboolean
 ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr)
 {
@@ -1727,7 +1729,7 @@ ui_setView (struct view_viewModel *view)
     ui_invalidateDrawingArea ();
 }
 
-
+__attribute__ ((hot))
 gboolean
 ui_invalidateDrawingArea (void)
 {

@@ -64,15 +64,16 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	gtk_box_pack_start (GTK_BOX (content_area), table, TRUE, TRUE, 20);
 
 	// mame
-	label = gtk_label_new_with_mnemonic ("_M.A.M.E. path");
+	label = gtk_label_new_with_mnemonic ("_M.A.M.E. executable");
 	gtk_widget_set_tooltip_text (label, "Path to MAME program");
 	gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_END);
 	gtk_widget_set_margin_start	(GTK_WIDGET (label), 10);
 	gtk_grid_attach (GTK_GRID (table), label, 0, 0, 1, 1);
-	GtkWidget *mamePath = gtk_entry_new ();
-	gtk_widget_set_tooltip_text (mamePath, MAME_BIN);
-	gtk_entry_set_width_chars (GTK_ENTRY (mamePath), 50);
-	gtk_entry_set_text (GTK_ENTRY (mamePath), cfg_keyStr ("MAME_EXE"));
+
+	GtkWidget *mamePath = gtk_file_chooser_button_new ("Path to MAME program", GTK_FILE_CHOOSER_ACTION_OPEN);
+	gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (mamePath), cfg_keyStr ("MAME_EXE"));
+	gtk_widget_set_tooltip_text (mamePath, cfg_keyStr ("MAME_EXE"));
+	gtk_widget_set_hexpand (mamePath, TRUE);
 	gtk_widget_set_margin_end (GTK_WIDGET (mamePath), 10);
 	gtk_grid_attach (GTK_GRID (table), mamePath, 1, 0, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), mamePath);
@@ -83,9 +84,11 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_END);
 	gtk_widget_set_margin_start	(GTK_WIDGET (label), 10);
 	gtk_grid_attach (GTK_GRID (table), label, 0, 1, 1, 1);
-	GtkWidget *romPath = gtk_entry_new ();
-	gtk_widget_set_tooltip_text (romPath, "/usr/share/gnome-arcade/data/rom/");
-	gtk_entry_set_text (GTK_ENTRY (romPath), cfg_keyStr ("ROM_PATH"));
+
+	GtkWidget *romPath = gtk_file_chooser_button_new ("Path to your romset", GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
+	gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (romPath), cfg_keyStr ("ROM_PATH"));
+	gtk_widget_set_tooltip_text (romPath, cfg_keyStr ("ROM_PATH"));
+	gtk_widget_set_hexpand (romPath, TRUE);
 	gtk_widget_set_margin_end (GTK_WIDGET (romPath), 10);
 	gtk_grid_attach (GTK_GRID (table), romPath, 1, 1, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), romPath);
@@ -96,9 +99,11 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_END);
 	gtk_widget_set_margin_start	(GTK_WIDGET (label), 10);
 	gtk_grid_attach (GTK_GRID (table), label, 0, 2, 1, 1);
-	GtkWidget *tilePath = gtk_entry_new ();
-	gtk_widget_set_tooltip_text (tilePath, "/usr/share/gnome-arcade/data/tile/");
-	gtk_entry_set_text (GTK_ENTRY (tilePath), cfg_keyStr ("TILE_PATH"));
+
+	GtkWidget *tilePath = gtk_file_chooser_button_new ("Path to your romset", GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
+	gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (tilePath), cfg_keyStr ("TILE_PATH"));
+	gtk_widget_set_tooltip_text (tilePath, cfg_keyStr ("TILE_PATH"));
+	gtk_widget_set_hexpand (tilePath, TRUE);
 	gtk_widget_set_margin_end (GTK_WIDGET (tilePath), 10);
 	gtk_grid_attach (GTK_GRID (table), tilePath, 1, 2, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), tilePath);
@@ -142,9 +147,11 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_END);
 	gtk_widget_set_margin_start	(GTK_WIDGET (label), 10);
 	gtk_grid_attach (GTK_GRID (table), label, 0, 3, 1, 1);
-	GtkWidget *webPath = gtk_entry_new ();
-	gtk_widget_set_tooltip_text (webPath, "~/gnome-arcade/data/www/");
-	gtk_entry_set_text (GTK_ENTRY (webPath), cfg_keyStr ("WEB_PATH"));
+
+	GtkWidget *webPath = gtk_file_chooser_button_new ("Tile downloaded form the web provider, will be stored in this directory", GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
+	gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (webPath), cfg_keyStr ("WEB_PATH"));
+	gtk_widget_set_tooltip_text (webPath, cfg_keyStr ("WEB_PATH"));
+	gtk_widget_set_hexpand (webPath, TRUE);
 	gtk_widget_set_margin_end (GTK_WIDGET (webPath), 10);
 	gtk_grid_attach (GTK_GRID (table), webPath, 1, 3, 1, 1);
 	gtk_label_set_mnemonic_widget (GTK_LABEL (label), webPath);
@@ -154,10 +161,10 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 
 	if (response == GTK_RESPONSE_OK) {
 		// TODO input check
-		cfg_setConfig ("MAME_EXE", gtk_entry_get_text (GTK_ENTRY (mamePath)));
-		cfg_setConfig ("ROM_PATH", gtk_entry_get_text (GTK_ENTRY (romPath)));
-		cfg_setConfig ("TILE_PATH", gtk_entry_get_text (GTK_ENTRY (tilePath)));
-		cfg_setConfig ("WEB_PATH", gtk_entry_get_text (GTK_ENTRY (webPath)));
+		cfg_setConfig ("MAME_EXE", gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (mamePath)));
+		cfg_setConfig ("ROM_PATH", gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (romPath)));
+		cfg_setConfig ("TILE_PATH", gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (tilePath)));
+		cfg_setConfig ("WEB_PATH", gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (webPath)));
 
 		gchar *link = NULL;
 		g_object_get (webProvider, "active-id", &link, NULL);
