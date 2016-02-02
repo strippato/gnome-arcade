@@ -326,13 +326,20 @@ ui_focusAt (int index)
 static void
 ui_focusAdd (int step)
 {
-    ui_focusAt (MIN (posval (ui_viewModel->focus + step), ui_viewModel->romCount));
+    if ((ui_viewModel->focus + step) > 0) {
+        ui_focusAt (lim (ui_viewModel->focus + step, ui_viewModel->romCount));
+    } else {
+        ui_focusAt (0);
+    }
+
 }
 
 static void
 ui_focusPrevRow (void)
 {
-    ui_focusAdd (-ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea))));
+    if (ui_viewModel->focus >= ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea)))) {
+        ui_focusAdd (-ui_itemOnRow (gtk_widget_get_allocated_width (GTK_WIDGET (ui_drawingArea))));
+    }
 }
 
 static void
