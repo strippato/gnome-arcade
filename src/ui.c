@@ -1329,14 +1329,14 @@ ui_init (void)
     /* play button */
     ui_playBtn = gtk_button_new_with_mnemonic ("_Play");
     ui_setPlayBtnState (FALSE);
-    gtk_button_set_focus_on_click (GTK_BUTTON (ui_playBtn), FALSE);
+    gtk_widget_set_focus_on_click (GTK_WIDGET (ui_playBtn), FALSE);
     gtk_header_bar_pack_start (GTK_HEADER_BAR (ui_headerBar), ui_playBtn);
     g_signal_connect (ui_playBtn, "clicked", G_CALLBACK (ui_playClicked), ui_headerBar);
 
     /* selection toolbar */
     ui_tbSelection = gtk_toggle_button_new ();
     ui_setToolBarState (FALSE);
-    gtk_button_set_focus_on_click (GTK_BUTTON (ui_tbSelection), FALSE);
+    gtk_widget_set_focus_on_click (GTK_WIDGET (ui_tbSelection), FALSE);
     gtk_widget_set_tooltip_text (ui_tbSelection, "Selection");
     GtkWidget *imgSelect = gtk_image_new ();
     gtk_image_set_from_icon_name (GTK_IMAGE (imgSelect), "object-select-symbolic", GTK_ICON_SIZE_BUTTON);
