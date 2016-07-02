@@ -33,7 +33,7 @@
 #include "pref.h"
 #include "joy.h"
 
-#define JOY_DEV 	"/dev/input/by-id/"
+#define JOY_DEV 	"/dev/input/by-path/"
 #define JOY_PATTERN "-event-joystick"
 
 GList *joy_list = NULL;
@@ -70,14 +70,14 @@ joy_init (void)
 	}
 
 	g_print ("searching for joystick...\n");
-	DIR *dir = opendir(JOY_DEV);
+	DIR *dir = opendir (JOY_DEV);
 	if (dir) {
 		while ((dent = readdir (dir))) {
 			// search for *-event-joystick
         	if (g_str_has_suffix (dent->d_name, JOY_PATTERN)) {
 
         		// device name
-        		gchar *jname = g_strdup_printf ("%s%s", "/dev/input/by-id/", dent->d_name);
+        		gchar *jname = g_strdup_printf ("%s%s", JOY_DEV, dent->d_name);
 
        		 	int fd = open (jname, O_RDONLY | O_NONBLOCK);
 
