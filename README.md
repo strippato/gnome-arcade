@@ -22,7 +22,7 @@ a minimal MAME frontend
 
 **Dependencies**
 ```
-GTK+ >= 3.14
+GTK+ >= 3.20
 gdk 3.0
 gdk-pixbuf-2.0
 libevdev-1.4.5
