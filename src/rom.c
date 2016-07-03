@@ -207,9 +207,6 @@ rom_free (void)
  rom_load (void)
  {
     mame_gameList ();
-
-    rom_romList = g_list_reverse (rom_romList);
-
     if ((rom_count <= 0) || (rom_available <=0)) {
         ui_showInfobar ();
     }

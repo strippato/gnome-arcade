@@ -1418,12 +1418,10 @@ ui_init (void)
 
     pref_load ();
 
-    /* romlist */
+    /* create and load romlist (sorted)*/
     rom_init ();
 
     rom_load ();
-
-    rom_setSort (ROM_SORT_AZ);
 
     /* view */
     view_init ();

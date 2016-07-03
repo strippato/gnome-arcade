@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#include <glib.h>
+#include <fcntl.h>
 #include <glib/gstdio.h>
 #include <assert.h>
 #include <string.h>
@@ -41,8 +43,8 @@
 #include "ssaver.h"
 
 
-#define MAME_EXE       cfg_keyStr("MAME_EXE")
-#define MAME_OPTIONS   cfg_keyStr("MAME_OPTIONS")
+#define MAME_EXE       cfg_keyStr ("MAME_EXE")
+#define MAME_OPTIONS   cfg_keyStr ("MAME_OPTIONS")
 
 #define MAME_LIST_FULL   "listfull"
 #define MAME_LIST_CLONES "listclones"
@@ -138,6 +140,31 @@ mame_run (gchar *cmdline, GPid *pid, gint *stdout, gint *stderr) {
 
 }
 
+static void
+mame_dumpLine (struct rom_romItem *item, FILE* stream)
+{
+    fprintf (stream, "%-18s\"%s\"\n", item->name, item->description);
+}
+
+static void
+mame_dumpSortedRomList (const gchar *fileRomList)
+{
+
+    g_print ("writing romlist to disk... ");
+
+    if (g_unlink (fileRomList)) {
+        g_print ("can't delete romlist (%s) ", fileRomList);
+
+        g_print (FAIL_MSG "\n");
+    } else {
+        FILE *stream = g_fopen (fileRomList, "w");
+        g_list_foreach (rom_romList, (GFunc) mame_dumpLine, stream);
+        fclose (stream);
+
+        g_print (SUCCESS_MSG "\n");
+    }
+}
+
 void
 mame_gameList (void)
 {
@@ -198,6 +225,8 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
     g_assert (g_file_test (romPath, G_FILE_TEST_IS_DIR));
 
+    gboolean romListCreated = FALSE;
+
     if (g_file_test (MAME_EXE, G_FILE_TEST_IS_EXECUTABLE)) {
 
         if (!g_file_test (fileRom, G_FILE_TEST_EXISTS)) {
@@ -205,6 +234,8 @@ zoo               "Zoo (Ver. ZO.02.D)"
             cmdLine = g_strdup_printf ("%s -" MAME_LIST_FULL, MAME_EXE);
             if (!mame_dumpTo (cmdLine, fileRom)) {
                 g_print (FAIL_MSG "\n");
+            } else {
+                romListCreated = TRUE;
             }
             g_print (SUCCESS_MSG "\n");
             g_free (cmdLine);
@@ -333,6 +364,15 @@ zoo               "Zoo (Ver. ZO.02.D)"
         g_print ("found %i of %i rom (%i bios skipped)\n", numGame, numGameSupported, numBios);
     }
 
+    rom_romList = g_list_reverse (rom_romList);
+
+    if (romListCreated) {
+        // sort and redump to disk
+        rom_setSort (ROM_SORT_AZ);
+
+        mame_dumpSortedRomList (fileRom);
+    }
+
     g_free (romPath);
     g_free (fileRom);
     g_free (fileClone);
@@ -416,3 +456,4 @@ mame_isRunning (void)
 {
     return mame_mameIsRunning;
 }
+
