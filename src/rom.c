@@ -561,19 +561,13 @@ inline gboolean
 rom_filterBios (const gchar *romDes)
 {
     gboolean filtered = FALSE;
-
     gchar *des = g_utf8_strup (romDes, -1);
-    gchar **romdesv = g_strsplit (des, " (", 2);
 
-    const gchar* bios = g_strrstr (romdesv[0], "BIOS");
-
-    if (bios) {
-        // g_print ("\nfilter:%s\n", romdesv[0]);
+    if (g_str_has_suffix (des, "BIOS")) {
+        // g_print ("\nfilter:%s\n", romDes);
         filtered = TRUE;
     }
-
     g_free (des);
-    g_strfreev (romdesv);
 
     return filtered;
 }
