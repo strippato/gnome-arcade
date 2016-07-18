@@ -237,12 +237,40 @@ cfg_load (void)
 			if (g_key_file_has_key (cfg_keyFile, CFG_SECTION, (gchar*) key, NULL)) {
 				// found in config
 				gchar *cfgValue = g_key_file_get_string (cfg_keyFile, CFG_SECTION, (gchar*) key, NULL);
-				g_hash_table_insert (cfg_config, g_strdup ((gchar*) key), g_strdup (cfgValue));
+
+				// check if mame path is valid
+				if (g_strcmp0 (key, "MAME_EXE") == 0) {
+					if (!g_file_test (cfgValue, G_FILE_TEST_IS_EXECUTABLE)) {
+						gchar *filename = g_find_program_in_path ("mame");
+						if (filename) {
+							if (g_file_test (filename, G_FILE_TEST_IS_EXECUTABLE)) {
+								g_print ("Mame (%s) not found, using %s instead. Please, update your config " FAIL_MSG "\n", cfgValue, filename);
+								g_free (cfgValue);
+								cfgValue = filename;
+							}
+						}
+					}
+				}
+
+				g_hash_table_insert (cfg_config, g_strdup ((gchar*) key), cfgValue);
 			} else {
 				// not found, let's use the default
-				g_hash_table_insert (cfg_config, g_strdup ((gchar*) key), g_strdup ((gchar*) value));
-				// insert in config file?!? umph... no
-				//g_key_file_set_string (cfg_keyFile, CFG_SECTION, (gchar*) key, (gchar*) value);
+				value= g_strdup ((gchar*) value);
+
+				// check if mame path is valid
+				if (g_strcmp0 (key, "MAME_EXE") == 0) {
+					if (!g_file_test (value, G_FILE_TEST_IS_EXECUTABLE)) {
+						gchar *filename = g_find_program_in_path ("mame");
+						if (filename) {
+							if (g_file_test (filename, G_FILE_TEST_IS_EXECUTABLE)) {
+								g_print ("Mame (%s) not found, using %s instead. Please, update your config " FAIL_MSG "\n", (gchar*) value, (gchar*) filename);
+								g_free (value);
+								value = filename;
+							}
+						}
+					}
+				}
+				g_hash_table_insert (cfg_config, g_strdup ((gchar*) key), value);
 			}
 		}
 		g_key_file_free (cfg_keyFile);
