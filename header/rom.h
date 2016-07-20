@@ -101,6 +101,7 @@ guint rom_getItemRank (const struct rom_romItem *item);
 void rom_setItemRank (struct rom_romItem *item, guint rank);
 guint rom_getItemNPlay (const struct rom_romItem *item);
 void rom_setItemNPlay (struct rom_romItem *item, guint nplay);
+gint rom_search (GList* viewModel, gint focus, const gchar* romDes);
 
 #endif
 

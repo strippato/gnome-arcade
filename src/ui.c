@@ -60,7 +60,7 @@
 
 // muhahah "comic sans MS"
 #define TEXT_FONT               "sans-serif"
-#define TEXT_SIZE               11
+#define TEXT_SIZE               11.0
 #define TEXT_OFFSET             20
 #define TEXT_FONT_COLOR         0.75, 0.75, 0.75
 #define TEXT_FONT_COLOR_FOCUS   1.0, 1.0, 1.0
@@ -101,6 +101,7 @@ static GtkWidget *ui_playBtn     = NULL;
 static GtkWidget *ui_tbSelection = NULL;
 static GtkWidget *ui_headerBar   = NULL;
 static GtkWidget *ui_infobar     = NULL;
+static GtkWidget *ui_entry       = NULL;
 
 static GdkPixbuf *ui_selRankOn  = NULL;
 static GdkPixbuf *ui_selRankOff = NULL;
@@ -122,6 +123,7 @@ static GdkPixbuf *ui_aboutLogo = NULL;
 // forward decl
 static void ui_prefManager (gdouble x, gdouble y);
 static void ui_rankManager (gdouble x, gdouble y);
+static void ui_search_cb (void);
 
 __attribute__ ((hot))
 static inline void
@@ -201,6 +203,7 @@ ui_rank_cb (gint i)
     pref_setRank (rom_getItemName (item), rom_getItemRank (item));
     ui_repaint ();
 }
+
 
 static void
 ui_select_cb (void)
@@ -1343,6 +1346,12 @@ ui_init (void)
     gtk_button_set_image (GTK_BUTTON (ui_tbSelection), GTK_WIDGET (imgSelect));
     gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_tbSelection);
 
+    /* search  */
+    ui_entry = gtk_search_entry_new ();
+    gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_entry);
+    g_signal_connect (ui_entry, "activate", G_CALLBACK (ui_search_cb), NULL);
+    //gtk_entry_set_text (GTK_ENTRY (ui_entry), "Search rom...");
+
     /* connect "toggled" event to the button */
     g_signal_connect (G_OBJECT (ui_tbSelection), "toggled", G_CALLBACK (ui_select_cb), NULL);
 
@@ -1369,6 +1378,7 @@ ui_init (void)
     /* cut off the tilte bar */
     gtk_style_context_add_class (gtk_widget_get_style_context (ui_headerBar), "titlebar");
     gtk_window_set_titlebar (GTK_WINDOW (ui_window), (ui_headerBar));
+
 
     /* vbox  */
     GtkWidget *vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -1762,3 +1772,20 @@ ui_getWindowXid (void)
     return GDK_WINDOW_XID (win);
 }
 
+static void
+ui_search_cb (void)
+{
+    g_print ("searching for %s",  gtk_entry_get_text (GTK_ENTRY (ui_entry)));
+
+    gint i = rom_search (ui_viewModel->romList, ui_viewModel->focus+1, gtk_entry_get_text (GTK_ENTRY (ui_entry)));
+
+    if (i >= 0) {
+        ui_focusAt (i);
+        ui_drawingAreaShowItem (ui_viewModel->focus);
+        ui_invalidateDrawingArea ();
+        g_print ("... found at (%i)\n", i);
+    } else {
+        g_print ("... not found\n");
+    }
+
+}
