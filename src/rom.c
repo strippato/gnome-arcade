@@ -26,6 +26,7 @@
 
 #include "global.h"
 #include "app.h"
+#include "filter.h"
 #include "rom.h"
 #include "mame.h"
 #include "view.h"
@@ -171,6 +172,8 @@ rom_init (void)
     g_assert(!rom_cloneTable);
     rom_cloneTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_assert(rom_cloneTable);
+
+    filter_init();
  }
 
 void
@@ -201,6 +204,8 @@ rom_free (void)
 
     g_hash_table_destroy (rom_cloneTable);
     rom_cloneTable = NULL;
+
+    filter_free();
  }
 
  void
@@ -557,6 +562,7 @@ rom_setItemNPlay (struct rom_romItem *item, guint nplay)
     item->nplay = nplay;
 }
 
+/*
 inline gboolean
 rom_filterBios (const gchar *romDes)
 {
@@ -572,3 +578,4 @@ rom_filterBios (const gchar *romDes)
     return filtered;
 }
 
+*/

@@ -41,6 +41,7 @@
 #include "util.h"
 #include "joy.h"
 #include "ssaver.h"
+#include "filter.h"
 
 
 #define MAME_EXE       cfg_keyStr ("MAME_EXE")
@@ -316,9 +317,9 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
             // clones romset will not be checked for performance reasons
             if (rom_isParent (name)) {
-                if (g_file_test (romNameZip, G_FILE_TEST_EXISTS)) {
+                if (g_file_test (romName7Zip, G_FILE_TEST_EXISTS)) {
                     foundRom = TRUE;
-                } else if (g_file_test (romName7Zip, G_FILE_TEST_EXISTS)) {
+                } else if (g_file_test (romNameZip, G_FILE_TEST_EXISTS)) {
                     foundRom = TRUE;
                 } else if (g_file_test (romNameDir, G_FILE_TEST_IS_DIR)) {
                     foundRom = TRUE;
@@ -330,7 +331,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
             tempstr++;
             gchar *nameDes = g_strndup (tempstr, strlen (tempstr) - 2);
 
-            if (!rom_filterBios (nameDes)) {
+            if (!filter_skipRom (name)) {
                 struct rom_romItem *item = rom_newItem ();
 
                 rom_setItemName (item, name);
@@ -361,7 +362,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
         g_free (cmdLine);
 
         g_print (" " SUCCESS_MSG " (%i)\n", numGameSupported);
-        g_print ("found %i of %i rom (%i bios skipped)\n", numGame, numGameSupported, numBios);
+        g_print ("found %i of %i rom (%i filtered)\n", numGame, numGameSupported, numBios);
     }
 
     rom_romList = g_list_reverse (rom_romList);

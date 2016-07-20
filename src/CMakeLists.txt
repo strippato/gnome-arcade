@@ -1,6 +1,6 @@
 set (EXECUTABLE_OUTPUT_PATH "../..")
 # source file
-add_executable(gnome-arcade app.c config.c mame.c pref.c rom.c ui.c util.c view.c www.c uipref.c rescan.c joy.c ssaver.c)
+add_executable(gnome-arcade app.c config.c mame.c pref.c rom.c ui.c util.c view.c www.c uipref.c rescan.c joy.c ssaver.c filter.c)
 
 # inclue file
 include_directories(../header)
