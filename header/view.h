@@ -29,10 +29,10 @@ void view_free (void);
 struct view_viewModel
 {
 	GList *romList;
-	gint romCount;
+	gint   romCount;
 
-    guint focus;
-    gint  view; // drawingarea offset
+    guint  focus;
+    gint   view; // drawingarea offset
 };
 
 struct rom_romItem* view_getItem (struct view_viewModel *view, int numGame);

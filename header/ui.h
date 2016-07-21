@@ -65,6 +65,7 @@ void ui_cmdRankDown (void);
 gboolean ui_inSelectState (void);
 gboolean ui_invalidateDrawingArea (void);
 void ui_showInfobar (void);
+void ui_feedback (void);
 
 #endif
 
