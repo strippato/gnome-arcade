@@ -124,6 +124,7 @@ static GdkPixbuf *ui_aboutLogo = NULL;
 static void ui_prefManager (gdouble x, gdouble y);
 static void ui_rankManager (gdouble x, gdouble y);
 static void ui_search_cb (void);
+static gboolean ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 
 __attribute__ ((hot))
 static inline void
@@ -1346,11 +1347,13 @@ ui_init (void)
     gtk_button_set_image (GTK_BUTTON (ui_tbSelection), GTK_WIDGET (imgSelect));
     gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_tbSelection);
 
-    /* search  */
+    /* search */
     ui_entry = gtk_search_entry_new ();
     gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_entry);
     g_signal_connect (ui_entry, "activate", G_CALLBACK (ui_search_cb), NULL);
-    //gtk_entry_set_text (GTK_ENTRY (ui_entry), "Search rom...");
+    gtk_entry_set_text (GTK_ENTRY (ui_entry), "Search rom...");
+    gtk_editable_select_region (GTK_EDITABLE (ui_entry), 0, -1);
+    g_signal_connect (G_OBJECT (ui_entry), "key_press_event", G_CALLBACK (ui_search_key_press_cb), NULL);
 
     /* connect "toggled" event to the button */
     g_signal_connect (G_OBJECT (ui_tbSelection), "toggled", G_CALLBACK (ui_select_cb), NULL);
@@ -1788,4 +1791,18 @@ ui_search_cb (void)
         g_print ("... not found\n");
     }
 
+}
+
+static gboolean
+ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+{
+    switch (event->keyval) {
+    case GDK_KEY_Escape:
+        gtk_widget_grab_focus(ui_drawingArea);
+        break;
+    default:
+        return FALSE;
+    }
+
+    return FALSE;
 }
