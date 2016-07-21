@@ -559,6 +559,39 @@ rom_search (GList* viewModel, gint focus, const gchar* romDes)
     return -1;
 }
 
+gint
+rom_search_letter (GList* viewModel, gint focus, const gchar* romStartWithLetter)
+{
+    gchar *searchItm = g_utf8_strup (romStartWithLetter, -1);
+
+    // focus to end
+    for (GList *l = g_list_nth (viewModel, focus); l != NULL; l = l->next) {
+        struct rom_romItem *item = l->data;
+        gchar *search = g_utf8_strup (item->description, -1);
+        if (g_str_has_prefix (search, searchItm)) {
+            g_free (searchItm);
+            g_free (search);
+            return g_list_position ((GList*) viewModel, l);
+        }
+        g_free (search);
+    }
+
+    // start to focus
+    for (GList *l = g_list_first (viewModel); l != g_list_nth (viewModel, focus); l = l->next) {
+        struct rom_romItem *item = l->data;
+        gchar *search = g_utf8_strup (item->description, -1);
+        if (g_str_has_prefix (search, searchItm)) {
+            g_free (searchItm);
+            g_free (search);
+            return g_list_position ((GList*) viewModel, l);
+        }
+        g_free (search);
+    }
+
+    g_free (searchItm);
+    return -1;
+}
+
 inline gboolean
 rom_getItemPref (const struct rom_romItem *item)
 {

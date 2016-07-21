@@ -125,6 +125,7 @@ static void ui_prefManager (gdouble x, gdouble y);
 static void ui_rankManager (gdouble x, gdouble y);
 static void ui_search_cb (void);
 static gboolean ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+static void ui_drawingArea_search_cb (const gchar* car);
 
 __attribute__ ((hot))
 static inline void
@@ -678,7 +679,6 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         }
         break;
 
-    case GDK_KEY_0:
     case GDK_KEY_KP_0:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
@@ -688,7 +688,6 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         }
         break;
 
-    case GDK_KEY_1:
     case GDK_KEY_KP_1:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
@@ -698,7 +697,6 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         }
         break;
 
-    case GDK_KEY_2:
     case GDK_KEY_KP_2:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
@@ -708,7 +706,6 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         }
         break;
 
-    case GDK_KEY_3:
     case GDK_KEY_KP_3:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
@@ -717,8 +714,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
             ui_invalidateDrawingArea ();
         }
         break;
-/*
-    case GDK_KEY_4:
+
     case GDK_KEY_KP_4:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
@@ -728,7 +724,6 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         }
         break;
 
-    case GDK_KEY_5:
     case GDK_KEY_KP_5:
         if (ui_inSelectState ()) {
             item = view_getItem (ui_viewModel, ui_viewModel->focus);
@@ -737,7 +732,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
             ui_invalidateDrawingArea ();
         }
         break;
-*/
+
     case GDK_KEY_KP_Multiply:
     case GDK_KEY_asterisk:
         if (ui_inSelectState ()) {
@@ -778,6 +773,46 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
             g_action_group_activate_action (G_ACTION_GROUP (app_application), "fullscreen", NULL);
         }
         break;
+
+    case GDK_KEY_a: case GDK_KEY_A:
+    case GDK_KEY_b: case GDK_KEY_B:
+    case GDK_KEY_c: case GDK_KEY_C:
+    case GDK_KEY_d: case GDK_KEY_D:
+    case GDK_KEY_e: case GDK_KEY_E:
+    case GDK_KEY_f: case GDK_KEY_F:
+    case GDK_KEY_g: case GDK_KEY_G:
+    case GDK_KEY_h: case GDK_KEY_H:
+    case GDK_KEY_i: case GDK_KEY_I:
+    case GDK_KEY_j: case GDK_KEY_J:
+    case GDK_KEY_k: case GDK_KEY_K:
+    case GDK_KEY_l: case GDK_KEY_L:
+    case GDK_KEY_m: case GDK_KEY_M:
+    case GDK_KEY_n: case GDK_KEY_N:
+    case GDK_KEY_o: case GDK_KEY_O:
+    case GDK_KEY_p: case GDK_KEY_P:
+    case GDK_KEY_q: case GDK_KEY_Q:
+    case GDK_KEY_r: case GDK_KEY_R:
+    case GDK_KEY_s: case GDK_KEY_S:
+    case GDK_KEY_t: case GDK_KEY_T:
+    case GDK_KEY_u: case GDK_KEY_U:
+    case GDK_KEY_v: case GDK_KEY_V:
+    case GDK_KEY_w: case GDK_KEY_W:
+    case GDK_KEY_x: case GDK_KEY_X:
+    case GDK_KEY_y: case GDK_KEY_Y:
+    case GDK_KEY_z: case GDK_KEY_Z:
+    case GDK_KEY_0:
+    case GDK_KEY_1:
+    case GDK_KEY_2:
+    case GDK_KEY_3:
+    case GDK_KEY_4:
+    case GDK_KEY_5:
+    case GDK_KEY_6:
+    case GDK_KEY_7:
+    case GDK_KEY_8:
+    case GDK_KEY_9:
+        ui_drawingArea_search_cb (gdk_keyval_name (event->keyval));
+        break;
+
 
     // FIXME TODO
 
@@ -1790,7 +1825,6 @@ ui_search_cb (void)
     } else {
         g_print ("... not found\n");
     }
-
 }
 
 static gboolean
@@ -1805,4 +1839,19 @@ ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_dat
     }
 
     return FALSE;
+}
+
+static void
+ui_drawingArea_search_cb (const gchar* car)
+{
+    g_print ("searching for %s",  car);
+
+    gint i = rom_search_letter (ui_viewModel->romList, ui_viewModel->focus+1, car);
+
+    if (i >= 0) {
+        ui_focusAt (i);
+        ui_drawingAreaShowItem (ui_viewModel->focus);
+        ui_invalidateDrawingArea ();
+    }
+
 }
