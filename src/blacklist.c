@@ -26,32 +26,32 @@
 #include "global.h"
 #include "util.h"
 #include "app.h"
-#include "filter.h"
+#include "blacklist.h"
 
-#define FILTER_FILE "filter.txt"
-#define FILTER_LIST_BUFSIZE 255
+#define BLIST_FILE "blacklist.ini"
+#define BLIST_LIST_BUFSIZE 255
 
-static GHashTable *filter_skipTable = NULL;
+static GHashTable *blist_skipTable = NULL;
 
 void
-filter_init (void)
+blist_init (void)
 {
     int numSkip = 0;
-    gchar buf[FILTER_LIST_BUFSIZE];
+    gchar buf[BLIST_LIST_BUFSIZE];
 
-    g_assert(!filter_skipTable);
-    filter_skipTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-    g_assert(filter_skipTable);
+    g_assert(!blist_skipTable);
+    blist_skipTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+    g_assert(blist_skipTable);
 
     // load
-    gchar *fileFilter = g_build_filename (APP_RESOURCE, FILTER_FILE, NULL);
+    gchar *fileBList = g_build_filename (APP_RESOURCE, BLIST_FILE, NULL);
 
-    if (!g_file_test (fileFilter, G_FILE_TEST_EXISTS)) {
-        g_print ("Filter file not found (%s) %s\n", fileFilter, FAIL_MSG);
+    if (!g_file_test (fileBList, G_FILE_TEST_EXISTS)) {
+        g_print ("blacklist file not found (%s) %s\n", fileBList, FAIL_MSG);
     } else {
-        g_print ("Loading filter %s", fileFilter);
+        g_print ("loading blacklist %s", fileBList);
 
-        FILE *file = g_fopen (fileFilter, "r");
+        FILE *file = g_fopen (fileBList, "r");
 
         gboolean skipLine;
         while (fgets (buf, sizeof (buf), file)) {
@@ -82,7 +82,7 @@ filter_init (void)
 
                 g_strfreev (lineVec);
                 //g_print ("-> %s (%li)\n", romName, strlen(romName));
-                g_hash_table_insert (filter_skipTable, romName, NULL);
+                g_hash_table_insert (blist_skipTable, romName, NULL);
             }
 
         }
@@ -92,21 +92,21 @@ filter_init (void)
         fclose (file);
     }
 
-    g_free (fileFilter);
+    g_free (fileBList);
 
 }
 
 void
-filter_free (void)
+blist_free (void)
 {
-    g_hash_table_destroy (filter_skipTable);
-    filter_skipTable = NULL;
+    g_hash_table_destroy (blist_skipTable);
+    blist_skipTable = NULL;
 }
 
 gboolean
-filter_skipRom (const gchar *romName)
+blist_skipRom (const gchar *romName)
 {
-    if (g_hash_table_contains (filter_skipTable, romName)) {
+    if (g_hash_table_contains (blist_skipTable, romName)) {
         return TRUE;
     } else {
         return FALSE;

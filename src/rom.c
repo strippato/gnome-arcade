@@ -26,7 +26,7 @@
 
 #include "global.h"
 #include "app.h"
-#include "filter.h"
+#include "blacklist.h"
 #include "view.h"
 #include "rom.h"
 #include "mame.h"
@@ -173,7 +173,7 @@ rom_init (void)
     rom_cloneTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_assert(rom_cloneTable);
 
-    filter_init();
+    blist_init();
  }
 
 void
@@ -205,7 +205,7 @@ rom_free (void)
     g_hash_table_destroy (rom_cloneTable);
     rom_cloneTable = NULL;
 
-    filter_free();
+    blist_free();
  }
 
  void

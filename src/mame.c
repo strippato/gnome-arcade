@@ -41,7 +41,7 @@
 #include "util.h"
 #include "joy.h"
 #include "ssaver.h"
-#include "filter.h"
+#include "blacklist.h"
 
 
 #define MAME_EXE       cfg_keyStr ("MAME_EXE")
@@ -331,7 +331,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
             tempstr++;
             gchar *nameDes = g_strndup (tempstr, strlen (tempstr) - 2);
 
-            if (!filter_skipRom (name)) {
+            if (!blist_skipRom (name)) {
                 struct rom_romItem *item = rom_newItem ();
 
                 rom_setItemName (item, name);

@@ -20,13 +20,13 @@
 
 
 /* filter.h */
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef BLACKLIST_H
+#define BLACKLIST_H
 
-void filter_init (void);
-void filter_free (void);
+void blist_init (void);
+void blist_free (void);
 
-gboolean filter_skipRom (const gchar *romName);
+gboolean blist_skipRom (const gchar *romName);
 
 #endif
 
