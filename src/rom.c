@@ -567,7 +567,7 @@ rom_search_letter (GList* viewModel, gint focus, const gchar* romStartWithLetter
     // focus to end
     for (GList *l = g_list_nth (viewModel, focus); l != NULL; l = l->next) {
         struct rom_romItem *item = l->data;
-        gchar *search = g_utf8_strup (item->description, -1);
+        gchar *search = g_utf8_strup (item->desc, -1);
         if (g_str_has_prefix (search, searchItm)) {
             g_free (searchItm);
             g_free (search);
@@ -579,7 +579,7 @@ rom_search_letter (GList* viewModel, gint focus, const gchar* romStartWithLetter
     // start to focus
     for (GList *l = g_list_first (viewModel); l != g_list_nth (viewModel, focus); l = l->next) {
         struct rom_romItem *item = l->data;
-        gchar *search = g_utf8_strup (item->description, -1);
+        gchar *search = g_utf8_strup (item->desc, -1);
         if (g_str_has_prefix (search, searchItm)) {
             g_free (searchItm);
             g_free (search);
