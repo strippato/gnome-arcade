@@ -135,7 +135,7 @@ static GdkPixbuf *ui_aboutLogo = NULL;
 // forward decl
 static void ui_prefManager (gdouble x, gdouble y);
 static void ui_rankManager (gdouble x, gdouble y);
-static void ui_search_cb (void);
+static void ui_search_cb (gboolean forward);
 static gboolean ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 static void ui_drawingArea_search_cb (const gchar* car);
 
@@ -639,9 +639,24 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
     } else {
         // KEY
         switch (event->keyval) {
+        case GDK_KEY_F2:
+            if (event->state & GDK_SHIFT_MASK) {
+                // f2: find next
+                ui_search_cb (TRUE);
+            } else {
+                // f2: find prev
+                ui_search_cb (FALSE);
+            }
+            break;
+
         case GDK_KEY_F3:
-            // f3: find next
-            ui_search_cb ();
+            if (event->state & GDK_SHIFT_MASK) {
+                // shift f3: find prev
+                ui_search_cb (FALSE);
+            } else {
+                // f3: find next
+                ui_search_cb (TRUE);
+            }
             break;
 
         case GDK_KEY_Up:
@@ -1838,11 +1853,11 @@ ui_getWindowXid (void)
 }
 
 static void
-ui_search_cb (void)
+ui_search_cb (gboolean forward)
 {
     g_print ("searching for %s",  gtk_entry_get_text (GTK_ENTRY (ui_entry)));
 
-    gint i = rom_search (ui_viewModel->romList, ui_viewModel->focus+1, gtk_entry_get_text (GTK_ENTRY (ui_entry)));
+    gint i = rom_search (ui_viewModel->romList, ui_viewModel->focus, gtk_entry_get_text (GTK_ENTRY (ui_entry)), forward);
     if (i >= 0) {
         ui_focusAt (i);
         ui_feedback ();
