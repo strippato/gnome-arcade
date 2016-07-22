@@ -54,6 +54,7 @@ max (gint a, gint b)
     return (a >= b? a: b);
 }
 
+__attribute__ ((hot))
 inline gboolean
 pointInside (gint x, gint y, gint ax, gint ay, gint bx, gint by)
 {

@@ -133,8 +133,8 @@ static GError *gerror = NULL;
 static GdkPixbuf *ui_aboutLogo = NULL;
 
 // forward decl
-static void ui_prefManager (gdouble x, gdouble y);
-static void ui_rankManager (gdouble x, gdouble y);
+static gboolean ui_prefManager (gdouble x, gdouble y);
+static gboolean ui_rankManager (gdouble x, gdouble y);
 static void ui_search_cb (gboolean forward);
 static gboolean ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 static void ui_drawingArea_search_cb (const gchar* car, gboolean forward);
@@ -925,7 +925,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
     return FALSE;
 }
 
-
+__attribute__ ((hot))
 static gboolean
 ui_drawingAreaScrollEvent (GtkWidget *widget, GdkEventScroll *event, gpointer data)
 {
@@ -989,6 +989,8 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
 
     if (mame_isRunning ()) return FALSE;
 
+    gtk_widget_grab_focus(ui_drawingArea);
+
     switch (event->type) {
 
     case GDK_2BUTTON_PRESS:
@@ -1015,8 +1017,11 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
                 ui_focusAt (tileIdx);
 
                 if (ui_inSelectState ()) {
-                    ui_prefManager (event->x, event->y);
-                    ui_rankManager (event->x, event->y);
+                    gboolean pref = ui_prefManager (event->x, event->y);
+                    gboolean rank = ui_rankManager (event->x, event->y);
+                    if (!pref && !rank) {
+                        ui_drawingAreaShowItem (ui_viewModel->focus);
+                    }
                 } else {
                     ui_drawingAreaShowItem (ui_viewModel->focus);
                 }
@@ -1763,7 +1768,7 @@ ui_getTileY (gint idxModel)
     return rowNum * (ui_tileSize_H + TILE_H_BORDER) + UI_OFFSET_Y + (ui_tileSize_H - pixbuf_h);
 }
 
-static void
+static gboolean
 ui_prefManager (gdouble x, gdouble y)
 {
     gint idx = ui_getTileIdx (x, y, TRUE);
@@ -1777,11 +1782,13 @@ ui_prefManager (gdouble x, gdouble y)
 
         if (pointInside (x, y + ui_viewModel->view, baseTileX, baseTileY, baseTileX + fav_w, baseTileY + fav_h)) {
             ui_preference_cb ();
+            return TRUE;
         }
     }
+    return FALSE;
 }
 
-static void
+static gboolean
 ui_rankManager (gdouble x, gdouble y)
 {
     gint idx = ui_getTileIdx (x, y, TRUE);
@@ -1796,10 +1803,11 @@ ui_rankManager (gdouble x, gdouble y)
 
             if (pointInside (x, y + ui_viewModel->view, baseTileX, baseTileY, baseTileX + fav_w, baseTileY + fav_h)) {
                 ui_rank_cb (i+1);
-                return;
+                return TRUE;
             }
         }
     }
+    return FALSE;
 }
 
 
