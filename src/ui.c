@@ -137,7 +137,7 @@ static void ui_prefManager (gdouble x, gdouble y);
 static void ui_rankManager (gdouble x, gdouble y);
 static void ui_search_cb (gboolean forward);
 static gboolean ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
-static void ui_drawingArea_search_cb (const gchar* car);
+static void ui_drawingArea_search_cb (const gchar* car, gboolean forward);
 
 __attribute__ ((hot))
 static inline void
@@ -860,12 +860,54 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         case GDK_KEY_7:
         case GDK_KEY_8:
         case GDK_KEY_9:
-            ui_drawingArea_search_cb (gdk_keyval_name (event->keyval));
+            if (event->state & GDK_SHIFT_MASK) {
+                ui_drawingArea_search_cb (gdk_keyval_name (event->keyval), FALSE);
+            } else {
+                ui_drawingArea_search_cb (gdk_keyval_name (event->keyval), TRUE);
+            }
             break;
 
+        case GDK_KEY_exclam:
+            ui_drawingArea_search_cb (gdk_keyval_name (GDK_KEY_1), FALSE);
+            break;
+
+        case GDK_KEY_quotedbl:
+            ui_drawingArea_search_cb (gdk_keyval_name (GDK_KEY_2), FALSE);
+            break;
+
+        case GDK_KEY_sterling:
+            ui_drawingArea_search_cb (gdk_keyval_name (GDK_KEY_3), FALSE);
+            break;
+
+        case GDK_KEY_dollar:
+            ui_drawingArea_search_cb (gdk_keyval_name (GDK_KEY_4), FALSE);
+            break;
+
+        case GDK_KEY_percent:
+            ui_drawingArea_search_cb (gdk_keyval_name (GDK_KEY_5), FALSE);
+            break;
+
+        case GDK_KEY_ampersand:
+            ui_drawingArea_search_cb (gdk_keyval_name (GDK_KEY_6), FALSE);
+            break;
+
+        case GDK_KEY_slash:
+            ui_drawingArea_search_cb (gdk_keyval_name (GDK_KEY_7), FALSE);
+            break;
+
+        case GDK_KEY_parenleft:
+            ui_drawingArea_search_cb (gdk_keyval_name (GDK_KEY_8), FALSE);
+            break;
+
+        case GDK_KEY_parenright:
+            ui_drawingArea_search_cb (gdk_keyval_name (GDK_KEY_9), FALSE);
+            break;
+
+        case GDK_KEY_equal:
+            ui_drawingArea_search_cb (gdk_keyval_name (GDK_KEY_0), FALSE);
+            break;
 
         // FIXME TODO
-
         //  case GDK_KEY_KP_7:
         //      if (!ui_inSelectState ()) {
         //          view_test1 ();
@@ -1884,11 +1926,12 @@ ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_dat
 }
 
 static void
-ui_drawingArea_search_cb (const gchar* car)
+ui_drawingArea_search_cb (const gchar* car, gboolean forward)
 {
     g_print ("searching for %s",  car);
 
-    gint i = rom_search_letter (ui_viewModel->romList, ui_viewModel->focus+1, car);
+    gint i = rom_search_letter (ui_viewModel->romList, ui_viewModel->focus, car, forward);
+
     if (i >= 0) {
         ui_focusAt (i);
         ui_feedback ();

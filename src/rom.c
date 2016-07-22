@@ -314,6 +314,9 @@ rom_setItemDesc (struct rom_romItem* item, gchar* desc)
             } else if (g_str_has_prefix (romdesv[0], "VS ")) {
                 // hide the prefix "VS "
                 item->desc = g_strdup_printf ("%s, VS", romdesv[0] + 3);
+            } else if (g_str_has_prefix (romdesv[0], "'")) {
+                // hide the prefix "'88"
+                item->desc = g_strdup_printf ("%s", romdesv[0] + 1);
             } else {
                 item->desc = g_strdup (romdesv[0]);
             }
@@ -559,7 +562,7 @@ rom_search (GList* viewModel, gint focus, const gchar* romDes, gboolean forward)
             g_free (search);
         }
     } else {
-        focus--;
+        focus = posval (--focus);
         // backward
         // focus to start
         for (GList *l = g_list_nth (viewModel, focus); l != NULL; l = l->prev) {
@@ -591,32 +594,60 @@ rom_search (GList* viewModel, gint focus, const gchar* romDes, gboolean forward)
 }
 
 gint
-rom_search_letter (GList* viewModel, gint focus, const gchar* romStartWithLetter)
+rom_search_letter (GList* viewModel, gint focus, const gchar* romStartWithLetter, gboolean forward)
 {
     gchar *searchItm = g_utf8_strup (romStartWithLetter, -1);
 
-    // focus to end
-    for (GList *l = g_list_nth (viewModel, focus); l != NULL; l = l->next) {
-        struct rom_romItem *item = l->data;
-        gchar *search = g_utf8_strup (item->desc, -1);
-        if (g_str_has_prefix (search, searchItm)) {
-            g_free (searchItm);
+    if (forward) {
+        focus++;
+        // focus to end
+        for (GList *l = g_list_nth (viewModel, focus); l != NULL; l = l->next) {
+            struct rom_romItem *item = l->data;
+            gchar *search = g_utf8_strup (item->desc, -1);
+            if (g_str_has_prefix (search, searchItm)) {
+                g_free (searchItm);
+                g_free (search);
+                return g_list_position ((GList*) viewModel, l);
+            }
             g_free (search);
-            return g_list_position ((GList*) viewModel, l);
         }
-        g_free (search);
-    }
 
-    // start to focus
-    for (GList *l = g_list_first (viewModel); l != g_list_nth (viewModel, focus); l = l->next) {
-        struct rom_romItem *item = l->data;
-        gchar *search = g_utf8_strup (item->desc, -1);
-        if (g_str_has_prefix (search, searchItm)) {
-            g_free (searchItm);
+        // start to focus
+        for (GList *l = g_list_first (viewModel); l != g_list_nth (viewModel, focus); l = l->next) {
+            struct rom_romItem *item = l->data;
+            gchar *search = g_utf8_strup (item->desc, -1);
+            if (g_str_has_prefix (search, searchItm)) {
+                g_free (searchItm);
+                g_free (search);
+                return g_list_position ((GList*) viewModel, l);
+            }
             g_free (search);
-            return g_list_position ((GList*) viewModel, l);
         }
-        g_free (search);
+    } else {
+        focus = posval (--focus);
+        // focus to start
+        for (GList *l = g_list_nth (viewModel, focus); l != NULL; l = l->prev) {
+            struct rom_romItem *item = l->data;
+            gchar *search = g_utf8_strup (item->desc, -1);
+            if (g_str_has_prefix (search, searchItm)) {
+                g_free (searchItm);
+                g_free (search);
+                return g_list_position ((GList*) viewModel, l);
+            }
+            g_free (search);
+        }
+
+        // end to focus
+        for (GList *l = g_list_last (viewModel); l != g_list_nth (viewModel, focus); l = l->prev) {
+            struct rom_romItem *item = l->data;
+            gchar *search = g_utf8_strup (item->desc, -1);
+            if (g_str_has_prefix (search, searchItm)) {
+                g_free (searchItm);
+                g_free (search);
+                return g_list_position ((GList*) viewModel, l);
+            }
+            g_free (search);
+        }
     }
 
     g_free (searchItm);
