@@ -3,6 +3,8 @@
 #
 #	cmake ..
 #   OR
+#   cmake -DCMAKE_C_FLAGS="-Ofast -march=native -fomit-frame-pointer -flto -fwhole-program" ..
+#   OR
 # 	cmake -DCMAKE_C_FLAGS="-O3 -march=native" ..
 #	OR
 # 	cmake -DAPP_RES=\"/usr/share/gnome-arcade\" -DCMAKE_C_FLAGS="-g -O2" ..
