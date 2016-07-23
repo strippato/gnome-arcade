@@ -39,6 +39,7 @@ static void
 cfg_fillDefaultConfig (void)
 {
 
+	g_hash_table_insert (cfg_default, g_strdup ("MAME_RELEASE"), g_strdup("0.0.0"));
 	g_hash_table_insert (cfg_default, g_strdup ("MAME_EXE"), g_strdup (MAME_BIN));
 	g_hash_table_insert (cfg_default, g_strdup ("MAME_OPTIONS"), g_strdup ("-autosave -skip_gameinfo -video opengl"));
 

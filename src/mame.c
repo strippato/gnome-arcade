@@ -196,10 +196,41 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
     #define CLONE_OFFSET 17
 
+    gchar *fileRom = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_FULL_FILE, NULL);
+    gchar *fileClone = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_CLONES_FILE, NULL);
+
     gchar* mameVersion = NULL;
     if (g_file_test (MAME_EXE, G_FILE_TEST_IS_EXECUTABLE)) {
+
         mameVersion = mame_getVersion ();
         g_print ("%s\n", mameVersion);
+
+        if (g_strcmp0 (mameVersion, cfg_keyStr ("MAME_RELEASE")) != 0) {
+            // g_print ("%s-%s\n", mameVersion , cfg_keyStr ("MAME_RELEASE"));
+            g_print ("version mismatch, need a rebuild\n");
+            // delete romlist/clonelist
+            if (g_file_test (fileRom, G_FILE_TEST_EXISTS)) {
+                g_print ("deleting %s ", fileRom);
+                if (g_remove (fileRom) == 0) {
+                    g_print (SUCCESS_MSG "\n");
+                } else {
+                    g_print (FAIL_MSG "\n");
+                }
+            }
+
+            if (g_file_test (fileClone, G_FILE_TEST_EXISTS)) {
+                g_print ("deleting %s ", fileClone);
+                if (g_remove (fileClone) == 0) {
+                    g_print (SUCCESS_MSG "\n");
+                } else {
+                    g_print (FAIL_MSG "\n");
+                }
+
+            }
+
+            cfg_setConfig ("MAME_RELEASE", mameVersion);
+            cfg_saveConfig ();
+        }
     } else {
         g_print ("Can't find M.A.M.E. (%s), please edit your config", MAME_EXE);
         g_print (" " FAIL_MSG "\n");
@@ -219,8 +250,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
     gint numBios = 0;
     gchar* romPath;
 
-    gchar *fileRom = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_FULL_FILE, NULL);
-    gchar *fileClone = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_CLONES_FILE, NULL);
 
     romPath = g_strdup (cfg_keyStr ("ROM_PATH"));
 
