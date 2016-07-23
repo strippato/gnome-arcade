@@ -3,7 +3,7 @@
 #
 #	cmake ..
 #   OR
-#   cmake -DCMAKE_C_FLAGS="-Ofast -march=native -fomit-frame-pointer -flto -fwhole-program" ..
+#   cmake -DCMAKE_C_FLAGS="-Ofast -march=native -fomit-frame-pointer -flto -fwhole-program -frename-registers" ..
 #   OR
 # 	cmake -DCMAKE_C_FLAGS="-O3 -march=native" ..
 #	OR
