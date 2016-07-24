@@ -55,6 +55,11 @@ struct rom_romItem {
 	gboolean  tileLoading;
 	gboolean  tileLoaded;
 	GdkPixbuf *tile;
+
+	//FIXME
+	//TODO
+	// clone list item
+	//GList *clones;
 };
 
 extern GList *rom_romList; // all parent games (NOT clone, NOT FILTERED)
@@ -79,7 +84,6 @@ struct rom_romItem* rom_getItem (int numGame);
 
 void rom_setItemName (struct rom_romItem* item, gchar* name);
 void rom_setItemDescription (struct rom_romItem* item, gchar* description);
-void rom_setItemDesc (struct rom_romItem* item, gchar* desc);
 void rom_setItemTile (struct rom_romItem* item, GdkPixbuf* tile);
 void rom_setItemRomFound (struct rom_romItem* item, gboolean value);
 void rom_loadItemAsync (struct rom_romItem* item);

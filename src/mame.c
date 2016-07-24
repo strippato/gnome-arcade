@@ -363,7 +363,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
                 rom_setItemName (item, name);
                 rom_setItemDescription (item, nameDes);
-                rom_setItemDesc (item, nameDes);
                 rom_setItemTile (item, NULL);
                 rom_setItemRank (item, pref_getRank (name));
                 rom_setItemPref (item, pref_getPreferred (name));

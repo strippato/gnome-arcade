@@ -258,6 +258,7 @@ rom_newItem (void)
     return item;
 }
 
+
 struct rom_romItem*
 rom_getItem (int numGame)
 {
@@ -291,17 +292,14 @@ rom_setItemName (struct rom_romItem* item, gchar* name)
 inline void
 rom_setItemDescription (struct rom_romItem* item, gchar* description)
 {
+    // for searching
     item->description = g_strdup (description);
-}
 
-inline void
-rom_setItemDesc (struct rom_romItem* item, gchar* desc)
-{
-
+    // for sorting/view
     if (cfg_keyBool ("TILE_SHORT_DESCRIPTION")) {
 
         // hide " (" information
-        gchar **romdesv = g_strsplit (desc, " (", 2);
+        gchar **romdesv = g_strsplit (description, " (", 2);
 
         if (cfg_keyBool ("TILE_SHORT_DESCRIPTION_HIDE_PREFIX")) {
 
@@ -326,7 +324,7 @@ rom_setItemDesc (struct rom_romItem* item, gchar* desc)
         }
         g_strfreev (romdesv);
     } else {
-        item->desc = g_strdup (desc);
+        item->desc = g_strdup (description);
     }
 }
 
