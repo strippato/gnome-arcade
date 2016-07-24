@@ -38,13 +38,13 @@ enum rom_sortOrder {
 
 struct rom_romItem {
 	// mame
-	gchar *name;                //	1941
-	gchar *description;	        //	1941: The Counter Attack (World 900227)
+	gchar *name;                //	1941                                      - romname
+	gchar *description;	        //	1941: The Counter Attack (World 900227)   - (used this for searching)
 
-	gboolean romFound;  		// 	only for PARENT
+	gboolean romFound;  		// 	only for PARENT                           - Parent: rom found; Clone: ignored;
 
 	// view/sort
-	gchar *desc;                //  1941: Counter Attack, The
+	gchar *desc;                //  1941: Counter Attack, The                 - (used for sorting/jump to letter)
 
 	// user preference
 	gboolean pref;

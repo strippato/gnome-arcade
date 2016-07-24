@@ -247,11 +247,9 @@ zoo               "Zoo (Ver. ZO.02.D)"
     gint numGame = 0;
     gint numGameSupported = 0;
     gint numClone = 0;
-    gint numBios = 0;
-    gchar* romPath;
+    gint numBlackList = 0;
 
-
-    romPath = g_strdup (cfg_keyStr ("ROM_PATH"));
+    gchar* romPath = g_strdup (cfg_keyStr ("ROM_PATH"));
 
     g_assert (g_file_test (romPath, G_FILE_TEST_IS_DIR));
 
@@ -374,7 +372,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
                 if (foundRom) ++numGame;
             } else {
-                if (foundRom) ++numBios;
+                if (foundRom) ++numBlackList;
             }
             g_free (nameDes);
             g_free (name);
@@ -391,7 +389,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
         g_free (cmdLine);
 
         g_print (" " SUCCESS_MSG " (%i)\n", numGameSupported);
-        g_print ("found %i of %i rom (%i filtered)\n", numGame, numGameSupported, numBios);
+        g_print ("found %i of %i rom (%i blacklisted)\n", numGame, numGameSupported, numBlackList);
     }
 
     rom_romList = g_list_reverse (rom_romList);
