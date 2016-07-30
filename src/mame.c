@@ -346,21 +346,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
                 romNameDir = g_strdup_printf ("%s/%s", romPath, name);
 
                 gboolean foundRom = FALSE;
-                // clones romset will not be checked for performance reasons
-                if (rom_isParent (name)) {
-                    numGameSupported++;
-
-                    if (g_file_test (romName7Zip, G_FILE_TEST_EXISTS)) {
-                        foundRom = TRUE;
-                    } else if (g_file_test (romNameZip, G_FILE_TEST_EXISTS)) {
-                        foundRom = TRUE;
-                    } else if (g_file_test (romNameDir, G_FILE_TEST_IS_DIR)) {
-                        foundRom = TRUE;
-//                    } else {
-//                        g_print ("\nmissing %s\n", name);
-                    }
-                    if (numGameSupported % 100 == 0) g_print (".");
-                }
 
                 tempstr = strstr (buf, "\"");
                 assert (tempstr);
@@ -375,6 +360,46 @@ zoo               "Zoo (Ver. ZO.02.D)"
                 rom_setItemRank (item, pref_getRank (name));
                 rom_setItemPref (item, pref_getPreferred (name));
                 rom_setItemNPlay (item, pref_getNPlay (name));
+
+                // clones romset will not be checked for performance reasons
+                if (rom_isParent (name)) {
+                    numGameSupported++;
+
+                    if (g_file_test (romName7Zip, G_FILE_TEST_EXISTS)) {
+                        foundRom = TRUE;
+                    } else if (g_file_test (romNameZip, G_FILE_TEST_EXISTS)) {
+                        foundRom = TRUE;
+                    } else if (g_file_test (romNameDir, G_FILE_TEST_IS_DIR)) {
+                        foundRom = TRUE;
+                    //} else {
+                    //  g_print ("\nmissing %s\n", name);
+                    }
+                    if (numGameSupported % 100 == 0) g_print (".");
+                } else {
+                    // clone
+                    gchar *parent = g_hash_table_lookup (rom_cloneTable, name);
+                    if (parent) {
+                        if (!g_hash_table_contains (rom_parentTable, parent)) {
+                            // insert clone
+                            gchar *data = g_strjoin ("\n", nameDes, name, NULL);
+                            gchar *dataUcase = g_utf8_strup (data, -1);
+                            g_free (data);
+
+                            g_hash_table_insert (rom_parentTable, g_strdup (parent), dataUcase);
+                        } else {
+                            // add another clone
+                            gchar *olddata = g_hash_table_lookup (rom_parentTable, parent);
+                            gchar *newdata = g_strjoin ("\n", olddata, nameDes, name, NULL);
+                            g_hash_table_remove (rom_parentTable, parent);
+
+                            gchar *dataUcase = g_utf8_strup (newdata, -1);
+                            g_free (newdata);
+
+                            g_hash_table_insert (rom_parentTable, g_strdup (parent), dataUcase);
+                        }
+                    }
+                }
+
                 rom_setItemRomFound (item, foundRom);
                 if (foundRom) ++numGame;
 

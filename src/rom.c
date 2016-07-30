@@ -52,15 +52,14 @@ GdkPixbuf *rom_tileRank = NULL;
 // rom (all, NO BIOS)
 GList *rom_romList = NULL;
 
-static guint rom_count = 0; // nTot rom + clone (NO BIOS)
-static guint rom_available = 0; // nTot rom available (NO CLONE) (NO BIOS)
+static guint rom_count = 0;     // nTot rom + clone (NO BLACKLISTED)
+static guint rom_available = 0; // nTot rom available (NO CLONE) (NO BLAKCLISTED)
 
-// clone (only clone, NO BIOS)
+// clone (only clone, NO BLACKLISTED)
 GHashTable* rom_cloneTable = NULL;
-/*
+
 // key=PARENT, data=List
 GHashTable* rom_parentTable = NULL;
-*/
 
 static enum rom_sortOrder rom_sortOrder = ROM_SORT_AZ;
 
@@ -176,11 +175,11 @@ rom_init (void)
     g_assert (!rom_cloneTable);
     rom_cloneTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_assert (rom_cloneTable);
-/*
+
     g_assert (!rom_parentTable);
-    rom_parentTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+    rom_parentTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_assert (rom_parentTable);
-*/
+
     blist_init ();
  }
 
@@ -213,10 +212,8 @@ rom_free (void)
     g_hash_table_destroy (rom_cloneTable);
     rom_cloneTable = NULL;
 
-/*
     g_hash_table_destroy (rom_parentTable);
     rom_parentTable = NULL;
-*/
 
     blist_free();
  }
@@ -571,6 +568,18 @@ rom_search (GList* viewModel, gint focus, const gchar* romDes, gboolean forward)
                 return g_list_position ((GList*) viewModel, l);
             }
             g_free (search);
+
+            // clone (romnane + description)
+            if (rom_isParent (item->name)) {
+                if (g_hash_table_contains (rom_parentTable, item->name)) {
+                    search = g_hash_table_lookup (rom_parentTable, item->name);
+                    if (g_strrstr (search, searchItm)) {
+                        g_free (searchItm);
+                        return g_list_position ((GList*) viewModel, l);
+                    }
+                }
+            }
+
         }
 
         // start to focus
@@ -594,6 +603,18 @@ rom_search (GList* viewModel, gint focus, const gchar* romDes, gboolean forward)
                 return g_list_position ((GList*) viewModel, l);
             }
             g_free (search);
+
+            // clone (romnane + description)
+            if (rom_isParent (item->name)) {
+                if (g_hash_table_contains (rom_parentTable, item->name)) {
+                    search = g_hash_table_lookup (rom_parentTable, item->name);
+                    if (g_strrstr (search, searchItm)) {
+                        g_free (searchItm);
+                        return g_list_position ((GList*) viewModel, l);
+                    }
+                }
+            }
+
         }
     } else {
         focus = posval (--focus);
@@ -620,6 +641,16 @@ rom_search (GList* viewModel, gint focus, const gchar* romDes, gboolean forward)
             }
             g_free (search);
 
+            // clone (romnane + description)
+            if (rom_isParent (item->name)) {
+                if (g_hash_table_contains (rom_parentTable, item->name)) {
+                    search = g_hash_table_lookup (rom_parentTable, item->name);
+                    if (g_strrstr (search, searchItm)) {
+                        g_free (searchItm);
+                        return g_list_position ((GList*) viewModel, l);
+                    }
+                }
+            }
         }
 
         // end to focus
@@ -643,6 +674,17 @@ rom_search (GList* viewModel, gint focus, const gchar* romDes, gboolean forward)
                 return g_list_position ((GList*) viewModel, l);
             }
             g_free (search);
+
+            // clone (romnane + description)
+            if (rom_isParent (item->name)) {
+                if (g_hash_table_contains (rom_parentTable, item->name)) {
+                    search = g_hash_table_lookup (rom_parentTable, item->name);
+                    if (g_strrstr (search, searchItm)) {
+                        g_free (searchItm);
+                        return g_list_position ((GList*) viewModel, l);
+                    }
+                }
+            }
 
         }
     }

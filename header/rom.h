@@ -55,15 +55,11 @@ struct rom_romItem {
 	gboolean  tileLoading;
 	gboolean  tileLoaded;
 	GdkPixbuf *tile;
-
-	//FIXME
-	//TODO
-	// clone list item
-	//GList *clones;
 };
 
 extern GList *rom_romList; // all parent games (NOT clone, NOT FILTERED)
 extern GHashTable *rom_cloneTable; // only clones (NOT FILTERED) key:Clone, Item:Parent
+extern GHashTable* rom_parentTable; // key=PARENT, data=List
 
 //extern GHashTable *rom_cloneItem;  // key:Parent, Item:
 
