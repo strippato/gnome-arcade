@@ -247,7 +247,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
     gint numGame = 0;
     gint numGameSupported = 0;
     gint numClone = 0;
-    gint numBlackList = 0;
 
     gchar* romPath = g_strdup (cfg_keyStr ("ROM_PATH"));
 
@@ -292,7 +291,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
         file = g_fopen (fileClone, "r");
 
         while (fgets (buf, sizeof (buf), file)) {
-            numClone++;
 
             gchar **lineVec;
             gchar *romName;
@@ -302,15 +300,21 @@ zoo               "Zoo (Ver. ZO.02.D)"
             romName = g_strdup (lineVec[0]);
             g_strfreev (lineVec);
 
-            cloneof = g_strdup (g_strstrip (buf + CLONE_OFFSET));
+            if (!blist_skipRom (romName)) {
+                numClone++;
 
-            g_hash_table_insert (rom_cloneTable, romName, cloneof);
+                cloneof = g_strdup (g_strstrip (buf + CLONE_OFFSET));
 
-            if (numClone % 600 == 0) g_print (".");
+                g_hash_table_insert (rom_cloneTable, romName, cloneof);
 
-            // don't free romname and cloneof
-            //g_free (romname);
-            //g_free (cloneof);
+                if (numClone % 100 == 0) g_print (".");
+
+                // don't free romname and cloneof
+                //g_free (romname);
+                //g_free (cloneof);
+            } else {
+                g_free (romName);
+            }
         }
 
         g_free (cmdLine);
@@ -328,37 +332,41 @@ zoo               "Zoo (Ver. ZO.02.D)"
         file = g_fopen (fileRom, "r");
 
         while (fgets (buf, sizeof (buf), file)) {
-            numGameSupported++;
 
             gchar *tempstr = strstr (buf, " ");
             assert (tempstr);
 
             gchar *name = g_strndup (buf, tempstr - buf);
 
-            /* show the tile, only if we find the rom */
-            romNameZip = g_strdup_printf ("%s/%s.%s", romPath, name, ROM_EXTENSION_ZIP);
-            romName7Zip = g_strdup_printf ("%s/%s.%s", romPath, name, ROM_EXTENSION_7ZIP);
-            romNameDir = g_strdup_printf ("%s/%s", romPath, name);
-
-            gboolean foundRom = FALSE;
-
-            // clones romset will not be checked for performance reasons
-            if (rom_isParent (name)) {
-                if (g_file_test (romName7Zip, G_FILE_TEST_EXISTS)) {
-                    foundRom = TRUE;
-                } else if (g_file_test (romNameZip, G_FILE_TEST_EXISTS)) {
-                    foundRom = TRUE;
-                } else if (g_file_test (romNameDir, G_FILE_TEST_IS_DIR)) {
-                    foundRom = TRUE;
-                }
-            }
-
-            tempstr = strstr (buf, "\"");
-            assert (tempstr);
-            tempstr++;
-            gchar *nameDes = g_strndup (tempstr, strlen (tempstr) - 2);
-
             if (!blist_skipRom (name)) {
+
+                /* show the tile, only if we find the rom */
+                romNameZip = g_strdup_printf ("%s/%s.%s", romPath, name, ROM_EXTENSION_ZIP);
+                romName7Zip = g_strdup_printf ("%s/%s.%s", romPath, name, ROM_EXTENSION_7ZIP);
+                romNameDir = g_strdup_printf ("%s/%s", romPath, name);
+
+                gboolean foundRom = FALSE;
+                // clones romset will not be checked for performance reasons
+                if (rom_isParent (name)) {
+                    numGameSupported++;
+
+                    if (g_file_test (romName7Zip, G_FILE_TEST_EXISTS)) {
+                        foundRom = TRUE;
+                    } else if (g_file_test (romNameZip, G_FILE_TEST_EXISTS)) {
+                        foundRom = TRUE;
+                    } else if (g_file_test (romNameDir, G_FILE_TEST_IS_DIR)) {
+                        foundRom = TRUE;
+//                    } else {
+//                        g_print ("\nmissing %s\n", name);
+                    }
+                    if (numGameSupported % 100 == 0) g_print (".");
+                }
+
+                tempstr = strstr (buf, "\"");
+                assert (tempstr);
+                tempstr++;
+                gchar *nameDes = g_strndup (tempstr, strlen (tempstr) - 2);
+
                 struct rom_romItem *item = rom_newItem ();
 
                 rom_setItemName (item, name);
@@ -368,19 +376,16 @@ zoo               "Zoo (Ver. ZO.02.D)"
                 rom_setItemPref (item, pref_getPreferred (name));
                 rom_setItemNPlay (item, pref_getNPlay (name));
                 rom_setItemRomFound (item, foundRom);
-
                 if (foundRom) ++numGame;
-            } else {
-                if (foundRom) ++numBlackList;
+
+                g_free (nameDes);
+                g_free (romNameZip);
+                g_free (romName7Zip);
+                g_free (romNameDir);
+
             }
-            g_free (nameDes);
             g_free (name);
 
-            g_free (romNameZip);
-            g_free (romName7Zip);
-            g_free (romNameDir);
-
-            if (numGameSupported % 1000 == 0) g_print (".");
 
         }
 
@@ -388,7 +393,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
         g_free (cmdLine);
 
         g_print (" " SUCCESS_MSG " (%i)\n", numGameSupported);
-        g_print ("found %i of %i rom (%i blacklisted)\n", numGame, numGameSupported, numBlackList);
+        g_print ("found %i of %i rom\n", numGame, numGameSupported);
     }
 
     rom_romList = g_list_reverse (rom_romList);

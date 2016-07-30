@@ -84,7 +84,6 @@ blist_init (void)
                 //g_print ("-> %s (%li)\n", romName, strlen(romName));
                 g_hash_table_insert (blist_skipTable, romName, NULL);
             }
-
         }
 
         g_print ("... found %i item %s\n", numSkip, SUCCESS_MSG);

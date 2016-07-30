@@ -57,6 +57,10 @@ static guint rom_available = 0; // nTot rom available (NO CLONE) (NO BIOS)
 
 // clone (only clone, NO BIOS)
 GHashTable* rom_cloneTable = NULL;
+/*
+// key=PARENT, data=List
+GHashTable* rom_parentTable = NULL;
+*/
 
 static enum rom_sortOrder rom_sortOrder = ROM_SORT_AZ;
 
@@ -146,34 +150,38 @@ rom_init (void)
     /* pixbuf */
     rom_tilePath = g_strdup (cfg_keyStr ("TILE_PATH"));
 
-    g_assert(!rom_tileNoImage);
+    g_assert (!rom_tileNoImage);
     rom_tileNoImage = gdk_pixbuf_new_from_file_at_size (APP_RESOURCE APP_NOIMAGE, ui_tileSize_W, ui_tileSize_H, NULL);
-    g_assert(rom_tileNoImage);
+    g_assert (rom_tileNoImage);
 
-    g_assert(!rom_tileNowShowing);
+    g_assert (!rom_tileNowShowing);
     rom_tileNowShowing = gdk_pixbuf_new_from_file_at_size (APP_RESOURCE APP_NOWSHOWING, ui_tileSize_W, ui_tileSize_H, NULL);
-    g_assert(rom_tileNowShowing);
+    g_assert (rom_tileNowShowing);
 
-    g_assert(!rom_tileLoading);
+    g_assert (!rom_tileLoading);
     rom_tileLoading = gdk_pixbuf_new_from_file_at_size (APP_RESOURCE APP_LOADING, ui_tileSize_W, ui_tileSize_H, NULL);
-    g_assert(rom_tileLoading);
+    g_assert (rom_tileLoading);
 
-    g_assert(!rom_tileFavorite);
+    g_assert (!rom_tileFavorite);
     rom_tileFavorite = gdk_pixbuf_new_from_file (APP_RESOURCE APP_PREFERRED, NULL);
-    g_assert(rom_tileFavorite);
+    g_assert (rom_tileFavorite);
 
-    g_assert(!rom_tileRank);
+    g_assert (!rom_tileRank);
     rom_tileRank = gdk_pixbuf_new_from_file (APP_RESOURCE APP_RANK, NULL);
-    g_assert(rom_tileRank);
+    g_assert (rom_tileRank);
 
     rom_count = 0;
     g_assert (!rom_romList);
 
-    g_assert(!rom_cloneTable);
+    g_assert (!rom_cloneTable);
     rom_cloneTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-    g_assert(rom_cloneTable);
-
-    blist_init();
+    g_assert (rom_cloneTable);
+/*
+    g_assert (!rom_parentTable);
+    rom_parentTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+    g_assert (rom_parentTable);
+*/
+    blist_init ();
  }
 
 void
@@ -204,6 +212,11 @@ rom_free (void)
 
     g_hash_table_destroy (rom_cloneTable);
     rom_cloneTable = NULL;
+
+/*
+    g_hash_table_destroy (rom_parentTable);
+    rom_parentTable = NULL;
+*/
 
     blist_free();
  }

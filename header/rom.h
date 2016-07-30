@@ -63,7 +63,9 @@ struct rom_romItem {
 };
 
 extern GList *rom_romList; // all parent games (NOT clone, NOT FILTERED)
-extern GHashTable *rom_cloneTable; // only clones (NOT FILTERED)
+extern GHashTable *rom_cloneTable; // only clones (NOT FILTERED) key:Clone, Item:Parent
+
+//extern GHashTable *rom_cloneItem;  // key:Parent, Item:
 
 #define ROM_EXTENSION_ZIP	"zip"
 #define ROM_EXTENSION_7ZIP	"7z"
@@ -77,7 +79,6 @@ void rom_setSort (enum rom_sortOrder order);
 
 gboolean rom_isClone (const gchar *romName);
 gboolean rom_isParent (const gchar *romName);
-//gboolean rom_filterBios (const gchar *romDes);
 
 struct rom_romItem* rom_newItem (void);
 struct rom_romItem* rom_getItem (int numGame);
