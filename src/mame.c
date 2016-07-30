@@ -242,6 +242,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
     gchar *romNameZip;
     gchar *romName7Zip;
     gchar *romNameDir;
+    gchar *romNameCHD;
     gchar *cmdLine;
 
     gint numGame = 0;
@@ -249,8 +250,10 @@ zoo               "Zoo (Ver. ZO.02.D)"
     gint numClone = 0;
 
     gchar* romPath = g_strdup (cfg_keyStr ("ROM_PATH"));
+    gchar* romChd = g_strdup (cfg_keyStr ("CHD_PATH"));
 
     g_assert (g_file_test (romPath, G_FILE_TEST_IS_DIR));
+    g_assert (g_file_test (romChd, G_FILE_TEST_IS_DIR));
 
     gboolean romListCreated = FALSE;
 
@@ -280,6 +283,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
         g_print ("gamelist from %s %s\n", MAME_LIST_FULL_FILE, MAME_LIST_CLONES_FILE);
 
         g_print ("rom from %s\n", romPath);
+        g_print ("chd from %s\n", romChd);
         g_print ("tile from %s\n", rom_tilePath);
 
         // load clone table
@@ -307,7 +311,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
                 g_hash_table_insert (rom_cloneTable, romName, cloneof);
 
-                if (numClone % 100 == 0) g_print (".");
+                if (numClone % 150 == 0) g_print (".");
 
                 // don't free romname and cloneof
                 //g_free (romname);
@@ -344,6 +348,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
                 romNameZip = g_strdup_printf ("%s/%s.%s", romPath, name, ROM_EXTENSION_ZIP);
                 romName7Zip = g_strdup_printf ("%s/%s.%s", romPath, name, ROM_EXTENSION_7ZIP);
                 romNameDir = g_strdup_printf ("%s/%s", romPath, name);
+                romNameCHD = g_strdup_printf ("%s/%s", romChd, name);
 
                 gboolean foundRom = FALSE;
 
@@ -371,10 +376,12 @@ zoo               "Zoo (Ver. ZO.02.D)"
                         foundRom = TRUE;
                     } else if (g_file_test (romNameDir, G_FILE_TEST_IS_DIR)) {
                         foundRom = TRUE;
+                    } else if (g_file_test (romNameCHD, G_FILE_TEST_IS_DIR)) {
+                        foundRom = TRUE;
                     //} else {
                     //  g_print ("\nmissing %s\n", name);
                     }
-                    if (numGameSupported % 100 == 0) g_print (".");
+                    if (numGameSupported % 150 == 0) g_print (".");
                 } else {
                     // clone
                     gchar *parent = g_hash_table_lookup (rom_cloneTable, name);
@@ -407,10 +414,10 @@ zoo               "Zoo (Ver. ZO.02.D)"
                 g_free (romNameZip);
                 g_free (romName7Zip);
                 g_free (romNameDir);
+                g_free (romNameCHD);
 
             }
             g_free (name);
-
 
         }
 
@@ -431,6 +438,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
     }
 
     g_free (romPath);
+    g_free (romChd);
     g_free (fileRom);
     g_free (fileClone);
 
@@ -464,16 +472,18 @@ mame_playGame (struct rom_romItem *item)
 {
     GPid pid;
     gboolean played = FALSE;
-    const gchar *romName;
-    gchar *cmdline;
     gchar *romPath;
-    gchar *romPathQuoted;
+    const gchar *romName;
 
-    romPath = g_strdup (cfg_keyStr ("ROM_PATH"));
-    romPathQuoted = g_shell_quote (romPath);
+    if (g_strcmp0 (cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH")) == 0) {
+        romPath = g_strdup (cfg_keyStr ("ROM_PATH"));
+    } else {
+        romPath = g_strjoin (";", cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL);
+    }
+    gchar *romPathQuoted = g_shell_quote (romPath);
 
     romName = rom_getItemName (item);
-    cmdline = g_strdup_printf ("%s %s -rompath %s %s", MAME_EXE, cfg_keyStr("MAME_OPTIONS"), romPathQuoted, romName);
+    gchar *cmdline = g_strdup_printf ("%s %s -rompath %s %s", MAME_EXE, cfg_keyStr("MAME_OPTIONS"), romPathQuoted, romName);
 
     /* free pixbuff cache, so mame can use more memory */
     rom_invalidateUselessTile ();
