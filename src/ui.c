@@ -138,6 +138,7 @@ static gboolean ui_rankManager (gdouble x, gdouble y);
 static void ui_search_cb (gboolean forward);
 static gboolean ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 static void ui_drawingArea_search_cb (const gchar* car, gboolean forward);
+static gboolean ui_cmdEsc (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 
 __attribute__ ((hot))
 static inline void
@@ -304,7 +305,7 @@ void
 ui_feedback (void)
 {
     g_timer_start (ui_focusFeedback);
-    g_timeout_add (10, (GSourceFunc) ui_repaint, NULL);
+    g_timeout_add (30, (GSourceFunc) ui_repaint, NULL);
 }
 
 static void
@@ -631,7 +632,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         case GDK_KEY_f:
         case GDK_KEY_F:
             // ctrl+f : find
-            gtk_widget_grab_focus (ui_entry);
+            gtk_widget_grab_focus  (ui_entry);
             break;
         default:
             break;
@@ -989,7 +990,7 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
 
     if (mame_isRunning ()) return FALSE;
 
-    gtk_widget_grab_focus(ui_drawingArea);
+    gtk_widget_grab_focus (ui_drawingArea);
 
     switch (event->type) {
 
@@ -1455,7 +1456,8 @@ ui_init (void)
     ui_setPlayBtnState (FALSE);
     gtk_widget_set_focus_on_click (GTK_WIDGET (ui_playBtn), FALSE);
     gtk_header_bar_pack_start (GTK_HEADER_BAR (ui_headerBar), ui_playBtn);
-    g_signal_connect (ui_playBtn, "clicked", G_CALLBACK (ui_playClicked), ui_headerBar);
+    g_signal_connect (G_OBJECT (ui_playBtn), "clicked", G_CALLBACK (ui_playClicked), ui_headerBar);
+    g_signal_connect (G_OBJECT (ui_playBtn), "key_press_event", G_CALLBACK (ui_cmdEsc), NULL);
 
     /* selection toolbar */
     ui_tbSelection = gtk_toggle_button_new ();
@@ -1466,6 +1468,7 @@ ui_init (void)
     gtk_image_set_from_icon_name (GTK_IMAGE (imgSelect), "object-select-symbolic", GTK_ICON_SIZE_BUTTON);
     gtk_button_set_image (GTK_BUTTON (ui_tbSelection), GTK_WIDGET (imgSelect));
     gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_tbSelection);
+    g_signal_connect (G_OBJECT (ui_tbSelection), "key_press_event", G_CALLBACK (ui_cmdEsc), NULL);
 
     /* search */
     ui_entry = gtk_search_entry_new ();
@@ -1950,4 +1953,39 @@ ui_drawingArea_search_cb (const gchar* car, gboolean forward)
         g_print ("... not found\n");
     }
 
+}
+
+static gboolean
+ui_cmdEsc (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+{
+    if (event->state & GDK_CONTROL_MASK) {
+        // CONTROL + KEY
+        switch (event->keyval) {
+        case GDK_KEY_f:
+        case GDK_KEY_F:
+            // ctrl+f : find
+            gtk_widget_grab_focus  (ui_entry);
+            break;
+        default:
+            break;
+        }
+    } else {
+
+        switch (event->keyval) {
+        case GDK_KEY_Escape:
+            if (mame_isRunning ()) return FALSE;
+
+            if (ui_inSelectState ()) {
+                gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (ui_tbSelection), FALSE);
+            }
+
+            if (ui_isFullscreen ()) {
+                g_action_group_activate_action (G_ACTION_GROUP (app_application), "fullscreen", NULL);
+            }
+            gtk_widget_grab_focus  (ui_drawingArea);
+            return TRUE;
+        }
+    }
+
+    return FALSE;
 }
