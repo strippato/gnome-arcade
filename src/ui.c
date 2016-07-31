@@ -1925,14 +1925,49 @@ ui_search_cb (gboolean forward)
 static gboolean
 ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 {
-    switch (event->keyval) {
-    case GDK_KEY_Escape:
-        gtk_widget_grab_focus(ui_drawingArea);
-        break;
-    default:
-        return FALSE;
-    }
 
+    if (event->state & GDK_CONTROL_MASK) {
+        // CONTROL + KEY
+        switch (event->keyval) {
+        case GDK_KEY_f:
+        case GDK_KEY_F:
+            // ctrl+f : find
+            gtk_widget_grab_focus  (ui_entry);
+            break;
+        default:
+            break;
+        }
+
+    } else {
+
+        switch (event->keyval) {
+        case GDK_KEY_F2:
+            if (event->state & GDK_SHIFT_MASK) {
+                // f2: find next
+                ui_search_cb (TRUE);
+            } else {
+                // f2: find prev
+                ui_search_cb (FALSE);
+            }
+            break;
+
+        case GDK_KEY_F3:
+            if (event->state & GDK_SHIFT_MASK) {
+                // shift f3: find prev
+                ui_search_cb (FALSE);
+            } else {
+                // f3: find next
+                ui_search_cb (TRUE);
+            }
+            break;
+
+        case GDK_KEY_Escape:
+            gtk_widget_grab_focus(ui_drawingArea);
+            break;
+        default:
+            return FALSE;
+        }
+    }
     return FALSE;
 }
 
@@ -1972,6 +2007,26 @@ ui_cmdEsc (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
     } else {
 
         switch (event->keyval) {
+        case GDK_KEY_F2:
+            if (event->state & GDK_SHIFT_MASK) {
+                // f2: find next
+                ui_search_cb (TRUE);
+            } else {
+                // f2: find prev
+                ui_search_cb (FALSE);
+            }
+            break;
+
+        case GDK_KEY_F3:
+            if (event->state & GDK_SHIFT_MASK) {
+                // shift f3: find prev
+                ui_search_cb (FALSE);
+            } else {
+                // f3: find next
+                ui_search_cb (TRUE);
+            }
+            break;
+
         case GDK_KEY_Escape:
             if (mame_isRunning ()) return FALSE;
 
