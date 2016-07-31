@@ -378,8 +378,8 @@ zoo               "Zoo (Ver. ZO.02.D)"
                         foundRom = TRUE;
                     } else if (g_file_test (romNameCHD, G_FILE_TEST_IS_DIR)) {
                         foundRom = TRUE;
-                    //} else {
-                    //  g_print ("\nmissing %s\n", name);
+                    } else {
+                        //g_print ("\nrom not found: %s " FAIL_MSG "\n", name);
                     }
                     if (numGameSupported % 150 == 0) g_print (".");
                 } else {
