@@ -1488,7 +1488,7 @@ ui_init (void)
     gtk_entry_set_width_chars (GTK_ENTRY (ui_entry), strlen (placehldr));
     g_signal_connect (G_OBJECT (ui_entry), "key_press_event", G_CALLBACK (ui_search_key_press_cb), NULL);
 
-    gchar *tips = g_strdup_printf ("Search for rom name or description (Ctrl+F)");
+    gchar *tips = g_strdup_printf ("Search for rom name or description");
     gtk_widget_set_tooltip_text (ui_entry, tips);
     g_free (tips);
 
