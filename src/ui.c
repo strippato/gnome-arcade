@@ -629,6 +629,15 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
     if (event->state & GDK_CONTROL_MASK) {
         // CONTROL + KEY
         switch (event->keyval) {
+        case GDK_KEY_G:
+        case GDK_KEY_g:
+            if (event->state & GDK_SHIFT_MASK) {
+                ui_search_cb (FALSE);
+            } else {
+                ui_search_cb (TRUE);
+            }
+            break;
+
         case GDK_KEY_f:
         case GDK_KEY_F:
             // ctrl+f : find
@@ -1463,7 +1472,7 @@ ui_init (void)
     ui_tbSelection = gtk_toggle_button_new ();
     ui_setToolBarState (FALSE);
     gtk_widget_set_focus_on_click (GTK_WIDGET (ui_tbSelection), FALSE);
-    gtk_widget_set_tooltip_text (ui_tbSelection, "Selection");
+    gtk_widget_set_tooltip_text (ui_tbSelection, "Select and rank your best games");
     GtkWidget *imgSelect = gtk_image_new ();
     gtk_image_set_from_icon_name (GTK_IMAGE (imgSelect), "object-select-symbolic", GTK_ICON_SIZE_BUTTON);
     gtk_button_set_image (GTK_BUTTON (ui_tbSelection), GTK_WIDGET (imgSelect));
@@ -1474,9 +1483,13 @@ ui_init (void)
     ui_entry = gtk_search_entry_new ();
     gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_entry);
     g_signal_connect (ui_entry, "activate", G_CALLBACK (ui_search_cb), NULL);
-    gtk_entry_set_text (GTK_ENTRY (ui_entry), "Search rom...");
-    gtk_editable_select_region (GTK_EDITABLE (ui_entry), 0, -1);
+    gtk_entry_set_text (GTK_ENTRY (ui_entry), "Search rom…");
+    //gtk_editable_select_region (GTK_EDITABLE (ui_entry), 0, -1);
     g_signal_connect (G_OBJECT (ui_entry), "key_press_event", G_CALLBACK (ui_search_key_press_cb), NULL);
+
+    gchar *tips = g_strdup_printf ("Search for rom name or description (Ctrl+F)");
+    gtk_widget_set_tooltip_text (ui_entry, tips);
+    g_free (tips);
 
     /* connect "toggled" event to the button */
     g_signal_connect (G_OBJECT (ui_tbSelection), "toggled", G_CALLBACK (ui_select_cb), NULL);
@@ -1929,6 +1942,15 @@ ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_dat
     if (event->state & GDK_CONTROL_MASK) {
         // CONTROL + KEY
         switch (event->keyval) {
+        case GDK_KEY_G:
+        case GDK_KEY_g:
+            if (event->state & GDK_SHIFT_MASK) {
+                ui_search_cb (FALSE);
+            } else {
+                ui_search_cb (TRUE);
+            }
+            break;
+
         case GDK_KEY_f:
         case GDK_KEY_F:
             // ctrl+f : find
@@ -1996,6 +2018,14 @@ ui_cmdEsc (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
     if (event->state & GDK_CONTROL_MASK) {
         // CONTROL + KEY
         switch (event->keyval) {
+        case GDK_KEY_G:
+        case GDK_KEY_g:
+            if (event->state & GDK_SHIFT_MASK) {
+                ui_search_cb (FALSE);
+            } else {
+                ui_search_cb (TRUE);
+            }
+            break;
         case GDK_KEY_f:
         case GDK_KEY_F:
             // ctrl+f : find
