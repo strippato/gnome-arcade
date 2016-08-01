@@ -1480,11 +1480,12 @@ ui_init (void)
     g_signal_connect (G_OBJECT (ui_tbSelection), "key_press_event", G_CALLBACK (ui_cmdEsc), NULL);
 
     /* search */
+    const gchar *placehldr = "Press Ctrl+F to search…";
     ui_entry = gtk_search_entry_new ();
     gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_entry);
     g_signal_connect (ui_entry, "activate", G_CALLBACK (ui_search_cb), NULL);
-    gtk_entry_set_text (GTK_ENTRY (ui_entry), "Search rom…");
-    //gtk_editable_select_region (GTK_EDITABLE (ui_entry), 0, -1);
+    gtk_entry_set_placeholder_text (GTK_ENTRY (ui_entry), placehldr);
+    gtk_entry_set_width_chars (GTK_ENTRY (ui_entry), strlen (placehldr));
     g_signal_connect (G_OBJECT (ui_entry), "key_press_event", G_CALLBACK (ui_search_key_press_cb), NULL);
 
     gchar *tips = g_strdup_printf ("Search for rom name or description (Ctrl+F)");
