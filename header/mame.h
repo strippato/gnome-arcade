@@ -23,7 +23,7 @@
 #define MAME_H
 
 void mame_gameList (void);
-gboolean mame_playGame (struct rom_romItem *item);
+gboolean mame_playGame (struct rom_romItem *item, const char* clone);
 gboolean mame_isRunning(void);
 
 #define MAME_LIST_FULL_FILE   "listfull.txt"

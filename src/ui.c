@@ -113,6 +113,9 @@ static GtkWidget *ui_tbSelection = NULL;
 static GtkWidget *ui_headerBar   = NULL;
 static GtkWidget *ui_infobar     = NULL;
 static GtkWidget *ui_entry       = NULL;
+static GtkWidget *ui_dropBtn     = NULL;
+static GtkWidget *ui_popover     = NULL;
+static GtkWidget *ui_vpopbox     = NULL;
 
 static GdkPixbuf *ui_selRankOn  = NULL;
 static GdkPixbuf *ui_selRankOff = NULL;
@@ -138,7 +141,8 @@ static gboolean ui_rankManager (gdouble x, gdouble y);
 static void ui_search_cb (gboolean forward);
 static gboolean ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 static void ui_drawingArea_search_cb (const gchar* car, gboolean forward);
-static gboolean ui_cmdEsc (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+static gboolean ui_cmdGlobal (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+static void ui_rebuildPopover (void);
 
 __attribute__ ((hot))
 static inline void
@@ -228,12 +232,14 @@ ui_select_cb (void)
     if (ui_inSelectState ()) {
         gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (ui_headerBar), FALSE);
         gtk_widget_hide (ui_playBtn);
+        gtk_widget_hide (ui_dropBtn);
         gtk_style_context_add_class (context, "selection-mode");
         ui_setPlayBtnState (FALSE);
         ui_headerBarShowInfo (ui_viewModel->focus);
     } else {
         gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (ui_headerBar), TRUE);
         gtk_widget_show (ui_playBtn);
+        gtk_widget_show (ui_dropBtn);
         gtk_style_context_remove_class (context, "selection-mode");
         ui_setPlayBtnState (TRUE);
         ui_headerBarRestore ();
@@ -288,12 +294,46 @@ ui_playClicked (void)
     if (ui_viewModel->romCount > 0) {
         struct rom_romItem  *itm = view_getItem (ui_viewModel, ui_viewModel->focus);
 
-        if (mame_playGame (itm)) {
+        if (mame_playGame (itm, NULL)) {
             guint nplay = rom_getItemNPlay (itm) + 1;
             rom_setItemNPlay (itm, nplay);
             pref_setNPlay (rom_getItemName (itm), nplay);
             pref_save ();
         };
+
+    } else {
+        g_print ("romlist is empty %s\n", FAIL_MSG);
+    }
+    return TRUE;
+}
+
+static gboolean
+ui_playCloneClicked (GtkWidget *widget)
+{
+    if (mame_isRunning ()) return FALSE;
+
+    if (ui_viewModel->romCount > 0) {
+        struct rom_romItem  *itm = view_getItem (ui_viewModel, ui_viewModel->focus);
+
+        const gchar *btnLabel = gtk_button_get_label (GTK_BUTTON(widget));
+
+        gchar *cloneLbl = g_strdup (btnLabel); // get the romclone name
+        gchar **vclone = g_strsplit_set (cloneLbl, "[]", -1);
+        gchar **ptr = NULL;
+
+        for (ptr = vclone; *ptr; ++ptr) {}
+
+        gchar *romname = g_strdup (*(ptr-2));
+
+        if (mame_playGame (itm, romname)) {
+            guint nplay = rom_getItemNPlay (itm) + 1;
+            rom_setItemNPlay (itm, nplay);
+            pref_setNPlay (rom_getItemName (itm), nplay);
+            pref_save ();
+        };
+        g_strfreev (vclone);
+        g_free (cloneLbl);
+        g_free (romname);
 
     } else {
         g_print ("romlist is empty %s\n", FAIL_MSG);
@@ -326,25 +366,12 @@ ui_focusAt (int index)
         ui_headerBarShowInfo (ui_viewModel->focus);
     }
 
-    /*
-    g_print ("\n Rom %s\n", rom_getItemName (view_getItem (ui_viewModel, ui_viewModel->focus)));
-    iter;
-    gpointer key, value;
-
-    g_hash_table_iter_init (&iter, rom_cloneTable);
-    while (g_hash_table_iter_next (&iter, &key, &value)) {
-        // do something with key and value
-    (g_strcmp0(rom_getItemName (view_getItem (ui_viewModel, ui_viewModel->focus)),value) == 0) {
-            g_print ("found %s %s\n", (char*) key, (char*) value);
-        }
-
-    }
-    //*/
-
     // play button
     gchar *tips = g_strdup_printf ("Play at %s", rom_getItemDescription (view_getItem (ui_viewModel, ui_viewModel->focus)));
     gtk_widget_set_tooltip_text (ui_playBtn, tips);
     g_free (tips);
+
+    ui_rebuildPopover ();
 
 }
 
@@ -1386,11 +1413,6 @@ ui_init (void)
                                "<interface>"
                                "  <menu id='app-menu'>"
                                "    <section>"
-//                               "      <item>"
-//                               "        <attribute name='label' translatable='yes'>_Alphabetical order</attribute>"
-//                               "        <attribute name='action'>app.sort</attribute>"
-//                               "        <attribute name='accel'>&lt;Primary&gt;a</attribute>"
-//                               "      </item>"
                                "      <item>"
                                "          <attribute name='label' translatable='yes'>_Fullscreen</attribute>"
                                "          <attribute name='action'>app.fullscreen</attribute>"
@@ -1460,13 +1482,29 @@ ui_init (void)
     ui_headerBarRestore ();
     gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (ui_headerBar), TRUE);
 
+    /* button box*/
+    GtkWidget *ui_buttonBox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_box_set_homogeneous (GTK_BOX (ui_buttonBox) , FALSE);
+    gtk_header_bar_pack_start (GTK_HEADER_BAR (ui_headerBar), ui_buttonBox);
+
     /* play button */
     ui_playBtn = gtk_button_new_with_mnemonic ("_Play");
     ui_setPlayBtnState (FALSE);
     gtk_widget_set_focus_on_click (GTK_WIDGET (ui_playBtn), FALSE);
-    gtk_header_bar_pack_start (GTK_HEADER_BAR (ui_headerBar), ui_playBtn);
-    g_signal_connect (G_OBJECT (ui_playBtn), "clicked", G_CALLBACK (ui_playClicked), ui_headerBar);
-    g_signal_connect (G_OBJECT (ui_playBtn), "key_press_event", G_CALLBACK (ui_cmdEsc), NULL);
+    gtk_container_add (GTK_CONTAINER (ui_buttonBox), ui_playBtn);
+    g_signal_connect (G_OBJECT (ui_playBtn), "clicked", G_CALLBACK (ui_playClicked), NULL);
+    g_signal_connect (G_OBJECT (ui_playBtn), "key_press_event", G_CALLBACK (ui_cmdGlobal), NULL);
+
+    /* dropdown button */
+    ui_dropBtn = gtk_menu_button_new ();
+    gtk_container_add (GTK_CONTAINER (ui_buttonBox), ui_dropBtn);
+    g_signal_connect (G_OBJECT (ui_dropBtn), "key_press_event", G_CALLBACK (ui_cmdGlobal), NULL);
+
+    /* popover */
+    ui_rebuildPopover ();
+
+    gtk_menu_button_set_popover (GTK_MENU_BUTTON (ui_dropBtn), ui_popover);
+    gtk_widget_set_focus_on_click (GTK_WIDGET (ui_dropBtn), FALSE);
 
     /* selection toolbar */
     ui_tbSelection = gtk_toggle_button_new ();
@@ -1477,7 +1515,7 @@ ui_init (void)
     gtk_image_set_from_icon_name (GTK_IMAGE (imgSelect), "object-select-symbolic", GTK_ICON_SIZE_BUTTON);
     gtk_button_set_image (GTK_BUTTON (ui_tbSelection), GTK_WIDGET (imgSelect));
     gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_tbSelection);
-    g_signal_connect (G_OBJECT (ui_tbSelection), "key_press_event", G_CALLBACK (ui_cmdEsc), NULL);
+    g_signal_connect (G_OBJECT (ui_tbSelection), "key_press_event", G_CALLBACK (ui_cmdGlobal), NULL);
 
     /* search */
     const gchar *placehldr = "Press Ctrl+F to search…";
@@ -1496,29 +1534,28 @@ ui_init (void)
     g_signal_connect (G_OBJECT (ui_tbSelection), "toggled", G_CALLBACK (ui_select_cb), NULL);
 
     /* selection rank on */
-    g_assert(!ui_selRankOn);
+    g_assert (!ui_selRankOn);
     ui_selRankOn = gdk_pixbuf_new_from_file (APP_RESOURCE APP_SELECT_RANK_ON, NULL);
-    g_assert(ui_selRankOn);
+    g_assert (ui_selRankOn);
 
     /* selection rank off */
-    g_assert(!ui_selRankOff);
+    g_assert (!ui_selRankOff);
     ui_selRankOff = gdk_pixbuf_new_from_file (APP_RESOURCE APP_SELECT_RANK_OFF, NULL);
-    g_assert(ui_selRankOff);
+    g_assert (ui_selRankOff);
 
     /* selection fav on */
-    g_assert(!ui_selPrefOn);
+    g_assert (!ui_selPrefOn);
     ui_selPrefOn = gdk_pixbuf_new_from_file (APP_RESOURCE APP_SELECT_FAV_ON, NULL);
-    g_assert(ui_selPrefOn);
+    g_assert (ui_selPrefOn);
 
     /* selection fav off */
-    g_assert(!ui_selPrefOff);
+    g_assert (!ui_selPrefOff);
     ui_selPrefOff = gdk_pixbuf_new_from_file (APP_RESOURCE APP_SELECT_FAV_OFF, NULL);
-    g_assert(ui_selPrefOff);
+    g_assert (ui_selPrefOff);
 
     /* cut off the tilte bar */
     gtk_style_context_add_class (gtk_widget_get_style_context (ui_headerBar), "titlebar");
     gtk_window_set_titlebar (GTK_WINDOW (ui_window), (ui_headerBar));
-
 
     /* vbox  */
     GtkWidget *vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -1568,12 +1605,10 @@ ui_init (void)
 
     /* user preference */
     pref_init ();
-
     pref_load ();
 
     /* create and load romlist (sorted)*/
     rom_init ();
-
     rom_load ();
 
     /* view */
@@ -1706,14 +1741,11 @@ ui_tileIsVisible (struct rom_romItem *item)
         gint itemTop = uiTop * (ui_tileSize_H + TILE_H_BORDER) + UI_OFFSET_Y;
 
         if (itemTop > ui_viewModel->view + gtk_widget_get_allocated_height (GTK_WIDGET (ui_drawingArea)) || itemTop + ui_tileSize_H + TILE_H_BORDER < ui_viewModel->view) {
-            //g_print ("%i is NOT visible\n", index);
             return FALSE;
         } else {
-            //g_print ("%i is visible\n", index);
             return TRUE;
         }
     } else {
-        //g_print ("NOT in list\n");
         return FALSE;
     }
 }
@@ -1964,6 +1996,7 @@ ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_dat
     } else {
 
         switch (event->keyval) {
+/*
         case GDK_KEY_F2:
             if (event->state & GDK_SHIFT_MASK) {
                 // f2: find next
@@ -1983,7 +2016,7 @@ ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_dat
                 ui_search_cb (TRUE);
             }
             break;
-
+*/
         case GDK_KEY_Escape:
             gtk_widget_grab_focus(ui_drawingArea);
             break;
@@ -2014,7 +2047,7 @@ ui_drawingArea_search_cb (const gchar* car, gboolean forward)
 }
 
 static gboolean
-ui_cmdEsc (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+ui_cmdGlobal (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 {
     if (event->state & GDK_CONTROL_MASK) {
         // CONTROL + KEY
@@ -2038,6 +2071,7 @@ ui_cmdEsc (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
     } else {
 
         switch (event->keyval) {
+/*
         case GDK_KEY_F2:
             if (event->state & GDK_SHIFT_MASK) {
                 // f2: find next
@@ -2057,7 +2091,7 @@ ui_cmdEsc (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
                 ui_search_cb (TRUE);
             }
             break;
-
+*/
         case GDK_KEY_Escape:
             if (mame_isRunning ()) return FALSE;
 
@@ -2075,3 +2109,73 @@ ui_cmdEsc (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 
     return FALSE;
 }
+
+
+static void
+ui_rebuildPopover (void)
+{
+
+    gtk_widget_set_tooltip_text (ui_dropBtn, "No clone to play");
+
+    if (ui_viewModel && ui_viewModel->romCount > 0) {
+        if (ui_vpopbox) {
+            g_object_unref (ui_vpopbox);
+            ui_vpopbox = NULL;
+        }
+        ui_vpopbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
+        g_object_ref_sink (ui_vpopbox);
+
+        struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
+
+        gchar *title = g_strdup_printf (" Clones of \"%s\" [%s] ", item->description, item->name);
+        GtkWidget* clonelbl = gtk_label_new (title);
+        gtk_container_add (GTK_CONTAINER (ui_vpopbox), clonelbl);
+        g_free (title);
+
+        if (rom_isParent (item->name)) {
+            if (g_hash_table_contains (rom_parentTable, item->name)) {
+
+                ui_popover = gtk_popover_new (ui_dropBtn);
+                gtk_popover_set_modal (GTK_POPOVER (ui_popover), TRUE);
+
+                gchar *l = g_hash_table_lookup (rom_parentTable, item->name);
+
+                gchar **strv = g_strsplit (l, "\n", -1);
+                gchar **ptr = NULL;
+                gint i = 0;
+
+                for (ptr = strv; *ptr; ++ptr) {
+                    GtkWidget* clonebtn = gtk_button_new_with_label (*ptr);
+                    g_signal_connect (G_OBJECT (clonebtn), "clicked", G_CALLBACK (ui_playCloneClicked), NULL);
+                    gtk_container_add (GTK_CONTAINER (ui_vpopbox), clonebtn);
+                    ++i;
+                }
+
+                g_strfreev (strv);
+
+                gtk_container_add (GTK_CONTAINER (ui_popover), ui_vpopbox);
+
+                gtk_widget_show_all (ui_vpopbox);
+
+                gtk_menu_button_set_popover (GTK_MENU_BUTTON (ui_dropBtn), ui_popover);
+
+                gchar *tooltip = g_strdup_printf ("Play at clones of \"%s\" (%i)", item->description, i);
+                gtk_widget_set_tooltip_text (ui_dropBtn, tooltip);
+                g_free (tooltip);
+
+            } else {
+                gtk_menu_button_set_popover (GTK_MENU_BUTTON (ui_dropBtn), NULL);
+
+            }
+
+        } else {
+            gtk_menu_button_set_popover (GTK_MENU_BUTTON (ui_dropBtn), NULL);
+        }
+
+    } else {
+        gtk_menu_button_set_popover (GTK_MENU_BUTTON (ui_dropBtn), NULL);
+
+    }
+
+}
+

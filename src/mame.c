@@ -385,24 +385,41 @@ zoo               "Zoo (Ver. ZO.02.D)"
                 } else {
                     // clone
                     gchar *parent = g_hash_table_lookup (rom_cloneTable, name);
+
                     if (parent) {
-                        if (!g_hash_table_contains (rom_parentTable, parent)) {
+                        // clone (clonetablesearch)
+                        if (!g_hash_table_contains (rom_parentTableSearch, parent)) {
                             // insert clone
                             gchar *data = g_strjoin ("\n", nameDes, name, NULL);
                             gchar *dataUcase = g_utf8_strup (data, -1);
                             g_free (data);
 
-                            g_hash_table_insert (rom_parentTable, g_strdup (parent), dataUcase);
+                            g_hash_table_insert (rom_parentTableSearch, g_strdup (parent), dataUcase);
                         } else {
                             // add another clone
-                            gchar *olddata = g_hash_table_lookup (rom_parentTable, parent);
+                            gchar *olddata = g_hash_table_lookup (rom_parentTableSearch, parent);
                             gchar *newdata = g_strjoin ("\n", olddata, nameDes, name, NULL);
-                            g_hash_table_remove (rom_parentTable, parent);
+                            g_hash_table_remove (rom_parentTableSearch, parent);
 
                             gchar *dataUcase = g_utf8_strup (newdata, -1);
                             g_free (newdata);
 
-                            g_hash_table_insert (rom_parentTable, g_strdup (parent), dataUcase);
+                            g_hash_table_insert (rom_parentTableSearch, g_strdup (parent), dataUcase);
+                        }
+
+                        // clone (clonetable)
+                        if (!g_hash_table_contains (rom_parentTable, parent)) {
+                            // insert clone
+                            gchar *data = g_strdup_printf ("%s [%s]", nameDes, name);
+
+                            g_hash_table_insert (rom_parentTable, g_strdup (parent), data);
+                        } else {
+                            // add another clone
+                            gchar *olddata = g_hash_table_lookup (rom_parentTable, parent);
+                            gchar *newdata = g_strdup_printf ("%s\n%s [%s]", olddata, nameDes, name);
+                            g_hash_table_remove (rom_parentTable, parent);
+
+                            g_hash_table_insert (rom_parentTable, g_strdup (parent), newdata);
                         }
                     }
                 }
@@ -468,7 +485,7 @@ mame_quit (GPid pid)
 }
 
 gboolean
-mame_playGame (struct rom_romItem *item)
+mame_playGame (struct rom_romItem *item, const char* clone)
 {
     GPid pid;
     gboolean played = FALSE;
@@ -482,7 +499,12 @@ mame_playGame (struct rom_romItem *item)
     }
     gchar *romPathQuoted = g_shell_quote (romPath);
 
-    romName = rom_getItemName (item);
+    // clone ?
+    if (clone) {
+        romName = clone;
+    } else {
+        romName = rom_getItemName (item);
+    }
     gchar *cmdline = g_strdup_printf ("%s %s -rompath %s %s", MAME_EXE, cfg_keyStr("MAME_OPTIONS"), romPathQuoted, romName);
 
     /* free pixbuff cache, so mame can use more memory */

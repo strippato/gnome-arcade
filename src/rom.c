@@ -58,8 +58,8 @@ static guint rom_available = 0; // nTot rom available (NO CLONE) (NO BLAKCLISTED
 // clone (only clone, NO BLACKLISTED)
 GHashTable* rom_cloneTable = NULL;
 
-// key=PARENT, data=List
-GHashTable* rom_parentTable = NULL;
+GHashTable* rom_parentTableSearch = NULL;  // for searching name romname key=PARENT, data=description ronmname
+GHashTable* rom_parentTable       = NULL;  // key=PARENT, data=description (ronmname)
 
 static enum rom_sortOrder rom_sortOrder = ROM_SORT_AZ;
 
@@ -176,6 +176,10 @@ rom_init (void)
     rom_cloneTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_assert (rom_cloneTable);
 
+    g_assert (!rom_parentTableSearch);
+    rom_parentTableSearch = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+    g_assert (rom_parentTableSearch);
+
     g_assert (!rom_parentTable);
     rom_parentTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_assert (rom_parentTable);
@@ -211,6 +215,9 @@ rom_free (void)
 
     g_hash_table_destroy (rom_cloneTable);
     rom_cloneTable = NULL;
+
+    g_hash_table_destroy (rom_parentTableSearch);
+    rom_parentTableSearch = NULL;
 
     g_hash_table_destroy (rom_parentTable);
     rom_parentTable = NULL;
@@ -571,8 +578,8 @@ rom_search (GList* viewModel, gint focus, const gchar* romDes, gboolean forward)
 
             // clone (romnane + description)
             if (rom_isParent (item->name)) {
-                if (g_hash_table_contains (rom_parentTable, item->name)) {
-                    search = g_hash_table_lookup (rom_parentTable, item->name);
+                if (g_hash_table_contains (rom_parentTableSearch, item->name)) {
+                    search = g_hash_table_lookup (rom_parentTableSearch, item->name);
                     if (g_strrstr (search, searchItm)) {
                         g_free (searchItm);
                         return g_list_position ((GList*) viewModel, l);
@@ -606,8 +613,8 @@ rom_search (GList* viewModel, gint focus, const gchar* romDes, gboolean forward)
 
             // clone (romnane + description)
             if (rom_isParent (item->name)) {
-                if (g_hash_table_contains (rom_parentTable, item->name)) {
-                    search = g_hash_table_lookup (rom_parentTable, item->name);
+                if (g_hash_table_contains (rom_parentTableSearch, item->name)) {
+                    search = g_hash_table_lookup (rom_parentTableSearch, item->name);
                     if (g_strrstr (search, searchItm)) {
                         g_free (searchItm);
                         return g_list_position ((GList*) viewModel, l);
@@ -643,8 +650,8 @@ rom_search (GList* viewModel, gint focus, const gchar* romDes, gboolean forward)
 
             // clone (romnane + description)
             if (rom_isParent (item->name)) {
-                if (g_hash_table_contains (rom_parentTable, item->name)) {
-                    search = g_hash_table_lookup (rom_parentTable, item->name);
+                if (g_hash_table_contains (rom_parentTableSearch, item->name)) {
+                    search = g_hash_table_lookup (rom_parentTableSearch, item->name);
                     if (g_strrstr (search, searchItm)) {
                         g_free (searchItm);
                         return g_list_position ((GList*) viewModel, l);
@@ -677,8 +684,8 @@ rom_search (GList* viewModel, gint focus, const gchar* romDes, gboolean forward)
 
             // clone (romnane + description)
             if (rom_isParent (item->name)) {
-                if (g_hash_table_contains (rom_parentTable, item->name)) {
-                    search = g_hash_table_lookup (rom_parentTable, item->name);
+                if (g_hash_table_contains (rom_parentTableSearch, item->name)) {
+                    search = g_hash_table_lookup (rom_parentTableSearch, item->name);
                     if (g_strrstr (search, searchItm)) {
                         g_free (searchItm);
                         return g_list_position ((GList*) viewModel, l);

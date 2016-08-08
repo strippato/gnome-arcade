@@ -59,9 +59,8 @@ struct rom_romItem {
 
 extern GList *rom_romList; // all parent games (NOT clone, NOT FILTERED)
 extern GHashTable *rom_cloneTable; // only clones (NOT FILTERED) key:Clone, Item:Parent
-extern GHashTable* rom_parentTable; // key=PARENT, data=List
-
-//extern GHashTable *rom_cloneItem;  // key:Parent, Item:
+extern GHashTable* rom_parentTableSearch; // for searching key=PARENT, data=description, romname
+extern GHashTable* rom_parentTable;       // key=PARENT, data=description (romname)
 
 #define ROM_EXTENSION_ZIP	"zip"
 #define ROM_EXTENSION_7ZIP	"7z"
