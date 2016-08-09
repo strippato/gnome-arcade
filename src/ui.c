@@ -2146,6 +2146,7 @@ ui_rebuildPopover (void)
 
                 for (ptr = strv; *ptr; ++ptr) {
                     GtkWidget* clonebtn = gtk_button_new_with_label (*ptr);
+                    gtk_widget_set_focus_on_click (clonebtn, FALSE);
                     g_signal_connect (G_OBJECT (clonebtn), "clicked", G_CALLBACK (ui_playCloneClicked), NULL);
                     gtk_container_add (GTK_CONTAINER (ui_vpopbox), clonebtn);
                     ++i;
