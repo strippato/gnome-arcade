@@ -367,7 +367,7 @@ ui_focusAt (int index)
     }
 
     // play button
-    gchar *tips = g_strdup_printf ("Play at %s", rom_getItemDescription (view_getItem (ui_viewModel, ui_viewModel->focus)));
+    gchar *tips = g_strdup_printf ("Play at \"%s\"", rom_getItemDescription (view_getItem (ui_viewModel, ui_viewModel->focus)));
     gtk_widget_set_tooltip_text (ui_playBtn, tips);
     g_free (tips);
 
@@ -2127,8 +2127,9 @@ ui_rebuildPopover (void)
 
         struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
 
-        gchar *title = g_strdup_printf (" Clones of \"%s\" [%s] ", item->description, item->name);
+        gchar *title = g_strdup_printf (" %s [%s] ", item->description, item->name);
         GtkWidget* clonelbl = gtk_label_new (title);
+        //gtk_label_set_markup (GTK_LABEL(clonelbl), title);
         gtk_container_add (GTK_CONTAINER (ui_vpopbox), clonelbl);
         g_free (title);
 
