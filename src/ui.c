@@ -676,26 +676,6 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
     } else {
         // KEY
         switch (event->keyval) {
-        case GDK_KEY_F2:
-            if (event->state & GDK_SHIFT_MASK) {
-                // f2: find next
-                ui_search_cb (TRUE);
-            } else {
-                // f2: find prev
-                ui_search_cb (FALSE);
-            }
-            break;
-
-        case GDK_KEY_F3:
-            if (event->state & GDK_SHIFT_MASK) {
-                // shift f3: find prev
-                ui_search_cb (FALSE);
-            } else {
-                // f3: find next
-                ui_search_cb (TRUE);
-            }
-            break;
-
         case GDK_KEY_Up:
             ui_cmdUp ();
             break;
@@ -1468,8 +1448,8 @@ ui_init (void)
     ui_tileSize_W = MAX (cfg_keyInt ("TILE_SIZE_W"), TILE_MIN_SIZE);
     ui_tileSize_H = MAX (cfg_keyInt ("TILE_SIZE_H"), TILE_MIN_SIZE);
 
-    // need extra space (1.5 * TILE_W_BORDER_MIN) for scrollbar
-    gtk_window_set_default_size (GTK_WINDOW (ui_window), 4 * (ui_tileSize_W + TILE_W_BORDER_MIN) + TILE_W_BORDER_MIN + 1.5 * TILE_W_BORDER_MIN, UI_OFFSET_Y + 2.7 * (ui_tileSize_H + TILE_H_BORDER));
+    // need extra space (16px) for scrollbar
+    gtk_window_set_default_size (GTK_WINDOW (ui_window), 5 * (ui_tileSize_W + TILE_W_BORDER_MIN) + TILE_W_BORDER_MIN + 16, UI_OFFSET_Y + 3 * (ui_tileSize_H + TILE_H_BORDER));
 
     gtk_window_set_position (GTK_WINDOW (ui_window), GTK_WIN_POS_CENTER);
     gtk_window_set_icon_from_file (GTK_WINDOW (ui_window), APP_RESOURCE APP_ICON, &gerror);
