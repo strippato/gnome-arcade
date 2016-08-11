@@ -1449,7 +1449,7 @@ ui_init (void)
     ui_tileSize_H = MAX (cfg_keyInt ("TILE_SIZE_H"), TILE_MIN_SIZE);
 
     // need extra space (16px) for scrollbar
-    gtk_window_set_default_size (GTK_WINDOW (ui_window), 5 * (ui_tileSize_W + TILE_W_BORDER_MIN) + TILE_W_BORDER_MIN + 16, UI_OFFSET_Y + 3 * (ui_tileSize_H + TILE_H_BORDER));
+    gtk_window_set_default_size (GTK_WINDOW (ui_window), 5 * (ui_tileSize_W + TILE_W_BORDER_MIN) + TILE_W_BORDER_MIN + 16, UI_OFFSET_Y + 2.5 * (ui_tileSize_H + TILE_H_BORDER));
 
     gtk_window_set_position (GTK_WINDOW (ui_window), GTK_WIN_POS_CENTER);
     gtk_window_set_icon_from_file (GTK_WINDOW (ui_window), APP_RESOURCE APP_ICON, &gerror);
