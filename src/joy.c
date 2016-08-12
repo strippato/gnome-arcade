@@ -205,15 +205,12 @@ joy_debugFull (void)
 gboolean
 joy_event (void)
 {
-  	GList        *iter;
-  	struct Tjoy  *joy;
-
 	// g_print ("*joy event*\n");
 
 	if (!cfg_keyBool ("JOY_ENABLED")) return FALSE;
 
-  	for (iter = joy_list; iter != NULL; iter = g_list_next (iter)) {
-  		joy = iter->data;
+  	for (GList *iter = joy_list; iter != NULL; iter = g_list_next (iter)) {
+  		struct Tjoy  *joy = iter->data;
     	//g_print ("*joy[%s]*\n", joy->name);
 		struct input_event ev;
 	 	do {
@@ -295,7 +292,7 @@ joy_event (void)
 	            	libevdev_event_type_get_name (ev.type),
 	                libevdev_event_code_get_name (ev.type, ev.code),
 	            	ev.value);
-	            */
+	            /*/
 			}
 	 	} while (libevdev_has_event_pending (joy->dev) != 0);
 

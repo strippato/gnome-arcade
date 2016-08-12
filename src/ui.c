@@ -947,7 +947,6 @@ static gboolean
 ui_drawingAreaScrollEvent (GtkWidget *widget, GdkEventScroll *event, gpointer data)
 {
     gdouble factor;
-
     if (mame_isRunning ()) return FALSE;
 
     if (event->state & GDK_CONTROL_MASK) {
@@ -1620,9 +1619,7 @@ ui_init (void)
     gtk_widget_set_can_focus (GTK_WIDGET (ui_drawingArea), TRUE);
     g_signal_connect (G_OBJECT (ui_drawingArea), "key_press_event", G_CALLBACK (ui_drawingAreaKeyPressEvent), NULL);
     g_signal_connect (G_OBJECT (ui_drawingArea), "motion_notify_event", G_CALLBACK (ui_drawingAreaMotionNotifyEvent), NULL);
-
     gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_SCROLL_MASK);
-    //gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_BUTTON_RELEASE_MASK);
     gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_BUTTON_PRESS_MASK);
     gtk_widget_add_events (GTK_WIDGET (ui_drawingArea), GDK_POINTER_MOTION_MASK);
 
@@ -1976,27 +1973,6 @@ ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_dat
     } else {
 
         switch (event->keyval) {
-/*
-        case GDK_KEY_F2:
-            if (event->state & GDK_SHIFT_MASK) {
-                // f2: find next
-                ui_search_cb (TRUE);
-            } else {
-                // f2: find prev
-                ui_search_cb (FALSE);
-            }
-            break;
-
-        case GDK_KEY_F3:
-            if (event->state & GDK_SHIFT_MASK) {
-                // shift f3: find prev
-                ui_search_cb (FALSE);
-            } else {
-                // f3: find next
-                ui_search_cb (TRUE);
-            }
-            break;
-*/
         case GDK_KEY_Escape:
             gtk_widget_grab_focus(ui_drawingArea);
             break;
@@ -2051,27 +2027,6 @@ ui_cmdGlobal (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
     } else {
 
         switch (event->keyval) {
-/*
-        case GDK_KEY_F2:
-            if (event->state & GDK_SHIFT_MASK) {
-                // f2: find next
-                ui_search_cb (TRUE);
-            } else {
-                // f2: find prev
-                ui_search_cb (FALSE);
-            }
-            break;
-
-        case GDK_KEY_F3:
-            if (event->state & GDK_SHIFT_MASK) {
-                // shift f3: find prev
-                ui_search_cb (FALSE);
-            } else {
-                // f3: find next
-                ui_search_cb (TRUE);
-            }
-            break;
-*/
         case GDK_KEY_Escape:
             if (mame_isRunning ()) return FALSE;
 
@@ -2094,7 +2049,6 @@ ui_cmdGlobal (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 static void
 ui_rebuildPopover (void)
 {
-
     gtk_widget_set_tooltip_text (ui_dropBtn, "No clone to play");
 
     if (ui_viewModel && ui_viewModel->romCount > 0) {
