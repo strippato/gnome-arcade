@@ -36,8 +36,15 @@
 #define JOY_DEV 	"/dev/input/by-path/"
 #define JOY_PATTERN "-event-joystick"
 
+#define JOY_AUTO_REPEAT_TIMEOUT 500 // 500 ms
+#define JOY_AUTO_REPEAT_RATE    120 // 120 ms
+
+
 GList *joy_list = NULL;
 guint  joy_count;
+
+// forward decl
+gboolean joy_autoRepeat (gpointer item);
 
 /*
 int
@@ -100,8 +107,8 @@ joy_init (void)
 					 		struct Tjoy* jitem = g_malloc0 (sizeof (struct Tjoy));
 
 							jitem->name = jname;
-							jitem->dev = dev;
-					 		jitem->gio = gio;
+							jitem->dev  = dev;
+					 		jitem->gio  = gio;
 
 							jitem->MAX_ABS_X = libevdev_get_abs_maximum (jitem->dev, ABS_X);
 							jitem->MIN_ABS_X = libevdev_get_abs_minimum (jitem->dev, ABS_X);
@@ -110,6 +117,14 @@ joy_init (void)
 							jitem->MIN_ABS_Y = libevdev_get_abs_minimum (jitem->dev, ABS_Y);
 
 					 		jitem->watch = g_io_add_watch (jitem->gio, G_IO_IN, (GIOFunc) joy_event, NULL);
+					 		jitem->utimeX = 0;
+					 		jitem->utimeY = 0;
+
+							jitem->up    = FALSE;
+							jitem->down  = FALSE;
+							jitem->left  = FALSE;
+							jitem->right = FALSE;
+							jitem->callback = FALSE;
 
 					 		g_io_channel_unref (jitem->gio);
 
@@ -205,40 +220,122 @@ joy_debugFull (void)
 gboolean
 joy_event (void)
 {
-	// g_print ("*joy event*\n");
-
 	if (!cfg_keyBool ("JOY_ENABLED")) return FALSE;
 
   	for (GList *iter = joy_list; iter != NULL; iter = g_list_next (iter)) {
-  		struct Tjoy  *joy = iter->data;
-    	//g_print ("*joy[%s]*\n", joy->name);
+
+  		struct Tjoy *joy = iter->data;
 		struct input_event ev;
+
 	 	do {
 	        int rc = libevdev_next_event (joy->dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
 	        if (rc == 0) {
 	        	// catch EV_ABS
 	        	switch (ev.type) {
 	        	case EV_ABS:
-
 	        		switch (ev.code) {
 	        		case ABS_X:
-	        			if (ev.value == joy->MIN_ABS_X) ui_cmdLeft ();
-	        			if (ev.value == joy->MAX_ABS_X) ui_cmdRight ();
+	        			if (ev.value <= joy->MIN_ABS_X) {
+	        				joy->left = TRUE;
+							joy->right = FALSE;
+	        				if (!joy->callback) {
+	        					joy->callback = TRUE;
+		        				joy->utimeX = g_get_monotonic_time ();
+        						g_timeout_add (JOY_AUTO_REPEAT_TIMEOUT, (GSourceFunc) joy_autoRepeat, joy);
+        					}
+    	    				ui_cmdLeft ();
+	        			} else if (ev.value >= joy->MAX_ABS_X) {
+	        				joy->right = TRUE;
+							joy->left  = FALSE;
+	        				if (!joy->callback) {
+	        					joy->callback = TRUE;
+		        				joy->utimeX = g_get_monotonic_time ();
+        						g_timeout_add (JOY_AUTO_REPEAT_TIMEOUT, (GSourceFunc) joy_autoRepeat, joy);
+        					}
+    	    				ui_cmdRight ();
+	        			} else {
+	        				joy->utimeX = 0;
+							joy->left  = FALSE;
+							joy->right = FALSE;
+	        			}
 	        			break;
 
 	        		case ABS_Y:
-	        			if (ev.value == joy->MIN_ABS_Y) ui_cmdUp ();
-	        			if (ev.value == joy->MAX_ABS_Y) ui_cmdDown ();
+	        			if (ev.value <= joy->MIN_ABS_Y) {
+	        				joy->up = TRUE;
+							joy->down  = FALSE;
+	        				if (!joy->callback) {
+	        					joy->callback = TRUE;
+	        					joy->utimeY = g_get_monotonic_time ();
+        						g_timeout_add (JOY_AUTO_REPEAT_TIMEOUT, (GSourceFunc) joy_autoRepeat, joy);
+        					}
+							ui_cmdUp ();
+	        			} else if (ev.value >= joy->MAX_ABS_Y) {
+	        				joy->down = TRUE;
+							joy->up  = FALSE;
+	        				if (!joy->callback) {
+	        					joy->callback = TRUE;
+		        				joy->utimeY = g_get_monotonic_time ();
+        						g_timeout_add (JOY_AUTO_REPEAT_TIMEOUT, (GSourceFunc) joy_autoRepeat, joy);
+        					}
+							ui_cmdDown ();
+	        			} else {
+	        				joy->utimeY = 0;
+							joy->up    = FALSE;
+							joy->down  = FALSE;
+	        			}
 	        			break;
 
 	        		case ABS_HAT0X:
-	        			if (ev.value == -1) ui_cmdLeft ();
-	        			if (ev.value == 1) ui_cmdRight ();
+	        			if (ev.value <= -1) {
+	        				joy->left = TRUE;
+							joy->right = FALSE;
+	        				if (!joy->callback) {
+	        					joy->callback = TRUE;
+	        					joy->utimeX = g_get_monotonic_time ();
+        						g_timeout_add (JOY_AUTO_REPEAT_TIMEOUT, (GSourceFunc) joy_autoRepeat, joy);
+        					}
+    	    				ui_cmdLeft ();
+	        			} else if (ev.value >= 1) {
+	        				joy->right = TRUE;
+							joy->left  = FALSE;
+	        				if (!joy->callback) {
+	        					joy->callback = TRUE;
+	        					joy->utimeX = g_get_monotonic_time ();
+        						g_timeout_add (JOY_AUTO_REPEAT_TIMEOUT, (GSourceFunc) joy_autoRepeat, joy);
+        					}
+							ui_cmdRight ();
+						} else {
+	        				joy->utimeX = 0;
+							joy->left  = FALSE;
+							joy->right = FALSE;
+						}
 	        			break;
 
 	        		case ABS_HAT0Y:
-	        			if (ev.value == -1) ui_cmdUp ();
-	        			if (ev.value == 1) ui_cmdDown ();
+	        			if (ev.value <= -1) {
+	        				joy->up = TRUE;
+							joy->down  = FALSE;
+	        				if (!joy->callback) {
+	        					joy->callback = TRUE;
+	        					joy->utimeY = g_get_monotonic_time ();
+        						g_timeout_add (JOY_AUTO_REPEAT_TIMEOUT, (GSourceFunc) joy_autoRepeat, joy);
+        					}
+        					ui_cmdUp ();
+	        			} else if (ev.value >= 1) {
+	        				joy->down = TRUE;
+							joy->up  = FALSE;
+	        				if (!joy->callback) {
+	        					joy->callback = TRUE;
+		        				joy->utimeY = g_get_monotonic_time ();
+        						g_timeout_add (JOY_AUTO_REPEAT_TIMEOUT, (GSourceFunc) joy_autoRepeat, joy);
+        					}
+	        				ui_cmdDown ();
+	        			} else {
+	        				joy->utimeY = 0;
+							joy->up    = FALSE;
+							joy->down  = FALSE;
+	        			}
 	        			break;
 
 	        		default:
@@ -246,7 +343,6 @@ joy_event (void)
 	        		}
 
 	        		break;
-
     			case EV_KEY:
 	        		switch (ev.code) {
 
@@ -298,5 +394,39 @@ joy_event (void)
 
   	}
 	return TRUE;
+}
+
+
+gboolean
+joy_autoRepeat (gpointer item)
+{
+	struct Tjoy *itm = item;
+	gboolean repeat = FALSE;
+
+	if (itm->utimeX > 0) {
+		if (g_get_monotonic_time () - itm->utimeX >= (JOY_AUTO_REPEAT_TIMEOUT * 1000)) {
+			if (itm->left)  ui_cmdLeft ();
+			if (itm->right) ui_cmdRight ();
+
+			if (itm->left || itm->right) repeat = TRUE;
+		}
+	}
+
+	if (itm->utimeY > 0) {
+		if (g_get_monotonic_time () - itm->utimeY >= (JOY_AUTO_REPEAT_TIMEOUT * 1000)) {
+			if (itm->up)    ui_cmdUp ();
+			if (itm->down)  ui_cmdDown ();
+
+			if (itm->up || itm->down) repeat = TRUE;
+		}
+	}
+
+	if (repeat) {
+		g_timeout_add (JOY_AUTO_REPEAT_RATE, (GSourceFunc) joy_autoRepeat, item);
+	} else {
+		itm->callback = FALSE;
+	}
+
+	return G_SOURCE_REMOVE;
 }
 

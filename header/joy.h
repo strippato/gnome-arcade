@@ -36,6 +36,16 @@ struct Tjoy {
 	gint MAX_ABS_Y;
 	gint MIN_ABS_Y;
 
+	// autorepeat X, Y
+	gint64 utimeX;
+	gint64 utimeY;
+	gboolean callback;
+
+	// move
+	gboolean up;
+	gboolean down;
+	gboolean left;
+	gboolean right;
 };
 
 extern GList *joy_list;
