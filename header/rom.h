@@ -103,6 +103,7 @@ guint rom_getItemNPlay (const struct rom_romItem *item);
 void rom_setItemNPlay (struct rom_romItem *item, guint nplay);
 gint rom_search (GList* viewModel, gint focus, const gchar* romDes, gboolean forward);
 gint rom_search_letter (GList* viewModel, gint focus, const gchar* romStartWithLetter, gboolean forward);
+gboolean rom_FoundInPath (const gchar* romName, ...);
 
 #endif
 

@@ -42,6 +42,7 @@
 #include "joy.h"
 #include "ssaver.h"
 #include "blacklist.h"
+#include "filedownloader.h"
 
 
 #define MAME_EXE       cfg_keyStr ("MAME_EXE")
@@ -171,30 +172,32 @@ mame_gameList (void)
 {
 
 /*
- mame -listclones
-Name:            Clone of:
-10yard85         10yard
-10yardj          10yard
-18w2             18w
-18wheels         18wheelr
-1941j            1941
-...
+     mame -listclones
+    Name:            Clone of:
+    10yard85         10yard
+    10yardj          10yard
+    18w2             18w
+    18wheels         18wheelr
+    1941j            1941
+    ...
 
- mame -listfull
-...
-zoar              "Zoar"
-zodiack           "Zodiack"
-zokumahj          "Zoku Mahjong Housoukyoku (Japan)"
-zokuoten          "Zoku Otenamihaiken (V2.03J)"
-zombraid          "Zombie Raid (9/28/95, US)"
-zombraidp         "Zombie Raid (9/28/95, US, prototype PCB)"
-zombraidpj        "Zombie Raid (9/28/95, Japan, prototype PCB)"
-zombrvn           "Zombie Revenge (JPN, USA, EXP, KOR, AUS)"
-zoo               "Zoo (Ver. ZO.02.D)"
-...
+     mame -listfull
+    ...
+    zoar              "Zoar"
+    zodiack           "Zodiack"
+    zokumahj          "Zoku Mahjong Housoukyoku (Japan)"
+    zokuoten          "Zoku Otenamihaiken (V2.03J)"
+    zombraid          "Zombie Raid (9/28/95, US)"
+    zombraidp         "Zombie Raid (9/28/95, US, prototype PCB)"
+    zombraidpj        "Zombie Raid (9/28/95, Japan, prototype PCB)"
+    zombrvn           "Zombie Revenge (JPN, USA, EXP, KOR, AUS)"
+    zoo               "Zoo (Ver. ZO.02.D)"
+    ...
 */
 
     #define CLONE_OFFSET 17
+
+    gboolean romDownload = cfg_keyBool ("ROM_DOWNLOAD");
 
     gchar *fileRom = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_FULL_FILE, NULL);
     gchar *fileClone = g_build_filename (g_get_user_config_dir (), APP_DIRCONFIG, MAME_LIST_CLONES_FILE, NULL);
@@ -239,10 +242,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
     FILE *file;
 
     gchar buf[MAME_LIST_BUFSIZE];
-    gchar *romNameZip;
-    gchar *romName7Zip;
-    gchar *romNameDir;
-    gchar *romNameCHD;
     gchar *cmdLine;
 
     gint numGame = 0;
@@ -289,7 +288,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
         // load clone table
         g_print ("loading clonetable");
         cmdLine = g_strdup_printf ("%s -" MAME_LIST_CLONES, MAME_EXE);
-
 
         assert (g_file_test (fileClone, G_FILE_TEST_EXISTS));
         file = g_fopen (fileClone, "r");
@@ -344,12 +342,7 @@ zoo               "Zoo (Ver. ZO.02.D)"
 
             if (!blist_skipRom (name)) {
 
-                /* show the tile, only if we find the rom */
-                romNameZip = g_strdup_printf ("%s/%s.%s", romPath, name, ROM_EXTENSION_ZIP);
-                romName7Zip = g_strdup_printf ("%s/%s.%s", romPath, name, ROM_EXTENSION_7ZIP);
-                romNameDir = g_strdup_printf ("%s/%s", romPath, name);
-                romNameCHD = g_strdup_printf ("%s/%s", romChd, name);
-
+                /* we must show the tile, only if we find the rom */
                 gboolean foundRom = FALSE;
 
                 tempstr = strstr (buf, "\"");
@@ -369,17 +362,13 @@ zoo               "Zoo (Ver. ZO.02.D)"
                 // clones romset will not be checked for performance reasons
                 if (rom_isParent (name)) {
                     numGameSupported++;
-
-                    if (g_file_test (romName7Zip, G_FILE_TEST_EXISTS)) {
-                        foundRom = TRUE;
-                    } else if (g_file_test (romNameZip, G_FILE_TEST_EXISTS)) {
-                        foundRom = TRUE;
-                    } else if (g_file_test (romNameDir, G_FILE_TEST_IS_DIR)) {
-                        foundRom = TRUE;
-                    } else if (g_file_test (romNameCHD, G_FILE_TEST_IS_DIR)) {
+                    if (romDownload) {
+                        // autoownloading rom, don't check the rom on disk
                         foundRom = TRUE;
                     } else {
-                        //g_print ("\nrom not found: %s " FAIL_MSG "\n", name);
+                        if (rom_FoundInPath (name, cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
+                            foundRom = TRUE;
+                        }
                     }
                     if (numGameSupported % 150 == 0) g_print (".");
                 } else {
@@ -428,11 +417,6 @@ zoo               "Zoo (Ver. ZO.02.D)"
                 if (foundRom) ++numGame;
 
                 g_free (nameDes);
-                g_free (romNameZip);
-                g_free (romName7Zip);
-                g_free (romNameDir);
-                g_free (romNameCHD);
-
             }
             g_free (name);
 
@@ -497,6 +481,14 @@ mame_playGame (struct rom_romItem *item, const char* clone)
     } else {
         romPath = g_strjoin (";", cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL);
     }
+    if (cfg_keyBool ("ROM_DOWNLOAD")) {
+        if (fd_getDownloadPath ()) {
+            gchar *newRomPath = g_strjoin (";", romPath, fd_getDownloadPath (), NULL);
+            g_free (romPath);
+            romPath = newRomPath;
+        }
+    }
+
     gchar *romPathQuoted = g_shell_quote (romPath);
 
     // clone ?
@@ -505,15 +497,47 @@ mame_playGame (struct rom_romItem *item, const char* clone)
     } else {
         romName = rom_getItemName (item);
     }
-    gchar *cmdline = g_strdup_printf ("%s %s -rompath %s %s", MAME_EXE, cfg_keyStr("MAME_OPTIONS"), romPathQuoted, romName);
+    gchar *cmdline = g_strdup_printf ("%s %s -rompath %s %s", MAME_EXE, cfg_keyStr ("MAME_OPTIONS"), romPathQuoted, romName);
 
     /* free pixbuff cache, so mame can use more memory */
     rom_invalidateUselessTile ();
 
     g_print ("playing %s\n", romName);
+/*
+    if (!rom_FoundInPath (romName, fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
+        if (cfg_keyBool ("ROM_DOWNLOAD")) {
+            if (rom_isParent (romName)) {
+                // get the parent
+                fd_download (romName);
+            } else {
+                // get the parent
+                fd_download (rom_parentOf (romName));
+                // get the clone
+                fd_download (romName);
+            }
+        }
+    }
+*/
+    if (cfg_keyBool ("ROM_DOWNLOAD")) {
+        if (rom_isParent (romName)) {
+            if (!rom_FoundInPath (romName, fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
+                // get the parent
+                fd_download (romName);
+            }
+        } else {
+            // get the parent
+            if (!rom_FoundInPath (rom_parentOf (romName), fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
+                fd_download (rom_parentOf (romName));
+            }
+
+            // get the clone
+            if (!rom_FoundInPath (romName, fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
+                fd_download (romName);
+            }
+        }
+    }
 
     if (mame_run (cmdline, &pid, NULL, NULL)) {
-
         // disable the screen saver
         if (cfg_keyInt ("SCREENSAVER_MODE") == 1) {
             ssaver_suspend ();

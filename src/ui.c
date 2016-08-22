@@ -38,6 +38,7 @@
 #include "www.h"
 #include "joy.h"
 #include "ssaver.h"
+#include "filedownloader.h"
 
 #define TILE_MIN_SIZE         150
 #define TILE_W_BORDER_MIN     24
@@ -1593,8 +1594,11 @@ ui_init (void)
     /* view */
     view_init ();
 
-    /* web scrapper */
+    /* web scraper */
     www_init ();
+
+    /* rom downloader */
+    fd_init ();
 
     /* joy support */
     joy_init ();
@@ -1648,8 +1652,11 @@ ui_free (void)
     /* free romlist */
     rom_free ();
 
-    /* web scrapper */
+    /* web scraper */
     www_free ();
+
+    /* rom downloader */
+    fd_free ();
 
     /* joy */
     joy_free ();

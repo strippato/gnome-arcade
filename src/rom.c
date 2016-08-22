@@ -22,7 +22,7 @@
 #include <glib.h>
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
-
+#include <stdarg.h>
 
 #include "global.h"
 #include "app.h"
@@ -66,7 +66,6 @@ static enum rom_sortOrder rom_sortOrder = ROM_SORT_AZ;
 inline static int
 rom_sortAZ (struct rom_romItem *itemA, struct rom_romItem *itemB)
 {
-
     gchar* romA = g_utf8_casefold ((gchar*) itemA->desc, -1);
     gchar* romB = g_utf8_casefold ((gchar*) itemB->desc, -1);
 
@@ -797,3 +796,43 @@ rom_setItemNPlay (struct rom_romItem *item, guint nplay)
     item->nplay = nplay;
 }
 
+gboolean
+rom_FoundInPath (const gchar* romName, ...)
+{
+    gboolean foundRom = FALSE;
+
+    gchar *romNameZip;
+    gchar *romName7Zip;
+    gchar *romNameDir;
+
+    va_list vl;
+    va_start (vl, romName);
+
+    gchar *romPath = va_arg (vl, gchar*);
+
+    while (romPath && !foundRom) {
+        romNameZip = g_strdup_printf ("%s/%s.%s", romPath, romName, ROM_EXTENSION_ZIP);
+        romName7Zip = g_strdup_printf ("%s/%s.%s", romPath, romName, ROM_EXTENSION_7ZIP);
+        romNameDir = g_strdup_printf ("%s/%s", romPath, romName);
+
+        if (g_file_test (romName7Zip, G_FILE_TEST_EXISTS)) {
+            foundRom = TRUE;
+        } else if (g_file_test (romNameZip, G_FILE_TEST_EXISTS)) {
+            foundRom = TRUE;
+        } else if (g_file_test (romNameDir, G_FILE_TEST_IS_DIR)) {
+            foundRom = TRUE;
+        } else {
+            //g_print ("\nrom not found: %s " FAIL_MSG "\n", romName);
+        }
+
+        romPath = va_arg (vl, gchar*);
+
+        g_free (romNameZip);
+        g_free (romName7Zip);
+        g_free (romNameDir);
+    }
+
+    va_end (vl);
+
+    return foundRom;
+}

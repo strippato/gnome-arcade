@@ -62,6 +62,7 @@ cfg_fillDefaultConfig (void)
 	g_hash_table_insert (cfg_default, g_strdup ("WEB_PATH"), g_build_filename (g_get_home_dir (), "gnome-arcade/data/www/", NULL));
 
 	g_hash_table_insert (cfg_default, g_strdup ("WEB_DOWNLOAD"), g_strdup ("1"));
+	g_hash_table_insert (cfg_default, g_strdup ("ROM_DOWNLOAD"), g_strdup ("0"));
 
 	g_hash_table_insert (cfg_default, g_strdup ("JOY_ENABLED"), g_strdup ("1"));
 

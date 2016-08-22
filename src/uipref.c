@@ -192,7 +192,6 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 			g_print ("config saved " SUCCESS_MSG "\n");
 
 			// reconfigure web downloader
-
 			www_free ();
 			www_init ();
 
