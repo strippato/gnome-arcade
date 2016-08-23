@@ -24,7 +24,7 @@
 #include "config.h"
 #include "filedownloader.h"
 
-// NOTE: no bios/CHD will be downloaded
+// NOTE: no CHD will be downloaded
 static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.151_ROMs/MAME_0.151_ROMs.zip/MAME 0.151 ROMs";
 static gchar *fd_romPath = NULL;
 
@@ -81,6 +81,7 @@ fd_download (const gchar* romname)
 	        g_free (finame);
 	        g_object_unref (ifile);
 			g_object_unref (ofile);
+
 	        return FALSE;
 	    }
 	}

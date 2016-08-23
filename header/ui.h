@@ -57,13 +57,14 @@ void ui_cmdLeft (void);
 void ui_cmdRight (void);
 void ui_cmdHome (void);
 void ui_cmdEnd (void);
-gboolean ui_cmdPlay (void);
 void ui_cmdPreference (void);
 void ui_cmdRankUp (void);
 void ui_cmdRankDown (void);
+gboolean ui_cmdPlay (void);
 
 gboolean ui_inSelectState (void);
 gboolean ui_invalidateDrawingArea (void);
+
 void ui_showInfobar (void);
 void ui_feedback (void);
 

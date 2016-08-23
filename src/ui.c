@@ -118,11 +118,11 @@ static GtkWidget *ui_dropBtn     = NULL;
 static GtkWidget *ui_popover     = NULL;
 static GtkWidget *ui_vpopbox     = NULL;
 
-static GdkPixbuf *ui_selRankOn  = NULL;
-static GdkPixbuf *ui_selRankOff = NULL;
+static GdkPixbuf *ui_selRankOn   = NULL;
+static GdkPixbuf *ui_selRankOff  = NULL;
 
-static GdkPixbuf *ui_selPrefOn  = NULL;
-static GdkPixbuf *ui_selPrefOff = NULL;
+static GdkPixbuf *ui_selPrefOn   = NULL;
+static GdkPixbuf *ui_selPrefOff  = NULL;
 
 // current model
 static struct view_viewModel *ui_viewModel = NULL;
@@ -1171,6 +1171,7 @@ ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr)
                     gdk_cairo_set_source_pixbuf (cr, ui_selPrefOff, EMBLEM_PADDING + diffX + tileBorder + x * (ui_tileSize_W + tileBorder), - ui_base + EMBLEM_PADDING + 2 * diffY + UI_OFFSET_Y + y * (ui_tileSize_H + TILE_H_BORDER));
                 }
                 cairo_paint (cr);
+
 
                 /* emblem rank */
                 for (int i = 0; i < ROM_MAXRANK; ++i) {

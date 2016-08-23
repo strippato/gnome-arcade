@@ -23,13 +23,12 @@
 #ifndef WWW_H
 #define WWW_H
 
+gboolean www_autoDownload;
+gchar*	 www_tilePath;
+gint 	 www_dowloadingItm;
+
 void www_init (void);
 void www_free (void);
-
-gboolean  	www_autoDownload;
-gchar*		www_tilePath;
-gint 		www_dowloadingItm;
-
 void www_download (struct rom_romItem* item);
 gchar* www_getFileNameWWW (const gchar* romName);
 

@@ -23,9 +23,6 @@
 #ifndef VIEW_H
 #define VIEW_H
 
-void view_init (void);
-void view_free (void);
-
 struct view_viewModel
 {
 	GList *romList;
@@ -35,9 +32,11 @@ struct view_viewModel
     gint   view; // drawingarea offset
 };
 
+void view_init (void);
+void view_free (void);
+void view_gotoDefaultView (void);
 struct rom_romItem* view_getItem (struct view_viewModel *view, int numGame);
 
-void view_gotoDefaultView (void);
 
 #endif
 

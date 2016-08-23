@@ -503,28 +503,36 @@ mame_playGame (struct rom_romItem *item, const char* clone)
     rom_invalidateUselessTile ();
 
     g_print ("playing %s\n", romName);
-/*
-    if (!rom_FoundInPath (romName, fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
-        if (cfg_keyBool ("ROM_DOWNLOAD")) {
-            if (rom_isParent (romName)) {
-                // get the parent
-                fd_download (romName);
-            } else {
-                // get the parent
-                fd_download (rom_parentOf (romName));
-                // get the clone
-                fd_download (romName);
-            }
-        }
-    }
-*/
+
+    gchar *romOf = NULL; // bios/parent
+
     if (cfg_keyBool ("ROM_DOWNLOAD")) {
+
         if (rom_isParent (romName)) {
+            // get the bios
+            romOf = mame_getRomOf (romName);
+            if (romOf) {
+                if (!rom_FoundInPath (romOf, fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
+                    // get the parent
+                    fd_download (romOf);
+                }
+            }
+
+            // get the parent
             if (!rom_FoundInPath (romName, fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
-                // get the parent
                 fd_download (romName);
             }
+
         } else {
+            // get the parent bios
+            romOf = mame_getRomOf (rom_parentOf (romName));
+            if (romOf) {
+                if (!rom_FoundInPath (romOf, fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
+                    // get the parent
+                    fd_download (romOf);
+                }
+            }
+
             // get the parent
             if (!rom_FoundInPath (rom_parentOf (romName), fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
                 fd_download (rom_parentOf (romName));
@@ -535,6 +543,9 @@ mame_playGame (struct rom_romItem *item, const char* clone)
                 fd_download (romName);
             }
         }
+
+        g_free (romOf);
+        romOf = NULL;
     }
 
     if (mame_run (cmdline, &pid, NULL, NULL)) {
@@ -570,3 +581,45 @@ mame_isRunning (void)
     return mame_mameIsRunning;
 }
 
+
+gchar*
+mame_getRomOf (const gchar* romName)
+{
+    // return the romof attribute
+    //<machine name="neocup98" sourcefile="neodriv.hxx" romof="neogeo">
+
+    const int MAXSIZE = 255;
+    char buf[MAXSIZE];
+
+    gboolean quit = FALSE;
+    gchar *line = NULL;
+    gchar *ret = NULL;
+
+    gchar *findstr = g_strdup_printf ("<machine name=\"%s\"", romName);
+    gchar *cmdLine = g_strdup_printf ("%s -lx %s", MAME_EXE, romName);
+
+    FILE *file = popen (cmdLine, "r");
+
+    while (fgets (buf, MAXSIZE - 1, file) && !quit) {
+        line = g_strndup (buf, strlen (buf) - 1);
+
+        if (g_strrstr (line, findstr)) {
+            quit = TRUE;
+            // now searching for romof="
+            gchar* tag = g_strrstr (line, "romof=\"");
+            if (tag) {
+                gchar **lineVec = g_strsplit (tag, "\"", -1);
+                ret = g_strdup (lineVec[1]);
+                g_strfreev (lineVec);
+            }
+        }
+        g_free (line);
+    }
+
+    pclose (file);
+
+    g_free (cmdLine);
+    g_free (findstr);
+
+    return ret;
+}
