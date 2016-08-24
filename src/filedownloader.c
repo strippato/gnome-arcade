@@ -19,6 +19,8 @@
  */
 
 #include <gtk/gtk.h>
+#include <string.h>
+#include <glib/gstdio.h>
 
 #include "global.h"
 #include "config.h"
@@ -61,7 +63,9 @@ fd_progress_cb (void)
 gboolean
 fd_download (const gchar* romname)
 {
-    GError *err = NULL;
+    GError *err  = NULL;
+    gboolean res = FALSE;
+	GStatBuf stats;
 
 	gchar *finame = g_strdup_printf ("%s/%s.zip", ROM_BASEURL, romname);
 	gchar *foname = g_strdup_printf ("%s/%s.zip", fd_romPath, romname);
@@ -71,26 +75,48 @@ fd_download (const gchar* romname)
     GFile *ifile = g_file_new_for_uri (finame);
 	GFile *ofile = g_file_new_for_path (foname);
 
-	if (g_file_copy (ifile, ofile, G_FILE_COPY_OVERWRITE, NULL, (GFileProgressCallback) fd_progress_cb, NULL, &err)) {
-		g_print (SUCCESS_MSG "\n");
-	} else {
-		g_print (FAIL_MSG "\n");
-	    if (err) {
-	        g_print ("donwnload error: %s\n", err->message);
-	        g_error_free (err);
-	        g_free (finame);
-	        g_object_unref (ifile);
-			g_object_unref (ofile);
+	memset (&stats, 0, sizeof (stats));
 
-	        return FALSE;
+	if (g_file_copy (ifile, ofile, G_FILE_COPY_OVERWRITE, NULL, (GFileProgressCallback) fd_progress_cb, NULL, &err)) {
+
+		if (g_stat (foname, &stats) == 0) {
+			if (stats.st_size != 0) {
+				// seems legit
+				g_print (" " SUCCESS_MSG "\n");
+
+				res = TRUE;
+
+			} else {
+				// file downloaed is invalid
+				g_print (" " FAIL_MSG "\n");
+			    if (!g_file_delete (ofile, NULL, &err)) {
+	    			if (err) {
+		        		g_print ("can't delete %s: %s %s\n", foname, err->message, FAIL_MSG);
+			        	g_error_free (err);
+			        }
+			    }
+			}
+		} else {
+			// stat failed
+			g_print (" " FAIL_MSG "\n");
+	        g_print ("stat failed on %s %s\n", foname, FAIL_MSG);
+		}
+
+	} else {
+		g_print (" " FAIL_MSG "\n");
+	    if (err) {
+	        g_print ("donwnload error: %s %s\n", err->message, FAIL_MSG);
+	        g_error_free (err);
 	    }
 	}
 
 	g_free (finame);
+    g_free (foname);
+
     g_object_unref (ifile);
 	g_object_unref (ofile);
 
-    return TRUE;
+    return res;
 }
 
 const gchar*
