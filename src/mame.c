@@ -469,7 +469,7 @@ mame_quit (GPid pid)
 }
 
 gboolean
-mame_playGame (struct rom_romItem *item, const char* clone)
+mame_playGame (struct rom_romItem* item, const char* clone)
 {
     GPid pid;
     gboolean played = FALSE;
@@ -508,40 +508,64 @@ mame_playGame (struct rom_romItem *item, const char* clone)
 
     if (cfg_keyBool ("ROM_DOWNLOAD")) {
 
+
         if (rom_isParent (romName)) {
+
             // get the bios
             romOf = mame_getRomOf (romName);
             if (romOf) {
                 if (!rom_FoundInPath (romOf, fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
-                    // get the parent
                     fd_download (romOf);
                 }
             }
 
-            // get the parent
+            // get the rom
             if (!rom_FoundInPath (romName, fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
                 fd_download (romName);
             }
 
+            // get device(s) bios
+            gchar **vbios = mame_getDeviceRomOf (romName);
+            if (vbios) {
+                for (int i = 0; vbios[i]; ++i) {
+                    if (!rom_FoundInPath (vbios[i], fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
+                        fd_download (vbios[i]);
+                    }
+                }
+            }
+            g_strfreev (vbios);
+
         } else {
-            // get the parent bios
+
+            // get the bios (parent)
             romOf = mame_getRomOf (rom_parentOf (romName));
             if (romOf) {
                 if (!rom_FoundInPath (romOf, fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
-                    // get the parent
                     fd_download (romOf);
                 }
             }
 
-            // get the parent
+            // get the rom (parent)
             if (!rom_FoundInPath (rom_parentOf (romName), fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
                 fd_download (rom_parentOf (romName));
             }
 
-            // get the clone
+            // get the rom (clone)
             if (!rom_FoundInPath (romName, fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
                 fd_download (romName);
             }
+
+            // get the device(s) bios (clone)
+            gchar **vbios = mame_getDeviceRomOf (romName);
+            if (vbios) {
+                for (int i = 0; vbios[i]; ++i) {
+                    if (!rom_FoundInPath (vbios[i], fd_getDownloadPath (), cfg_keyStr ("ROM_PATH"), cfg_keyStr ("CHD_PATH"), NULL)) {
+                        fd_download (vbios[i]);
+                    }
+                }
+            }
+            g_strfreev (vbios);
+
         }
 
         g_free (romOf);
@@ -623,3 +647,115 @@ mame_getRomOf (const gchar* romName)
 
     return ret;
 }
+
+
+gchar**
+mame_getDeviceRomOf (const gchar* romName)
+{
+/*
+// return the machine[] names with device (isdevice="yes") associate with some "<rom name=xxxx"
+// return: ["mie", "jvs13551", NULL]
+
+
+<mame build="0.176 (unknown)" debug="no" mameconfig="10">
+    <machine name="hotd2" sourcefile="naomi.cpp" romof="hod2bios">
+        <description>House of the Dead 2 (USA)</description>
+    </machine>
+...
+    <machine name="mie" sourcefile="src/mame/machine/mie.cpp" isdevice="yes" runnable="no">
+        <description>Sega 315-6146 MIE</description>
+        <rom name="315-6146.bin" size="2048" crc="9b197e35" sha1="864d14d58732dd4e2ee538ccc71fa8df7013ba06" region="mie" offset="0"/>
+        <chip type="cpu" tag=":mie" name="Z80" clock="16000000"/>
+    </machine>
+    <machine name="z80" sourcefile="src/devices/cpu/z80/z80.cpp" isdevice="yes" runnable="no">
+        <description>Z80</description>
+    </machine>
+    <machine name="mie_jvs" sourcefile="src/mame/machine/mie.cpp" isdevice="yes" runnable="no">
+        <description>JVS (MIE)</description>
+    </machine>
+    <machine name="jvs13551" sourcefile="src/mame/machine/jvs13551.cpp" isdevice="yes" runnable="no">
+        <description>Sega 837-13551 I/O Board</description>
+        <rom name="sp5001.bin" size="32768" crc="2f17e21a" sha1="ac227ef3ca52ef17321bd60e435dba147645d8b8" region="jvs13551" offset="0"/>
+        <rom name="sp5001-b.bin" size="32768" crc="121693cd" sha1="c9834aca671aff5e283ac708788c2a0f4a5bdecc" region="jvs13551" offset="0"/>
+        <rom name="sp5002-a.bin" size="32768" crc="a088df8c" sha1="8237e9b18b8367d3f5b99b8f29c528a55c2e0fbf" region="jvs13551" offset="0"/>
+        <rom name="315-6215.bin" size="32768" crc="d7c97e40" sha1="b1ae8db332f869c4fdbbae15967baeca0bc7f57d" region="jvs13551" offset="0"/>
+        <input players="1" coins="2">
+        </input>
+    </machine>
+*/
+
+
+    const int MAXSIZE = 255;
+    char buf[MAXSIZE];
+
+    gboolean machineDevice = FALSE;
+    gchar *line     = NULL;
+    gchar *retname  = NULL;
+    gchar *namelist = NULL;
+
+    const gchar *findmachine = "<machine name=\"";
+    const gchar *finddevice  = "isdevice=\"yes\"";
+
+    const gchar *findromname = "<rom name=\"";
+
+    const gchar *endtag      = "</machine>";
+
+    gchar *cmdLine = g_strdup_printf ("%s -lx %s", MAME_EXE, romName);
+
+    FILE *file = popen (cmdLine, "r");
+
+    while (fgets (buf, MAXSIZE - 1, file)) {
+        line = g_strndup (buf, strlen (buf) - 1);
+
+        if (g_strrstr (line, endtag)) {
+            machineDevice = FALSE;
+        }
+
+        if (machineDevice) {
+            if (g_strrstr (line, findromname)) {
+                // <rom name="sp5001.bin" size="32768" crc="2f17e21a" sha1="ac227ef3ca52ef17321bd60e435dba147645d8b8" region="jvs13551" offset="0"/>
+                machineDevice = FALSE;
+                gchar* oldlist = namelist;
+                namelist = g_strjoin ("|", retname, oldlist, NULL);
+                g_free (oldlist);
+            }
+        }
+
+        if (g_strrstr (line, findmachine) && g_strrstr (line, finddevice)) {
+            // <machine name="jvs13551" sourcefile="src/mame/machine/jvs13551.cpp" isdevice="yes" runnable="no">
+            machineDevice = TRUE;
+            gchar *name = g_strrstr (line, findmachine);
+            if (name) {
+                gchar **lineVec = g_strsplit (name, "\"", -1);
+
+                if (retname) {
+                    g_free (retname);
+                    retname = NULL;
+                }
+                retname = g_strdup (lineVec[1]);
+                g_strfreev (lineVec);
+            }
+        }
+        g_free (line);
+    }
+
+    pclose (file);
+    g_free (cmdLine);
+
+    if (retname) {
+        g_free (retname);
+    }
+
+    if (namelist) {
+        gchar** retvec = g_strsplit (namelist, "|", -1);
+        g_free (namelist);
+
+        return retvec;
+    } else {
+
+        return NULL;
+    }
+
+}
+
+

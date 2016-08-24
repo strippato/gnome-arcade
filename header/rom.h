@@ -57,8 +57,8 @@ struct rom_romItem {
 	GdkPixbuf *tile;
 };
 
-extern GList *rom_romList; // all parent games (NOT clone, NOT FILTERED)
-extern GHashTable *rom_cloneTable; // only clones (NOT FILTERED) key:Clone, Item:Parent
+extern GList* rom_romList; // all parent games (NOT clone, NOT FILTERED)
+extern GHashTable* rom_cloneTable; // only clones (NOT FILTERED) key:Clone, Item:Parent
 extern GHashTable* rom_parentTableSearch; // for searching key=PARENT, data=description, romname
 extern GHashTable* rom_parentTable;       // key=PARENT, data=description (romname)
 
