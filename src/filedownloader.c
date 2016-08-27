@@ -24,15 +24,20 @@
 
 #include "global.h"
 #include "config.h"
+#include "rom.h"
 #include "filedownloader.h"
 
 // NOTE: no CHD will be downloaded
 static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.151_ROMs/MAME_0.151_ROMs.zip/MAME 0.151 ROMs";
 static gchar *fd_romPath = NULL;
 
+// forward
+static void fd_infoFree (struct fd_copyInfo* copyInfo);
+
 void
 fd_init (void)
 {
+	fd_downloadingItm = 0;
 	if (cfg_keyBool ("ROM_DOWNLOAD")) {
     	g_print ("rom download " SUCCESS_MSG "\n");
     	g_print ("rom provider %s\n", ROM_BASEURL);
@@ -48,75 +53,106 @@ fd_init (void)
 void
 fd_free (void)
 {
+	fd_downloadingItm = 0;
 	if (cfg_keyBool ("ROM_DOWNLOAD")) {
 		g_free (fd_romPath);
 		fd_romPath = NULL;
 	}
 }
 
+// FIXME
+/*
 static void
 fd_progress_cb (void)
 {
-	g_print(".");
+	g_print(".\n");
 }
+*/
 
-gboolean
-fd_download (const gchar* romname)
+static void
+fd_copyDone_cb (GObject *file, GAsyncResult *res, struct fd_copyInfo *user_data)
 {
-    GError *err  = NULL;
-    gboolean res = FALSE;
+	GError *err = NULL;
+
 	GStatBuf stats;
-
-	gchar *finame = g_strdup_printf ("%s/%s.zip", ROM_BASEURL, romname);
-	gchar *foname = g_strdup_printf ("%s/%s.zip", fd_romPath, romname);
-
-	g_print ("downloading %s from %s ", romname, finame);
-
-    GFile *ifile = g_file_new_for_uri (finame);
-	GFile *ofile = g_file_new_for_path (foname);
-
 	memset (&stats, 0, sizeof (stats));
 
-	if (g_file_copy (ifile, ofile, G_FILE_COPY_OVERWRITE, NULL, (GFileProgressCallback) fd_progress_cb, NULL, &err)) {
+	struct fd_copyInfo *copyInfo = user_data;
 
-		if (g_stat (foname, &stats) == 0) {
+    if (g_file_copy_finish (G_FILE (file), res, &err)) {
+		if (g_stat (copyInfo->oFileName, &stats) == 0) {
 			if (stats.st_size != 0) {
 				// seems legit
-				g_print (" " SUCCESS_MSG "\n");
-
-				res = TRUE;
-
+				g_print ("download of %s completed %s\n", copyInfo->iFileName, SUCCESS_MSG);
 			} else {
 				// file downloaed is invalid
-				g_print (" " FAIL_MSG "\n");
-			    if (!g_file_delete (ofile, NULL, &err)) {
+				g_print ("download of %s failed %s\n", copyInfo->iFileName, FAIL_MSG);
+			    if (!g_file_delete (copyInfo->oFile, NULL, &err)) {
 	    			if (err) {
-		        		g_print ("can't delete %s: %s %s\n", foname, err->message, FAIL_MSG);
+		        		g_print ("can't delete %s: %s %s\n", copyInfo->oFileName, err->message, FAIL_MSG);
 			        	g_error_free (err);
 			        }
+			    } else {
+    				g_print ("delete invalid file %s %s\n", copyInfo->oFileName, SUCCESS_MSG);
 			    }
 			}
 		} else {
 			// stat failed
-			g_print (" " FAIL_MSG "\n");
-	        g_print ("stat failed on %s %s\n", foname, FAIL_MSG);
+			g_print ("download of %s failed %s\n", copyInfo->iFileName, FAIL_MSG);
+	        g_print ("stat failed on %s %s\n", copyInfo->oFileName, FAIL_MSG);
 		}
 
 	} else {
-		g_print (" " FAIL_MSG "\n");
-	    if (err) {
-	        g_print ("donwnload error: %s %s\n", err->message, FAIL_MSG);
-	        g_error_free (err);
-	    }
-	}
+		g_print ("download of %s failed %s\n", copyInfo->iFileName, FAIL_MSG);
+        g_print ("error: %s %s\n", err->message, FAIL_MSG);
+        g_error_free (err);
+    }
 
-	g_free (finame);
-    g_free (foname);
+	fd_infoFree (copyInfo);
 
-    g_object_unref (ifile);
-	g_object_unref (ofile);
+    fd_downloadingItm--;
+}
 
-    return res;
+static void
+fd_infoBuild (const gchar* romname, struct fd_copyInfo* copyInfo)
+{
+	// source URL
+	copyInfo->iFileName = g_strdup_printf ("%s/%s.zip", ROM_BASEURL, romname);
+    copyInfo->iFile = g_file_new_for_uri (copyInfo->iFileName);
+
+    // dest FILE
+	copyInfo->oFileName = g_strdup_printf ("%s/%s.zip", fd_romPath, romname);
+	copyInfo->oFile = g_file_new_for_path (copyInfo->oFileName);
+}
+
+static void
+fd_infoFree (struct fd_copyInfo* copyInfo)
+{
+    g_object_unref (copyInfo->iFile);
+	g_object_unref (copyInfo->oFile);
+
+	g_free (copyInfo->iFileName);
+    g_free (copyInfo->oFileName);
+
+    g_free (copyInfo);
+
+    copyInfo = NULL;
+}
+
+void
+fd_download (const gchar* romname)
+{
+	fd_downloadingItm++;
+    struct fd_copyInfo *copyInfo = g_malloc0 (sizeof (struct fd_copyInfo));
+
+	fd_infoBuild (romname, copyInfo);
+
+	g_print ("downloading %s from %s\n", romname, copyInfo->iFileName);
+
+	// FIXME
+	//g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, (GFileProgressCallback) fd_progress_cb, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
+	g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, NULL, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
+
 }
 
 const gchar*

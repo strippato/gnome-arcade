@@ -42,6 +42,7 @@
 #include "joy.h"
 #include "ssaver.h"
 #include "blacklist.h"
+#include "www.h"
 #include "filedownloader.h"
 
 
@@ -508,7 +509,6 @@ mame_playGame (struct rom_romItem* item, const char* clone)
 
     if (cfg_keyBool ("ROM_DOWNLOAD")) {
 
-
         if (rom_isParent (romName)) {
 
             // get the bios
@@ -572,30 +572,33 @@ mame_playGame (struct rom_romItem* item, const char* clone)
         romOf = NULL;
     }
 
-    if (mame_run (cmdline, &pid, NULL, NULL)) {
-        // disable the screen saver
-        if (cfg_keyInt ("SCREENSAVER_MODE") == 1) {
-            ssaver_suspend ();
+    // u can't play while downloading rom
+    if (fd_downloadingItm == 0) {
+        if (mame_run (cmdline, &pid, NULL, NULL)) {
+            // disable the screen saver
+            if (cfg_keyInt ("SCREENSAVER_MODE") == 1) {
+                ssaver_suspend ();
+            }
+
+            // detach joypad
+            joy_free ();
+
+            played = TRUE;
+            ui_setPlayBtnState (FALSE);
+            ui_setToolBarState (FALSE);
+            ui_setScrollBarState (FALSE);
+
+            mame_mameIsRunning = TRUE;
+            g_child_watch_add (pid, (GChildWatchFunc) mame_quit, &pid);
+
+        } else {
+            g_print ("oops, something goes wrong again...\n");
+            mame_mameIsRunning = FALSE;
         }
-
-        // detach joypad
-        joy_free ();
-
-        played = TRUE;
-        ui_setPlayBtnState (FALSE);
-        ui_setToolBarState (FALSE);
-        ui_setScrollBarState (FALSE);
-
-        mame_mameIsRunning = TRUE;
-        g_child_watch_add (pid, (GChildWatchFunc) mame_quit, &pid);
-
-    } else {
-        g_print ("oops, something goes wrong again...\n");
-        mame_mameIsRunning = FALSE;
+        g_free (cmdline);
+        g_free (romPath);
+        g_free (romPathQuoted);
     }
-    g_free (cmdline);
-    g_free (romPath);
-    g_free (romPathQuoted);
     return played;
 }
 

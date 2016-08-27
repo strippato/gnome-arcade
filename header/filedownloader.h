@@ -23,11 +23,24 @@
 #ifndef FD_H
 #define FD_H
 
+struct fd_copyInfo {
+	// input
+	gchar *iFileName;
+	GFile *iFile;
+
+	// output
+	gchar *oFileName;
+	GFile *oFile;
+};
+
+gint fd_downloadingItm;
+
 void fd_init (void);
 void fd_free (void);
+void fd_download (const gchar* romname);
 
-gboolean fd_download (const gchar* filename);
 const gchar* fd_getDownloadPath (void);
+
 
 #endif
 

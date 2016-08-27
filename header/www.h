@@ -25,7 +25,7 @@
 
 gboolean www_autoDownload;
 gchar*	 www_tilePath;
-gint 	 www_dowloadingItm;
+gint     www_downloadingItm;
 
 void www_init (void);
 void www_free (void);

@@ -39,7 +39,7 @@ static const gchar* www_webProvider = NULL;
 void
 www_init (void)
 {
-    www_dowloadingItm = 0;
+    www_downloadingItm = 0;
     /*
     if (g_str_has_prefix (cfg_keyStr ("WEB_PATH"), "~")) {
         www_tilePath = g_strdup_printf ("%s%s/", g_get_home_dir (), cfg_keyStr ("WEB_PATH") + 1);
@@ -69,7 +69,7 @@ www_init (void)
 void
 www_free (void)
 {
-    g_assert (www_dowloadingItm == 0);
+    g_assert (www_downloadingItm == 0);
 	g_free (www_tilePath);
     www_tilePath = NULL;
     www_autoDownload = FALSE;
@@ -117,7 +117,7 @@ www_pixbufRead_cb (GObject *source_object, GAsyncResult *res, struct rom_romItem
     if (ui_tileIsVisible (item)) {
         ui_invalidateDrawingArea ();
     }
-    www_dowloadingItm--;
+    www_downloadingItm--;
 }
 
 static void
@@ -144,17 +144,17 @@ www_fileRead_cb (GFile *file, GAsyncResult *res, struct rom_romItem *item)
         if (ui_tileIsVisible (item)) {
             ui_invalidateDrawingArea ();
         }
-        www_dowloadingItm--;
+        www_downloadingItm--;
     }
 }
 
 void
 www_download (struct rom_romItem* item)
 {
-    www_dowloadingItm++;
+    www_downloadingItm++;
 
 	gchar *fileNameWeb = g_strdup_printf (www_webProvider, item->name);
-	g_print ("fetching(%i) [%s] %s\n", www_dowloadingItm, item->name, fileNameWeb);
+	g_print ("fetching(%i) [%s] %s\n", www_downloadingItm, item->name, fileNameWeb);
 
 	GFile *tileFile = g_file_new_for_uri (fileNameWeb);
 

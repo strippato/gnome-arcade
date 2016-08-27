@@ -1064,7 +1064,6 @@ gboolean
 ui_drawingAreaDraw (GtkWidget *widget, cairo_t *cr)
 {
     gint x, y;
-
     const GdkPixbuf *pix = NULL;
 
     if (ui_viewModel->romCount <= 0) {
