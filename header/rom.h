@@ -23,6 +23,8 @@
 #ifndef ROM_H
 #define ROM_H
 
+#define ROM_LEGAL "Downloading a copy of a game you don’t own is not legal"
+
 extern gchar *rom_tilePath;
 
 extern GdkPixbuf *rom_tileNoImage;

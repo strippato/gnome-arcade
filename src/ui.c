@@ -117,13 +117,13 @@ static GtkWidget *ui_entry       = NULL;
 static GtkWidget *ui_dropBtn     = NULL;
 static GtkWidget *ui_popover     = NULL;
 static GtkWidget *ui_vpopbox     = NULL;
+static GtkWidget *ui_downloadDialog = NULL;
 
 static GdkPixbuf *ui_selRankOn   = NULL;
 static GdkPixbuf *ui_selRankOff  = NULL;
 
 static GdkPixbuf *ui_selPrefOn   = NULL;
 static GdkPixbuf *ui_selPrefOff  = NULL;
-
 // current model
 static struct view_viewModel *ui_viewModel = NULL;
 static GTimer *ui_focusFeedback = NULL;
@@ -290,6 +290,7 @@ ui_itemOnRow (gint width)
 static gboolean
 ui_playClicked (void)
 {
+    if (fd_downloadingItm > 0) return FALSE;
     if (mame_isRunning ()) return FALSE;
 
     if (ui_viewModel->romCount > 0) {
@@ -311,12 +312,13 @@ ui_playClicked (void)
 static gboolean
 ui_playCloneClicked (GtkWidget *widget)
 {
+    if (fd_downloadingItm > 0) return FALSE;
     if (mame_isRunning ()) return FALSE;
 
     if (ui_viewModel->romCount > 0) {
         struct rom_romItem  *itm = view_getItem (ui_viewModel, ui_viewModel->focus);
 
-        const gchar *btnLabel = gtk_button_get_label (GTK_BUTTON(widget));
+        const gchar *btnLabel = gtk_button_get_label (GTK_BUTTON (widget));
 
         gchar *cloneLbl = g_strdup (btnLabel); // get the romclone name
         gchar **vclone = g_strsplit_set (cloneLbl, "[]", -1);
@@ -553,6 +555,8 @@ ui_cmdUp (void)
 {
     if (mame_isRunning ()) return;
     if (ui_viewModel->romCount <= 0) return;
+    if (fd_downloadingItm > 0) return;
+
     ui_focusPrevRow ();
     ui_drawingAreaShowItem (ui_viewModel->focus);
     ui_invalidateDrawingArea ();
@@ -563,6 +567,8 @@ ui_cmdDown (void)
 {
     if (mame_isRunning ()) return;
     if (ui_viewModel->romCount <= 0) return;
+    if (fd_downloadingItm > 0) return;
+
     ui_focusNextRow ();
     ui_drawingAreaShowItem (ui_viewModel->focus);
     ui_invalidateDrawingArea ();
@@ -573,6 +579,8 @@ ui_cmdLeft (void)
 {
     if (mame_isRunning ()) return;
     if (ui_viewModel->romCount <= 0) return;
+    if (fd_downloadingItm > 0) return;
+
     ui_focusPrev ();
     ui_drawingAreaShowItem (ui_viewModel->focus);
     ui_invalidateDrawingArea ();
@@ -583,6 +591,8 @@ ui_cmdRight (void)
 {
     if (mame_isRunning ()) return;
     if (ui_viewModel->romCount <= 0) return;
+    if (fd_downloadingItm > 0) return;
+
     ui_focusNext ();
     ui_drawingAreaShowItem (ui_viewModel->focus);
     ui_invalidateDrawingArea ();
@@ -593,6 +603,8 @@ ui_cmdHome (void)
 {
     if (mame_isRunning ()) return;
     if (ui_viewModel->romCount <= 0) return;
+    if (fd_downloadingItm > 0) return;
+
     ui_focusAt (0);
     ui_drawingAreaShowItem (ui_viewModel->focus);
     ui_invalidateDrawingArea ();
@@ -603,6 +615,8 @@ ui_cmdEnd (void)
 {
     if (mame_isRunning ()) return;
     if (ui_viewModel->romCount <= 0) return;
+    if (fd_downloadingItm > 0) return;
+
     ui_focusAt (ui_viewModel->romCount - 1);
     ui_drawingAreaShowItem (ui_viewModel->focus);
     ui_invalidateDrawingArea ();
@@ -613,6 +627,7 @@ ui_cmdPreference (void)
 {
     if (mame_isRunning ()) return;
     if (ui_viewModel->romCount <= 0) return;
+    if (fd_downloadingItm > 0) return;
 
     struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
     rom_setItemPref (item, !rom_getItemPref (item));
@@ -625,6 +640,7 @@ ui_cmdRankUp (void)
 {
     if (mame_isRunning ()) return;
     if (ui_viewModel->romCount <= 0) return;
+    if (fd_downloadingItm > 0) return;
 
     struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
     gint oldRank = rom_getItemRank (item);
@@ -639,6 +655,7 @@ ui_cmdRankDown (void)
 {
     if (mame_isRunning ()) return;
     if (ui_viewModel->romCount <= 0) return;
+    if (fd_downloadingItm > 0) return;
 
     struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
     gint oldRank = rom_getItemRank (item);
@@ -1362,7 +1379,6 @@ ui_actionChangeFullscreen (GSimpleAction *simple, GVariant *parameter, gpointer 
     g_simple_action_set_state (simple, parameter);
 }
 
-
 void
 ui_init (void)
 {
@@ -1698,6 +1714,12 @@ ui_setPlayBtnState (gboolean state)
 }
 
 void
+ui_setDropBtnState (gboolean state)
+{
+    gtk_widget_set_sensitive (ui_dropBtn, state);
+}
+
+void
 ui_setToolBarState (gboolean state)
 {
     gtk_widget_set_sensitive (ui_tbSelection, state);
@@ -2012,6 +2034,8 @@ ui_drawingArea_search_cb (const gchar* car, gboolean forward)
 static gboolean
 ui_cmdGlobal (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 {
+    if (fd_downloadingItm > 0) return FALSE;
+
     if (event->state & GDK_CONTROL_MASK) {
         // CONTROL + KEY
         switch (event->keyval) {
@@ -2117,8 +2141,46 @@ ui_rebuildPopover (void)
 
     } else {
         gtk_menu_button_set_popover (GTK_MENU_BUTTON (ui_dropBtn), NULL);
-
     }
+}
 
+void
+ui_afterDownload (void)
+{
+    ui_setPlayBtnState (TRUE);
+    ui_setToolBarState (TRUE);
+    ui_setDropBtnState (TRUE);
+
+    gtk_widget_destroy (ui_downloadDialog);
+    ui_downloadDialog = NULL;
+}
+
+void
+ui_downloadWarn (const gchar* text)
+{
+    ui_downloadDialog = gtk_message_dialog_new (GTK_WINDOW (ui_window),
+                       GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+                       GTK_MESSAGE_WARNING,
+                       GTK_BUTTONS_NONE,
+                       "Please wait while downloading missing rom\n");
+
+    gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (ui_downloadDialog), "%s", text);
+
+    gtk_dialog_run (GTK_DIALOG (ui_downloadDialog));
+
+    // TODO: cancel button -> GTK_BUTTONS_CANCEL
+    //gtk_widget_destroy (ui_downloadDialog);
+}
+
+void
+ui_progress_cb (void)
+{
+    static gint i = 0;
+    const gchar *tag[] = { "-", "\\", "-", "/", NULL};
+
+    if (!tag[i]) i = 0;
+
+    gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (ui_downloadDialog), "%s %s", tag [i++], ROM_LEGAL);
+    //g_print(".\n");
 }
 

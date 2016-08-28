@@ -25,6 +25,8 @@
 #include "global.h"
 #include "config.h"
 #include "rom.h"
+#include "view.h"
+#include "ui.h"
 #include "filedownloader.h"
 
 // NOTE: no CHD will be downloaded
@@ -60,14 +62,6 @@ fd_free (void)
 	}
 }
 
-// FIXME
-/*
-static void
-fd_progress_cb (void)
-{
-	g_print(".\n");
-}
-*/
 
 static void
 fd_copyDone_cb (GObject *file, GAsyncResult *res, struct fd_copyInfo *user_data)
@@ -111,6 +105,10 @@ fd_copyDone_cb (GObject *file, GAsyncResult *res, struct fd_copyInfo *user_data)
 	fd_infoFree (copyInfo);
 
     fd_downloadingItm--;
+
+	if (fd_downloadingItm == 0) {
+		ui_afterDownload ();
+	}
 }
 
 static void
@@ -143,6 +141,7 @@ void
 fd_download (const gchar* romname)
 {
 	fd_downloadingItm++;
+
     struct fd_copyInfo *copyInfo = g_malloc0 (sizeof (struct fd_copyInfo));
 
 	fd_infoBuild (romname, copyInfo);
@@ -150,9 +149,8 @@ fd_download (const gchar* romname)
 	g_print ("downloading %s from %s\n", romname, copyInfo->iFileName);
 
 	// FIXME
-	//g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, (GFileProgressCallback) fd_progress_cb, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
+	//g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, (GFileProgressCallback) ui_progress_cb, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
 	g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, NULL, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
-
 }
 
 const gchar*

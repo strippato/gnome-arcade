@@ -570,10 +570,18 @@ mame_playGame (struct rom_romItem* item, const char* clone)
 
         g_free (romOf);
         romOf = NULL;
+
+        if (fd_downloadingItm != 0) {
+            ui_downloadWarn (ROM_LEGAL);
+        }
     }
 
     // u can't play while downloading rom
-    if (fd_downloadingItm == 0) {
+    if (fd_downloadingItm != 0) {
+        ui_setPlayBtnState (FALSE);
+        ui_setDropBtnState (FALSE);
+        ui_setToolBarState (FALSE);
+    } else {
         if (mame_run (cmdline, &pid, NULL, NULL)) {
             // disable the screen saver
             if (cfg_keyInt ("SCREENSAVER_MODE") == 1) {

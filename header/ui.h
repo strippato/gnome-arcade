@@ -37,6 +37,7 @@ void ui_freePixbuffer (void);
 void ui_loadPixbuffer (void);
 
 void ui_setPlayBtnState (gboolean state);
+void ui_setDropBtnState (gboolean state);
 void ui_setToolBarState (gboolean state);
 void ui_setScrollBarState (gboolean state);
 
@@ -64,6 +65,11 @@ gboolean ui_cmdPlay (void);
 
 gboolean ui_inSelectState (void);
 gboolean ui_invalidateDrawingArea (void);
+
+void ui_afterDownload (void);
+void ui_downloadWarn (const gchar* text);
+void ui_progress_cb (void);
+
 
 void ui_showInfobar (void);
 void ui_feedback (void);
