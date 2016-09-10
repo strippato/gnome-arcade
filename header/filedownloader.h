@@ -37,10 +37,12 @@ gint fd_downloadingItm;
 
 void fd_init (void);
 void fd_free (void);
-void fd_download (const gchar* romname);
+void fd_downloadRom (const gchar* romName);
 
-const gchar* fd_getDownloadPath (void);
+void fd_findAndDownloadChd (const gchar* romName);
 
+const gchar* fd_getDownloadPathRom (void);
+const gchar* fd_getDownloadPathChd (void);
 
 #endif
 

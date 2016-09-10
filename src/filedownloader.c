@@ -21,6 +21,7 @@
 #include <gtk/gtk.h>
 #include <string.h>
 #include <glib/gstdio.h>
+#include <libgen.h>
 
 #include "global.h"
 #include "config.h"
@@ -29,9 +30,27 @@
 #include "ui.h"
 #include "filedownloader.h"
 
-// NOTE: no CHD will be downloaded
+// ROM
 static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.151_ROMs/MAME_0.151_ROMs.zip/MAME 0.151 ROMs";
+
+
+// CHD
+#define CHD_AB_NAME "MAME_0.149_CHDs_A-B"
+#define CHD_C_NAME  "MAME_0.149_CHDs_C"
+#define CHD_DG_NAME "MAME_0.149_CHDs_D-G"
+#define CHD_HO_NAME "MAME_0.149_CHDs_H-N"
+#define CHD_PT_NAME "MAME_0.149_CHDs_P-S"
+#define CHD_UZ_NAME "MAME_0.149_CHDs_U-Z"
+
+static const gchar *CHD_AB = "https://archive.org/download/" CHD_AB_NAME "/" CHD_AB_NAME ".zip/";
+static const gchar *CHD_C  = "https://archive.org/download/" CHD_C_NAME  "/" CHD_C_NAME  ".zip/";
+static const gchar *CHD_DG = "https://archive.org/download/" CHD_DG_NAME "/" CHD_DG_NAME ".zip/";
+static const gchar *CHD_HO = "https://archive.org/download/" CHD_HO_NAME "/" CHD_HO_NAME ".zip/";
+static const gchar *CHD_PT = "https://archive.org/download/" CHD_PT_NAME "/" CHD_PT_NAME ".zip/";
+static const gchar *CHD_UZ = "https://archive.org/download/" CHD_UZ_NAME "/" CHD_UZ_NAME ".zip/";
+
 static gchar *fd_romPath = NULL;
+static gchar *fd_chdPath = NULL;
 
 // forward
 static void fd_infoFree (struct fd_copyInfo* copyInfo);
@@ -43,12 +62,21 @@ fd_init (void)
 	if (cfg_keyBool ("ROM_DOWNLOAD")) {
     	g_print ("rom download " SUCCESS_MSG "\n");
     	g_print ("rom provider %s\n", ROM_BASEURL);
-
-    	fd_romPath = g_strdup_printf ("%s/roms", cfg_keyStr ("WEB_PATH"));
+    	fd_romPath = g_strdup_printf ("%s/rom", cfg_keyStr ("WEB_PATH"));
+    	fd_chdPath = g_strdup_printf ("%s/chd",  cfg_keyStr ("WEB_PATH"));
 
 	    if (g_mkdir_with_parents (fd_romPath, 0700) != 0) {
 	    	g_print ("can't create %s " FAIL_MSG "\n", fd_romPath);
 	    }
+
+	    if (g_mkdir_with_parents (fd_chdPath, 0700) != 0) {
+	    	g_print ("can't create %s " FAIL_MSG "\n", fd_chdPath);
+	    }
+
+		if (cfg_keyBool ("CHD_DOWNLOAD")) {
+			g_print ("chd download " SUCCESS_MSG "\n");
+		}
+
 	}
 }
 
@@ -58,7 +86,9 @@ fd_free (void)
 	fd_downloadingItm = 0;
 	if (cfg_keyBool ("ROM_DOWNLOAD")) {
 		g_free (fd_romPath);
+		g_free (fd_chdPath);
 		fd_romPath = NULL;
+		fd_chdPath = NULL;
 	}
 }
 
@@ -112,14 +142,26 @@ fd_copyDone_cb (GObject *file, GAsyncResult *res, struct fd_copyInfo *user_data)
 }
 
 static void
-fd_infoBuild (const gchar* romname, struct fd_copyInfo* copyInfo)
+fd_infoBuildRom (const gchar* romName, struct fd_copyInfo* copyInfo)
 {
 	// source URL
-	copyInfo->iFileName = g_strdup_printf ("%s/%s.zip", ROM_BASEURL, romname);
+	copyInfo->iFileName = g_strdup_printf ("%s/%s.zip", ROM_BASEURL, romName);
     copyInfo->iFile = g_file_new_for_uri (copyInfo->iFileName);
 
     // dest FILE
-	copyInfo->oFileName = g_strdup_printf ("%s/%s.zip", fd_romPath, romname);
+	copyInfo->oFileName = g_strdup_printf ("%s/%s.zip", fd_romPath, romName);
+	copyInfo->oFile = g_file_new_for_path (copyInfo->oFileName);
+}
+
+static void
+fd_infoBuildChd (const gchar* romName, const gchar* srcRom, const gchar* destRom, struct fd_copyInfo* copyInfo)
+{
+	// source URL
+	copyInfo->iFileName = g_strdup (srcRom);
+    copyInfo->iFile = g_file_new_for_uri (copyInfo->iFileName);
+
+    // dest FILE
+	copyInfo->oFileName = g_strdup (destRom);
 	copyInfo->oFile = g_file_new_for_path (copyInfo->oFileName);
 }
 
@@ -138,15 +180,40 @@ fd_infoFree (struct fd_copyInfo* copyInfo)
 }
 
 void
-fd_download (const gchar* romname)
+fd_downloadRom (const gchar* romName)
 {
 	fd_downloadingItm++;
 
     struct fd_copyInfo *copyInfo = g_malloc0 (sizeof (struct fd_copyInfo));
 
-	fd_infoBuild (romname, copyInfo);
+	fd_infoBuildRom (romName, copyInfo);
 
-	g_print ("downloading %s from %s\n", romname, copyInfo->iFileName);
+	g_print ("downloading %s (rom) from %s\n", romName, copyInfo->iFileName);
+
+	// FIXME
+	//g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, (GFileProgressCallback) ui_progress_cb, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
+	g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, NULL, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
+}
+
+static void
+fd_downloadChd (const gchar* romName, const gchar* srcRom, const gchar* destRom)
+{
+	fd_downloadingItm++;
+
+    struct fd_copyInfo *copyInfo = g_malloc0 (sizeof (struct fd_copyInfo));
+
+	fd_infoBuildChd (romName, srcRom, destRom, copyInfo);
+
+	g_print ("downloading %s (chd) from %s\n", romName, copyInfo->iFileName);
+
+	// base dir must exist
+	gchar *dlpath = g_strdup (destRom);
+	gchar *dname  = dirname (dlpath);
+
+	if (!g_file_test (dname, G_FILE_TEST_IS_DIR)) {
+	    g_mkdir_with_parents (dname, 0700);
+	}
+	g_free (dlpath);
 
 	// FIXME
 	//g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, (GFileProgressCallback) ui_progress_cb, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
@@ -154,8 +221,132 @@ fd_download (const gchar* romname)
 }
 
 const gchar*
-fd_getDownloadPath (void)
+fd_getDownloadPathRom (void)
 {
 	return fd_romPath;
+}
+
+const gchar*
+fd_getDownloadPathChd (void)
+{
+	return fd_chdPath;
+}
+
+void
+fd_findAndDownloadChd (const gchar* romName)
+{
+// mame -listxml area51|grep "<disk name=\""
+//	<disk name="area51" sha1="3b303bc37e206a6d733935
+
+	const gchar* chdLink = NULL;
+	const gchar* chdName = NULL;
+
+	GError *error = NULL;
+	gchar  *buf = NULL;
+
+	switch (romName[0]) {
+	case 'a':
+	case 'b':
+		chdLink = CHD_AB;
+		chdName = CHD_AB_NAME;
+		break;
+
+	case 'c':
+		chdLink = CHD_C;
+		chdName = CHD_C_NAME;
+		break;
+
+	case 'd':
+	case 'e':
+	case 'f':
+	case 'g':
+		chdLink = CHD_DG;
+		chdName = CHD_DG_NAME;
+		break;
+
+	case 'h':
+	case 'i':
+	case 'j':
+	case 'k':
+	case 'l':
+	case 'm':
+	case 'n':
+	case 'o':
+		chdLink = CHD_HO;
+		chdName = CHD_HO_NAME;
+		break;
+
+	case 'p':
+	case 'q':
+	case 'r':
+	case 's':
+	case 't':
+		chdLink = CHD_PT;
+		chdName = CHD_PT_NAME;
+		break;
+
+	case 'u':
+	case 'v':
+	case 'w':
+	case 'x':
+	case 'y':
+	case 'z':
+		chdLink = CHD_UZ;
+		chdName = CHD_UZ_NAME;
+		break;
+
+	default:
+		chdLink = NULL;
+		chdName = NULL;
+	}
+
+	if (chdLink && chdName) {
+		g_print ("searching for CHD in %s\n", chdLink);
+		GFile *zipInfo = g_file_new_for_uri (chdLink);
+
+	 	if (g_file_load_contents (zipInfo, NULL, &buf, 0, NULL, &error)) {
+			gchar  *findMe = g_strdup_printf (">%s/%s/", chdName, romName);
+			gchar **strvec = g_strsplit (buf , findMe, -1);
+
+			unsigned int i = 0;
+			for (gchar **ptr = strvec; *ptr; ptr++, i++) {
+				if (i > 1) {
+					// skip invalid
+					// skip directory name
+
+					// split for </a>
+					gchar **strveca = g_strsplit (*ptr, "</a>", -1);
+
+					g_print ("CHD found: %s\n", *strveca);
+
+					// path building
+					gchar *srcRom  = g_strdup_printf ("%s%s/%s/%s", chdLink, chdName, romName, *strveca);
+					gchar *destRom = g_strdup_printf ("%s/%s/%s", fd_chdPath, romName, *strveca);
+
+					// FIXME: don't download all set of CHD
+
+					// start async downloading
+					fd_downloadChd (romName, srcRom, destRom);
+
+					g_free (srcRom);
+					g_free (destRom);
+
+					g_strfreev (strveca);
+				}
+			}
+
+			g_free (findMe);
+			g_strfreev (strvec);
+	 	}
+
+	 	if (error) {
+	 		g_print ("CHD load error: %s\n", error->message);
+	 		g_error_free (error);
+	 		error = NULL;
+	 	}
+
+	 	g_free (buf);
+	 	g_object_unref (zipInfo);
+	}
 }
 
