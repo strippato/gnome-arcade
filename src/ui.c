@@ -2155,21 +2155,35 @@ ui_afterDownload (void)
     ui_downloadDialog = NULL;
 }
 
+/*
+gboolean
+downloadDialog_cb (GtkWidget *widget)
+{
+    return FALSE;
+}
+*/
+
 void
 ui_downloadWarn (const gchar* text)
 {
+
     ui_downloadDialog = gtk_message_dialog_new (GTK_WINDOW (ui_window),
-                       GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-                       GTK_MESSAGE_WARNING,
-                       GTK_BUTTONS_NONE,
-                       "Please wait while downloading missing rom\n");
+                        GTK_DIALOG_MODAL,
+                        GTK_MESSAGE_WARNING,
+                        GTK_BUTTONS_NONE,
+                        "Please wait while downloading missing rom\n");
 
     gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (ui_downloadDialog), "%s", text);
 
-    gtk_dialog_run (GTK_DIALOG (ui_downloadDialog));
+    //g_signal_connect (ui_downloadDialog, "destroy", G_CALLBACK (downloadDialog_cb), ui_downloadDialog);
 
+    gint result = GTK_RESPONSE_DELETE_EVENT;
+
+    while (result == GTK_RESPONSE_DELETE_EVENT && GTK_IS_WIDGET (ui_downloadDialog)) {
+        gtk_dialog_run (GTK_DIALOG (ui_downloadDialog));
+    }
     // TODO: cancel button -> GTK_BUTTONS_CANCEL
-    //gtk_widget_destroy (ui_downloadDialog);
+    //gtk_widget_destroy (ui_downloadDialog); we destroy the dialog in the download callback
 }
 
 void

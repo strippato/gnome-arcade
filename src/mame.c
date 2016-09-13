@@ -210,7 +210,6 @@ mame_gameList (void)
         g_print ("%s\n", mameVersion);
 
         if (g_strcmp0 (mameVersion, cfg_keyStr ("MAME_RELEASE")) != 0) {
-            // g_print ("%s-%s\n", mameVersion , cfg_keyStr ("MAME_RELEASE"));
             g_print ("version mismatch, need a rebuild\n");
             // delete romlist/clonelist
             if (g_file_test (fileRom, G_FILE_TEST_EXISTS)) {
@@ -488,15 +487,14 @@ mame_playGame (struct rom_romItem* item, const char* clone)
             g_free (romPath);
             romPath = newRomPath;
         }
-    }
-    // FIXME: make it op-in
-//    if (cfg_keyBool ("CHD_DOWNLOAD")) {
-        if (fd_getDownloadPathChd ()) {
-            gchar *newRomPath = g_strjoin (";", romPath, fd_getDownloadPathChd (), NULL);
-            g_free (romPath);
-            romPath = newRomPath;
+        if (cfg_keyBool ("CHD_DOWNLOAD")) {
+            if (fd_getDownloadPathChd ()) {
+                gchar *newRomPath = g_strjoin (";", romPath, fd_getDownloadPathChd (), NULL);
+                g_free (romPath);
+                romPath = newRomPath;
+            }
         }
-//    }
+    }
 
     gchar *romPathQuoted = g_shell_quote (romPath);
 
@@ -593,7 +591,6 @@ mame_playGame (struct rom_romItem* item, const char* clone)
                 }
             }
             g_strfreev (vbios);
-
         }
 
         g_free (romOf);
