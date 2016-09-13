@@ -512,89 +512,103 @@ mame_playGame (struct rom_romItem* item, const char* clone)
     g_print ("playing %s\n", romName);
 
     gchar *romOf = NULL; // bios/parent
+    gboolean usrWantContinue = TRUE;
 
     if (cfg_keyBool ("ROM_DOWNLOAD")) {
 
         if (rom_isParent (romName)) {
-
-            // get the bios
-            romOf = mame_getRomOf (romName);
-            if (romOf) {
-                if (!rom_FoundInPath (romOf, fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
-                    fd_downloadRom (romOf);
-                }
-            }
-
-            // get the rom
-            if (!rom_FoundInPath (romName, fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
-                fd_downloadRom (romName);
-            }
-
-            // get device(s) bios
-            gchar **vbios = mame_getDeviceRomOf (romName);
-            if (vbios) {
-                for (int i = 0; vbios[i]; ++i) {
-                    if (!rom_FoundInPath (vbios[i], fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
-                        fd_downloadRom (vbios[i]);
-                    }
-                }
-            }
-            g_strfreev (vbios);
 
             // get chd
             if (cfg_keyBool ("CHD_DOWNLOAD")) {
                 if (mame_needChd (romName)) {
                     g_print ("WARNING: THIS ROM NEED ONE OR MORE CHD\n");
                     if (!rom_FoundInPath (romName, fd_getDownloadPathChd (), cfg_keyStr ("CHD_PATH"), NULL)) {
-                        fd_findAndDownloadChd (romName);
+                        usrWantContinue = ui_downloadAsk ();
+                        if (usrWantContinue) {
+                            fd_findAndDownloadChd (romName);
+                        }
                     }
                 }
             }
 
-        } else {
-
-            // get the bios (parent)
-            romOf = mame_getRomOf (rom_parentOf (romName));
-            if (romOf) {
-                if (!rom_FoundInPath (romOf, fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
-                    fd_downloadRom (romOf);
+            if (usrWantContinue) {
+                // get the bios
+                romOf = mame_getRomOf (romName);
+                if (romOf) {
+                    if (!rom_FoundInPath (romOf, fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
+                        fd_downloadRom (romOf);
+                    }
                 }
+
+                // get the rom
+                if (!rom_FoundInPath (romName, fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
+                    fd_downloadRom (romName);
+                }
+
+                // get device(s) bios
+                gchar **vbios = mame_getDeviceRomOf (romName);
+                if (vbios) {
+                    for (int i = 0; vbios[i]; ++i) {
+                        if (!rom_FoundInPath (vbios[i], fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
+                            fd_downloadRom (vbios[i]);
+                        }
+                    }
+                }
+                g_free (romOf);
+                g_strfreev (vbios);
+                romOf = NULL;
+                vbios = NULL;
             }
 
-            // get the rom (parent)
-            if (!rom_FoundInPath (rom_parentOf (romName), fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
-                fd_downloadRom (rom_parentOf (romName));
-            }
+        } else {
 
             // get chd
             if (cfg_keyBool ("CHD_DOWNLOAD")) {
                 if (mame_needChd (rom_parentOf (romName))) {
                     g_print ("WARNING: THIS ROM NEED ONE OR MORE CHD\n");
                     if (!rom_FoundInPath (rom_parentOf (romName), fd_getDownloadPathChd (), cfg_keyStr ("CHD_PATH"), NULL)) {
-                        fd_findAndDownloadChd (rom_parentOf (romName));
+                        usrWantContinue = ui_downloadAsk ();
+                        if (usrWantContinue) {
+                            fd_findAndDownloadChd (rom_parentOf (romName));
+                        }
                     }
                 }
             }
 
-            // get the rom (clone)
-            if (!rom_FoundInPath (romName, fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
-                fd_downloadRom (romName);
-            }
-
-            // get the device(s) bios (clone)
-            gchar **vbios = mame_getDeviceRomOf (romName);
-            if (vbios) {
-                for (int i = 0; vbios[i]; ++i) {
-                    if (!rom_FoundInPath (vbios[i], fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
-                        fd_downloadRom (vbios[i]);
+            if (usrWantContinue) {
+                // get the bios (parent)
+                romOf = mame_getRomOf (rom_parentOf (romName));
+                if (romOf) {
+                    if (!rom_FoundInPath (romOf, fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
+                        fd_downloadRom (romOf);
                     }
                 }
+
+                // get the rom (parent)
+                if (!rom_FoundInPath (rom_parentOf (romName), fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
+                    fd_downloadRom (rom_parentOf (romName));
+                }
+
+                // get the rom (clone)
+                if (!rom_FoundInPath (romName, fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
+                    fd_downloadRom (romName);
+                }
+
+                // get the device(s) bios (clone)
+                gchar **vbios = mame_getDeviceRomOf (romName);
+                if (vbios) {
+                    for (int i = 0; vbios[i]; ++i) {
+                        if (!rom_FoundInPath (vbios[i], fd_getDownloadPathRom (), cfg_keyStr ("ROM_PATH"), NULL)) {
+                            fd_downloadRom (vbios[i]);
+                        }
+                    }
+                }
+                g_free (romOf);
+                g_strfreev (vbios);
+                romOf = NULL;
+                vbios = NULL;
             }
-            g_strfreev (vbios);
         }
-
-        g_free (romOf);
-        romOf = NULL;
 
         if (fd_downloadingItm != 0) {
             ui_downloadWarn (ROM_LEGAL);
@@ -606,7 +620,7 @@ mame_playGame (struct rom_romItem* item, const char* clone)
         ui_setPlayBtnState (FALSE);
         ui_setDropBtnState (FALSE);
         ui_setToolBarState (FALSE);
-    } else {
+    } else if (usrWantContinue) {
         if (mame_run (cmdline, &pid, NULL, NULL)) {
             // disable the screen saver
             if (cfg_keyInt ("SCREENSAVER_MODE") == 1) {

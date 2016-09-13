@@ -2094,7 +2094,6 @@ ui_rebuildPopover (void)
 
         gchar *title = g_strdup_printf (" %s [%s] ", item->description, item->name);
         GtkWidget* clonelbl = gtk_label_new (title);
-        //gtk_label_set_markup (GTK_LABEL(clonelbl), title);
         gtk_container_add (GTK_CONTAINER (ui_vpopbox), clonelbl);
         g_free (title);
 
@@ -2155,33 +2154,22 @@ ui_afterDownload (void)
     ui_downloadDialog = NULL;
 }
 
-/*
-gboolean
-downloadDialog_cb (GtkWidget *widget)
-{
-    return FALSE;
-}
-*/
-
 void
 ui_downloadWarn (const gchar* text)
 {
 
     ui_downloadDialog = gtk_message_dialog_new (GTK_WINDOW (ui_window),
-                        GTK_DIALOG_MODAL,
+                        GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
                         GTK_MESSAGE_WARNING,
                         GTK_BUTTONS_NONE,
                         "Please wait while downloading missing rom\n");
 
     gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (ui_downloadDialog), "%s", text);
 
-    //g_signal_connect (ui_downloadDialog, "destroy", G_CALLBACK (downloadDialog_cb), ui_downloadDialog);
-
-    gint result = GTK_RESPONSE_DELETE_EVENT;
-
-    while (result == GTK_RESPONSE_DELETE_EVENT && GTK_IS_WIDGET (ui_downloadDialog)) {
+    while (GTK_IS_WIDGET (ui_downloadDialog)) {
         gtk_dialog_run (GTK_DIALOG (ui_downloadDialog));
     }
+
     // TODO: cancel button -> GTK_BUTTONS_CANCEL
     //gtk_widget_destroy (ui_downloadDialog); we destroy the dialog in the download callback
 }
@@ -2195,6 +2183,23 @@ ui_progress_cb (void)
     if (!tag[i]) i = 0;
 
     gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (ui_downloadDialog), "%s %s", tag [i++], ROM_LEGAL);
-    //g_print(".\n");
+}
+
+gboolean
+ui_downloadAsk (void)
+{
+    GtkWidget *dialog = gtk_message_dialog_new (GTK_WINDOW (ui_window),
+                       GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+                       GTK_MESSAGE_WARNING,
+                       GTK_BUTTONS_OK_CANCEL,
+                       "This game require one or more CHDs file\n");
+
+    gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog), "A CHDs file (Compressed Hunks of Data) represents the data from the CD, hard disk, or laser disc of the original arcade.\n"\
+                                                                           "CHDs can be really big and slow to download.\n");
+
+    int result = gtk_dialog_run (GTK_DIALOG (dialog));
+    gtk_widget_destroy (dialog);
+
+    return (result == GTK_RESPONSE_OK ? TRUE : FALSE);
 }
 

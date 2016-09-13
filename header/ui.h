@@ -68,6 +68,7 @@ gboolean ui_invalidateDrawingArea (void);
 
 void ui_afterDownload (void);
 void ui_downloadWarn (const gchar* text);
+gboolean ui_downloadAsk (void);
 void ui_progress_cb (void);
 
 
