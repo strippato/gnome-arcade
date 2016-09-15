@@ -33,6 +33,7 @@
 #include "app.h"
 #include "global.h"
 #include "rom.h"
+#include "inforom.h"
 #include "mame.h"
 #include "view.h"
 #include "ui.h"
@@ -662,40 +663,13 @@ mame_getRomOf (const gchar* romName)
     // return the romof attribute
     //<machine name="neocup98" sourcefile="neodriv.hxx" romof="neogeo">
 
-    const int MAXSIZE = 255;
-    char buf[MAXSIZE];
+    struct inforom_info *info = mame_getInfoRom (romName);
 
-    gboolean quit = FALSE;
-    gchar *line = NULL;
-    gchar *ret = NULL;
+    gchar *romOf = g_strdup (info->romOf);
 
-    gchar *findstr = g_strdup_printf ("<machine name=\"%s\"", romName);
-    gchar *cmdLine = g_strdup_printf ("%s -lx %s", MAME_EXE, romName);
+    mame_freeInfoRom (info);
 
-    FILE *file = popen (cmdLine, "r");
-
-    while (fgets (buf, MAXSIZE - 1, file) && !quit) {
-        line = g_strndup (buf, strlen (buf) - 1);
-
-        if (g_strrstr (line, findstr)) {
-            quit = TRUE;
-            // now searching for romof="
-            gchar* tag = g_strrstr (line, "romof=\"");
-            if (tag) {
-                gchar **lineVec = g_strsplit (tag, "\"", -1);
-                ret = g_strdup (lineVec[1]);
-                g_strfreev (lineVec);
-            }
-        }
-        g_free (line);
-    }
-
-    pclose (file);
-
-    g_free (cmdLine);
-    g_free (findstr);
-
-    return ret;
+    return romOf;
 }
 
 
@@ -733,7 +707,6 @@ mame_getDeviceRomOf (const gchar* romName)
         </input>
     </machine>
 */
-
 
     const int MAXSIZE = 255;
     char buf[MAXSIZE];
@@ -811,27 +784,143 @@ mame_getDeviceRomOf (const gchar* romName)
 gboolean
 mame_needChd (const gchar* romName)
 {
+    struct inforom_info *info = mame_getInfoRom (romName);
+
+    gboolean needChd = info->chd;
+
+    mame_freeInfoRom (info);
+
+    return needChd;
+}
+
+struct inforom_info*
+mame_getInfoRom (const gchar* romName)
+{
+    // description
+    const gchar *TAG_DESCRIPTION = "<description>";
+    // chd
+    const gchar *TAG_CHD = "<disk name=\"";
+    // src
+    const gchar *TAG_SRC = "sourcefile=\"";
+    // romof
+    const gchar *TAG_ROMOF = "romof=\"";
+    // year
+    const gchar *TAG_YEAR = "<year>";
+    // manufacturer
+    const gchar *TAG_MANUFACTURER = "<manufacturer>";
+
+    gboolean foundMachine = FALSE;
+    gchar *romof   = NULL;
+    gchar *srcfile = NULL;
+    gchar *description = NULL;
+    gchar *year = NULL;
+    gchar *manufacturer = NULL;
     gboolean needChd = FALSE;
 
     const int MAXSIZE = 255;
     char buf[MAXSIZE];
 
-    const gchar *chdTag = "<disk name=\"";
+    gchar **lineVec = NULL;
 
     gchar *cmdLine = g_strdup_printf ("%s -lx %s", MAME_EXE, romName);
-
     FILE *file = popen (cmdLine, "r");
 
+
+    // romof
+    gchar *machineTag = g_strdup_printf ("<machine name=\"%s\"", romName);
+
     while (fgets (buf, MAXSIZE - 1, file)) {
-        if (g_strrstr (buf, chdTag)) {
+
+        gchar *line = g_strndup (buf, strlen (buf) - 1);
+        if (foundMachine) {
+
+            // description
+            if (!description) {
+                // now searching for description
+                gchar* tagdesc = g_strrstr (line, TAG_DESCRIPTION);
+                if (tagdesc) {
+                    lineVec = g_strsplit (tagdesc, ">", -1);
+                    description = g_strndup (lineVec[1], strlen (lineVec[1]) - strlen (TAG_DESCRIPTION));
+                    g_strfreev (lineVec);
+                }
+            }
+
+            // year
+            if (!year) {
+                // now searching for year
+                gchar* tagyear = g_strrstr (line, TAG_YEAR);
+                if (tagyear) {
+                    lineVec = g_strsplit (tagyear, ">", -1);
+                    year = g_strndup (lineVec[1], strlen (lineVec[1]) - strlen (TAG_YEAR));
+                    g_strfreev (lineVec);
+                }
+            }
+
+            // manufacturer
+            if (!manufacturer) {
+                // now searching for manufacturer
+                gchar* tagmanufacturer = g_strrstr (line, TAG_MANUFACTURER);
+                if (tagmanufacturer) {
+                    lineVec = g_strsplit (tagmanufacturer, ">", -1);
+                    manufacturer = g_strndup (lineVec[1], strlen (lineVec[1]) - strlen (TAG_MANUFACTURER));
+                    g_strfreev (lineVec);
+                }
+            }
+
+        }
+
+        if (g_strrstr (line, machineTag)) {
+            foundMachine = TRUE;
+
+            // srcfile
+            if (!srcfile) {
+                // now searching for src
+                gchar* tagsrc = g_strrstr (line, TAG_SRC);
+                if (tagsrc) {
+                    lineVec = g_strsplit (tagsrc, "\"", -1);
+                    srcfile = g_strdup (lineVec[1]);
+                    g_strfreev (lineVec);
+                }
+            }
+
+            // romof
+            if (!romof) {
+                // now searching for romof
+                gchar* tagrom = g_strrstr (line, TAG_ROMOF);
+                if (tagrom) {
+                    lineVec = g_strsplit (tagrom, "\"", -1);
+                    romof = g_strdup (lineVec[1]);
+                    g_strfreev (lineVec);
+                }
+            }
+            g_free (line);
+        }
+
+        // Chd
+        if (g_strrstr (buf, TAG_CHD)) {
              needChd = TRUE;
-             break;
         }
     }
 
     pclose (file);
+
+    struct inforom_info *info = inforom_build (romName, description, manufacturer, year, romof, srcfile, needChd);
+
     g_free (cmdLine);
 
-    return needChd;
+    g_free (machineTag);
+    g_free (romof);
+    g_free (srcfile);
+    g_free (description);
+    g_free (year);
+    g_free (manufacturer);
+
+    return info;
+}
+
+void
+mame_freeInfoRom (struct inforom_info *info)
+{
+    inforom_free (info);
 }
 

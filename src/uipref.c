@@ -40,11 +40,6 @@ uipref_showDialog (GSimpleAction *simple, GVariant *parameter, gpointer user_dat
 	static GtkWidget *dialog = NULL;
 	GtkWidget *label;
 
-	if (dialog) {
-        gtk_window_present (GTK_WINDOW (dialog));
-        return;
-    }
-
 	GtkWindow *win = gtk_application_get_active_window (app_application);
 
 	dialog = gtk_dialog_new_with_buttons ("Preferences",

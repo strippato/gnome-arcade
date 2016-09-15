@@ -18,22 +18,25 @@
  *
  */
 
-/* mame.h */
-#ifndef MAME_H
-#define MAME_H
 
-void     mame_gameList  (void);
-gboolean mame_playGame  (struct rom_romItem* item, const char* clone);
-gboolean mame_isRunning (void);
-gchar*   mame_getRomOf  (const gchar* romName);
-gchar**  mame_getDeviceRomOf (const gchar* romName);
-gboolean mame_needChd (const gchar* romName);
+/* inforom.h */
+#ifndef INFOROM_H
+#define INFOROM_H
 
-struct inforom_info *mame_getInfoRom (const gchar* romName);
-void   mame_freeInfoRom (struct inforom_info *info);
+struct inforom_info {
 
-#define MAME_LIST_FULL_FILE   "listfull.txt"
-#define MAME_LIST_CLONES_FILE "listclones.txt"
+	gchar *name;
+	gchar *description;
+	gchar *manufacturer;
+	gchar *year;
+	gchar *romOf;
+	gchar *srcFile;
+	gboolean chd;
+};
+
+struct inforom_info *inforom_build (const gchar *romName, const gchar* description, const gchar* manufacturer, const gchar* year, const gchar* romOf, const gchar* srcFile,gboolean chd);
+void inforom_free (struct inforom_info *info);
 
 #endif
+
 
