@@ -2256,7 +2256,7 @@ ui_romInfo_cb (void)
     GtkWidget *label;
 
     // Description
-    label = gtk_label_new ("Title: ");
+    label = gtk_label_new ("Title:");
     gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
     gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
     gtk_grid_attach (GTK_GRID (table), label, 0, 0, 1, 1);
@@ -2268,7 +2268,7 @@ ui_romInfo_cb (void)
     gtk_grid_attach (GTK_GRID (table), label, 1, 0, 1, 1);
 
     // romname
-    label = gtk_label_new ("Name: ");
+    label = gtk_label_new ("Name:");
     gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
     gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
     gtk_grid_attach (GTK_GRID (table), label, 0, 1, 1, 1);
@@ -2280,7 +2280,7 @@ ui_romInfo_cb (void)
     gtk_grid_attach (GTK_GRID (table), label, 1, 1, 1, 1);
 
     // Year
-    label = gtk_label_new ("Year: ");
+    label = gtk_label_new ("Year:");
     gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
     gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
     gtk_grid_attach (GTK_GRID (table), label, 0, 2, 1, 1);
@@ -2292,7 +2292,7 @@ ui_romInfo_cb (void)
     gtk_grid_attach (GTK_GRID (table), label, 1, 2, 1, 1);
 
     // manufacturer
-    label = gtk_label_new ("Manufacturer: ");
+    label = gtk_label_new ("Manufacturer:");
     gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
     gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
     gtk_grid_attach (GTK_GRID (table), label, 0, 3, 1, 1);
@@ -2304,31 +2304,31 @@ ui_romInfo_cb (void)
     gtk_grid_attach (GTK_GRID (table), label, 1, 3, 1, 1);
 
     // rom of
-    label = gtk_label_new ("Rom of: ");
+    label = gtk_label_new ("Rom of:");
     gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
     gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
     gtk_grid_attach (GTK_GRID (table), label, 0, 4, 1, 1);
 
-    label = gtk_label_new (info->romOf);
+    label = gtk_label_new (info->romOf ? info->romOf : "✗");
     gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
     gtk_widget_set_hexpand (label, TRUE);
     gtk_widget_set_margin_end (GTK_WIDGET (label), 10);
     gtk_grid_attach (GTK_GRID (table), label, 1, 4, 1, 1);
 
     // CHD
-    label = gtk_label_new ("Chd: ");
+    label = gtk_label_new ("Chd:");
     gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
     gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
     gtk_grid_attach (GTK_GRID (table), label, 0, 5, 1, 1);
 
-    label = gtk_label_new (info->chd ? "Yes" : "No");
+    label = gtk_label_new (info->chd ? "✓" : "✗");
     gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
     gtk_widget_set_hexpand (label, TRUE);
     gtk_widget_set_margin_end (GTK_WIDGET (label), 10);
     gtk_grid_attach (GTK_GRID (table), label, 1, 5, 1, 1);
 
     // source
-    label = gtk_label_new ("Source: ");
+    label = gtk_label_new ("Source:");
     gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
     gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
     gtk_grid_attach (GTK_GRID (table), label, 0, 6, 1, 1);
@@ -2340,7 +2340,7 @@ ui_romInfo_cb (void)
     gtk_grid_attach (GTK_GRID (table), label, 1, 6, 1, 1);
 
     // Tag
-    label = gtk_label_new ("Tag: ");
+    label = gtk_label_new ("Tag:");
     gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
     gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
     gtk_grid_attach (GTK_GRID (table), label, 0, 7, 1, 1);
@@ -2348,8 +2348,10 @@ ui_romInfo_cb (void)
     gchar rank[3 * ROM_MAXRANK + 2 + 1];
     if (pref_getPreferred (rom_getItemName (item))) {
         g_utf8_strncpy (rank, "♥ ★★★★★", 2 + pref_getRank (rom_getItemName (item)));
-    } else {
+    } else if (pref_getRank (rom_getItemName (item)) > 0) {
         g_utf8_strncpy (rank, "★★★★★", pref_getRank (rom_getItemName (item)));
+    } else {
+        g_utf8_strncpy (rank, "✗", 1);
     }
 
     label = gtk_label_new (rank);
@@ -2359,7 +2361,7 @@ ui_romInfo_cb (void)
     gtk_grid_attach (GTK_GRID (table), label, 1, 7, 1, 1);
 
     // played
-    label = gtk_label_new ("Played: ");
+    label = gtk_label_new ("Played:");
     gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
     gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
     gtk_grid_attach (GTK_GRID (table), label, 0, 8, 1, 1);
@@ -2368,7 +2370,7 @@ ui_romInfo_cb (void)
     gchar *text;
     switch (nplay) {
     case 0:
-        text = g_strdup_printf ("never");
+        text = g_strdup_printf ("✗");
         break;
     case 1:
         text = g_strdup_printf ("%i time", nplay);
