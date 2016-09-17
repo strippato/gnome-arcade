@@ -27,6 +27,7 @@ gdk 3.0
 gdk-pixbuf-2.0
 libevdev-1.4.5
 xdg-utils (screen saver support)
+vlc-devel-3.0.0
 ```
 
 **Author**
@@ -34,5 +35,5 @@ xdg-utils (screen saver support)
 
 **Thanks**
  * [Antopisa] (http://www.progettosnaps.net) for providing [category.ini] (http://www.progettosnaps.net/MAME/pS_category.zip)
- 
- 
+
+
