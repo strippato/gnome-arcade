@@ -252,8 +252,8 @@ mame_gameList (void)
     gchar* romPath = g_strdup (cfg_keyStr ("ROM_PATH"));
     gchar* romChd = g_strdup (cfg_keyStr ("CHD_PATH"));
 
-    g_assert (g_file_test (romPath, G_FILE_TEST_IS_DIR));
-    g_assert (g_file_test (romChd, G_FILE_TEST_IS_DIR));
+//   g_assert (g_file_test (romPath, G_FILE_TEST_IS_DIR));
+//   g_assert (g_file_test (romChd, G_FILE_TEST_IS_DIR));
 
     gboolean romListCreated = FALSE;
 
@@ -488,12 +488,12 @@ mame_playGame (struct rom_romItem* item, const char* clone)
             g_free (romPath);
             romPath = newRomPath;
         }
-        if (cfg_keyBool ("CHD_DOWNLOAD")) {
-            if (fd_getDownloadPathChd ()) {
-                gchar *newRomPath = g_strjoin (";", romPath, fd_getDownloadPathChd (), NULL);
-                g_free (romPath);
-                romPath = newRomPath;
-            }
+    }
+    if (cfg_keyBool ("CHD_DOWNLOAD")) {
+        if (fd_getDownloadPathChd ()) {
+            gchar *newRomPath = g_strjoin (";", romPath, fd_getDownloadPathChd (), NULL);
+            g_free (romPath);
+            romPath = newRomPath;
         }
     }
 
