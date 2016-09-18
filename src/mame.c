@@ -252,8 +252,8 @@ mame_gameList (void)
     gchar* romPath = g_strdup (cfg_keyStr ("ROM_PATH"));
     gchar* romChd = g_strdup (cfg_keyStr ("CHD_PATH"));
 
-//   g_assert (g_file_test (romPath, G_FILE_TEST_IS_DIR));
-//   g_assert (g_file_test (romChd, G_FILE_TEST_IS_DIR));
+    g_assert (g_file_test (romPath, G_FILE_TEST_IS_DIR));
+    g_assert (g_file_test (romChd, G_FILE_TEST_IS_DIR));
 
     gboolean romListCreated = FALSE;
 
