@@ -28,9 +28,10 @@
 #include "global.h"
 #include "vlc.h"
 
-static libvlc_instance_t     *vlc    = NULL;
-static libvlc_media_player_t *vlc_mp = NULL;
-static libvlc_media_t        *vlc_m  = NULL;
+static libvlc_instance_t      *vlc    = NULL;
+static libvlc_media_player_t  *vlc_mp = NULL;
+static libvlc_media_t         *vlc_m  = NULL;
+static libvlc_event_manager_t *vlc_evm = NULL;
 
 static char const *argv[] = { "--no-xlib" };
 static int argc = sizeof (argv) / sizeof (*argv);
@@ -42,49 +43,84 @@ void
 vlc_init (void)
 {
     g_assert (!vlc);
-
     vlc = libvlc_new (argc, argv);
+    g_assert (vlc);
 }
 
 void
 vlc_free (void)
 {
     g_assert (vlc);
-
     libvlc_release (vlc);
     vlc = NULL;
+}
+
+static gboolean
+vlc_mainThread_cb (void)
+{
+    if (!vlc)    return FALSE;
+    if (!vlc_mp) return FALSE;
+    if (!vlc_m)  return FALSE;
+
+    if (libvlc_media_player_is_playing (vlc_mp) == 1) return FALSE;
+
+    // restart player
+    libvlc_media_player_set_media (vlc_mp, vlc_m);
+    libvlc_media_player_play (vlc_mp);
+
+    // disable callback
+    return FALSE;
+}
+
+static void
+vlc_end_cb (void)
+{
+    // VLC callback: don't make any call to libvlc !
+    // go to main thread
+    g_idle_add ((GSourceFunc) vlc_mainThread_cb, NULL);
 }
 
 void
 vlc_playVideo (const gchar* romName, GtkWidget* widget)
 {
-    if (vlc_m) return;
-    if (vlc_mp) return;
+    if (vlc_m)   return;
+    if (vlc_mp)  return;
+    if (vlc_evm) return;
 
     gchar *videoUrl = g_strdup_printf ("%s%s%s", VLC_BASEURL, romName, VLC_EXTENSION);
 
     vlc_m = libvlc_media_new_location (vlc, videoUrl);
     vlc_mp = libvlc_media_player_new_from_media (vlc_m);
-
-    //char *title = libvlc_media_get_meta (vlc_m, libvlc_meta_Title);
-    //g_print ("vlc title:%s url:%s\n", title, videoUrl);
-
+    vlc_evm = libvlc_media_player_event_manager (vlc_mp);
     libvlc_media_player_set_xwindow (vlc_mp, GDK_WINDOW_XID (gtk_widget_get_window (widget)));
 
+    if (libvlc_event_attach (vlc_evm, libvlc_MediaPlayerEndReached, (libvlc_callback_t) vlc_end_cb, NULL) != 0) {
+        g_print ("Vlc: can't register callback " FAIL_MSG "\n");
+    }
+
     libvlc_media_player_play (vlc_mp);
-
-    libvlc_media_release (vlc_m);
-    vlc_m = NULL;
-
     g_free (videoUrl);
 }
 
 void
 vlc_stopVideo (void)
 {
+    if (!vlc_m) return;
     if (!vlc_mp) return;
 
-    libvlc_media_player_stop (vlc_mp);
+    if (libvlc_media_player_is_playing (vlc_mp) == 0) {
+        libvlc_media_player_stop (vlc_mp);
+    }
+
+    if (vlc_evm) {
+        libvlc_event_detach (vlc_evm, libvlc_MediaPlayerEndReached, (libvlc_callback_t) vlc_end_cb, NULL);
+        vlc_evm = NULL;
+    };
+
+    libvlc_media_release (vlc_m);
     libvlc_media_player_release (vlc_mp);
+
+    vlc_m = NULL;
     vlc_mp = NULL;
 }
+
