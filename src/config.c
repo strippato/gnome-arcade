@@ -45,22 +45,22 @@ cfg_fillDefaultConfig (void)
 
 	g_hash_table_insert (cfg_default, g_strdup ("USE_DARK_THEME"), g_strdup ("1"));
 
-	g_hash_table_insert (cfg_default, g_strdup ("ROM_PATH"), g_strdup ("/usr/share/gnome-arcade/data/rom/"));
-	g_hash_table_insert (cfg_default, g_strdup ("CHD_PATH"), g_strdup ("/usr/share/gnome-arcade/data/chd/"));
-	g_hash_table_insert (cfg_default, g_strdup ("VIDEO_PATH"), g_strdup ("/usr/share/gnome-arcade/data/video/"));
+	g_hash_table_insert (cfg_default, g_strdup ("ROM_PATH"), g_strdup ("/usr/share/gnome-arcade/data/rom"));
+	g_hash_table_insert (cfg_default, g_strdup ("CHD_PATH"), g_strdup ("/usr/share/gnome-arcade/data/chd"));
+	g_hash_table_insert (cfg_default, g_strdup ("VIDEO_PATH"), g_strdup ("/usr/share/gnome-arcade/data/video"));
 
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_SIZE_W"), g_strdup ("210"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_SIZE_H"), g_strdup ("210"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_KEEP_ASPECT_RATIO"), g_strdup ("1"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_TITLE_CENTERED"), g_strdup ("1"));
-	g_hash_table_insert (cfg_default, g_strdup ("TILE_PATH"), g_strdup ("/usr/share/gnome-arcade/data/tile/"));
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_PATH"), g_strdup ("/usr/share/gnome-arcade/data/tile"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_BORDER_DYNAMIC"), g_strdup ("1"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_SHORT_DESCRIPTION"), g_strdup ("1"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_SHORT_DESCRIPTION_HIDE_PREFIX"), g_strdup ("1"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_SHADOW"), g_strdup ("1"));
 
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_PROVIDER"), g_strdup ("http://www.progettoemma.net/snap/%s/0000.png"));
-	g_hash_table_insert (cfg_default, g_strdup ("WEB_PATH"), g_build_filename (g_get_home_dir (), "gnome-arcade/data/www/", NULL));
+	g_hash_table_insert (cfg_default, g_strdup ("WEB_PATH"), g_build_filename (g_get_home_dir (), "gnome-arcade/data/www", NULL));
 
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_DOWNLOAD"), g_strdup ("1"));
 	g_hash_table_insert (cfg_default, g_strdup ("ROM_DOWNLOAD"), g_strdup ("1"));
@@ -150,7 +150,7 @@ cfg_createDefaultConfigFile (void)
 		g_key_file_set_string (keyFile, CFG_SECTION, (gchar*) key, (gchar*) value);
 	}
 
-	g_key_file_set_comment (keyFile, CFG_SECTION, "WEB_PROVIDER", "WEB_PROVIDER\n" \
+	g_key_file_set_comment (keyFile, CFG_SECTION, "TILE_PROVIDER", "TILE_PROVIDER\n" \
 																  	"http://www.progettoemma.net/snap/%s/0000.png\n" \
 																  	"http://www.progettoemma.net/snap/%s/title.png\n" \
 																  	"http://www.progettoemma.net/snap/%s/flyer.png\n" \

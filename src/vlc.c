@@ -37,7 +37,7 @@ static libvlc_event_manager_t *vlc_evm = NULL;
 static char const *argv[] = { "--no-xlib" };
 static int argc = sizeof (argv) / sizeof (*argv);
 
-static const gchar *VLC_BASEURL   = "http://www.progettosnaps.net/videosnaps/mp4/";
+static const gchar *VLC_BASEURL   = "http://www.progettosnaps.net/videosnaps/mp4";
 static const gchar *VLC_EXTENSION = ".mp4";
 
 void
@@ -89,7 +89,7 @@ vlc_playVideo (const gchar* romName, GtkWidget* widget)
     if (vlc_mp)  return;
     if (vlc_evm) return;
 
-    gchar *videoUrl  = g_strdup_printf ("%s%s%s", VLC_BASEURL, romName, VLC_EXTENSION);
+    gchar *videoUrl  = g_strdup_printf ("%s/%s%s", VLC_BASEURL, romName, VLC_EXTENSION);
     gchar *videoFile = g_strdup_printf ("%s/%s%s", cfg_keyStr ("VIDEO_PATH"), romName, VLC_EXTENSION);
 
     if (g_file_test (videoFile, G_FILE_TEST_EXISTS)) {

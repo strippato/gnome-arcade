@@ -59,22 +59,23 @@ void
 fd_init (void)
 {
 	fd_downloadingItm = 0;
+
 	if (cfg_keyBool ("ROM_DOWNLOAD")) {
     	g_print ("rom download " SUCCESS_MSG "\n");
     	g_print ("rom provider %s\n", ROM_BASEURL);
     	fd_romPath = g_strdup_printf ("%s/rom", cfg_keyStr ("WEB_PATH"));
-    	fd_chdPath = g_strdup_printf ("%s/chd",  cfg_keyStr ("WEB_PATH"));
 
 	    if (g_mkdir_with_parents (fd_romPath, 0700) != 0) {
 	    	g_print ("can't create %s " FAIL_MSG "\n", fd_romPath);
 	    }
+	}
+
+	if (cfg_keyBool ("CHD_DOWNLOAD")) {
+		g_print ("chd download " SUCCESS_MSG "\n");
+    	fd_chdPath = g_strdup_printf ("%s/chd",  cfg_keyStr ("WEB_PATH"));
 
 	    if (g_mkdir_with_parents (fd_chdPath, 0700) != 0) {
 	    	g_print ("can't create %s " FAIL_MSG "\n", fd_chdPath);
-	    }
-
-		if (cfg_keyBool ("CHD_DOWNLOAD")) {
-			g_print ("chd download " SUCCESS_MSG "\n");
 		}
 
 	}
@@ -84,10 +85,14 @@ void
 fd_free (void)
 {
 	fd_downloadingItm = 0;
+
 	if (cfg_keyBool ("ROM_DOWNLOAD")) {
 		g_free (fd_romPath);
-		g_free (fd_chdPath);
 		fd_romPath = NULL;
+	}
+
+	if (cfg_keyBool ("CHD_DOWNLOAD")) {
+		g_free (fd_chdPath);
 		fd_chdPath = NULL;
 	}
 }
