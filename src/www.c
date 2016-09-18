@@ -49,16 +49,16 @@ www_init (void)
     */
     www_tilePath = g_strdup (cfg_keyStr ("WEB_PATH"));
 
-    if (cfg_keyBool ("WEB_DOWNLOAD")) {
+    if (cfg_keyBool ("TILE_DOWNLOAD")) {
 		www_autoDownload = TRUE;
     } else {
 		www_autoDownload = FALSE;
     }
-	g_print ("web download %s\n", www_autoDownload ? SUCCESS_MSG : FAIL_MSG);
+	g_print ("tile download %s\n", www_autoDownload ? SUCCESS_MSG : FAIL_MSG);
 
-	www_webProvider = cfg_keyStr ("WEB_PROVIDER");
+	www_webProvider = cfg_keyStr ("TILE_PROVIDER");
 	if (www_autoDownload) {
-		g_print ("web provider %s\n", www_webProvider);
+		g_print ("tile provider %s\n", www_webProvider);
 	}
 
     if (g_mkdir_with_parents (www_tilePath, 0700) != 0) {
@@ -168,4 +168,3 @@ www_getFileNameWWW (const gchar* romName)
 {
 	return g_strdup_printf ("%s/%s.%s", www_tilePath, romName, WWW_EXTENSION_PNG);
 }
-

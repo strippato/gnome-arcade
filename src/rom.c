@@ -183,6 +183,9 @@ rom_init (void)
     rom_parentTable = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_assert (rom_parentTable);
 
+//    g_print ("rom download %s\n", cfg_keyBool ("ROM_DOWNLOAD") ? SUCCESS_MSG : FAIL_MSG);
+//    g_print ("chd download %s\n", cfg_keyBool ("CHD_DOWNLOAD") ? SUCCESS_MSG : FAIL_MSG);
+
     blist_init ();
  }
 

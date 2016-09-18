@@ -26,6 +26,7 @@
 #include <vlc/vlc.h>
 
 #include "global.h"
+#include "config.h"
 #include "vlc.h"
 
 static libvlc_instance_t      *vlc    = NULL;
@@ -44,6 +45,7 @@ vlc_init (void)
 {
     g_assert (!vlc);
     vlc = libvlc_new (argc, argv);
+    g_print ("video download %s\n", cfg_keyBool ("VIDEO_DOWNLOAD") ? SUCCESS_MSG : FAIL_MSG);
     g_assert (vlc);
 }
 
@@ -87,11 +89,27 @@ vlc_playVideo (const gchar* romName, GtkWidget* widget)
     if (vlc_mp)  return;
     if (vlc_evm) return;
 
-    gchar *videoUrl = g_strdup_printf ("%s%s%s", VLC_BASEURL, romName, VLC_EXTENSION);
+    gchar *videoUrl  = g_strdup_printf ("%s%s%s", VLC_BASEURL, romName, VLC_EXTENSION);
+    gchar *videoFile = g_strdup_printf ("%s/%s%s", cfg_keyStr ("VIDEO_PATH"), romName, VLC_EXTENSION);
 
-    vlc_m = libvlc_media_new_location (vlc, videoUrl);
+    if (g_file_test (videoFile, G_FILE_TEST_EXISTS)) {
+        vlc_m = libvlc_media_new_path (vlc, videoFile);
+    } else {
+        if (cfg_keyBool ("VIDEO_DOWNLOAD")) {
+            vlc_m = libvlc_media_new_location (vlc, videoUrl);
+        } else {
+            // don't download
+            g_free (videoUrl);
+            g_free (videoFile);
+            return;
+        }
+    }
+    g_free (videoUrl);
+    g_free (videoFile);
+
     vlc_mp = libvlc_media_player_new_from_media (vlc_m);
     vlc_evm = libvlc_media_player_event_manager (vlc_mp);
+
     libvlc_media_player_set_xwindow (vlc_mp, GDK_WINDOW_XID (gtk_widget_get_window (widget)));
 
     if (libvlc_event_attach (vlc_evm, libvlc_MediaPlayerEndReached, (libvlc_callback_t) vlc_end_cb, NULL) != 0) {
@@ -99,7 +117,7 @@ vlc_playVideo (const gchar* romName, GtkWidget* widget)
     }
 
     libvlc_media_player_play (vlc_mp);
-    g_free (videoUrl);
+
 }
 
 void

@@ -74,7 +74,6 @@ app_startup (void)
     if (cfg_keyInt ("SCREENSAVER_MODE") == 2) {
         ssaver_suspend ();
     }
-
 }
 
 
