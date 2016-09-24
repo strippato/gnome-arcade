@@ -1086,7 +1086,9 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
             if (tileIdx >= 0) {
                 ui_focusAt (tileIdx);
                 ui_drawingAreaShowItem (ui_viewModel->focus);
-                ui_romInfo_cb ();
+                if (!ui_inSelectState ()) {
+                    ui_romInfo_cb ();
+                }
             }
             break;
         }
