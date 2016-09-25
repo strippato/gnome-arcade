@@ -29,7 +29,6 @@
 #include "view.h"
 #include "rom.h"
 #include "app.h"
-#include "view.h"
 #include "ui.h"
 #include "inforom.h"
 #include "mame.h"
@@ -148,7 +147,6 @@ static gboolean ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, g
 static void ui_drawingArea_search_cb (const gchar* car, gboolean forward);
 static gboolean ui_cmdGlobal (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 static void ui_rebuildPopover (void);
-static void ui_romInfo_cb (void);
 
 __attribute__ ((hot))
 static inline void
@@ -684,7 +682,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
         case GDK_KEY_I:
         case GDK_KEY_i:
             if (!ui_inSelectState ()) {
-                ui_romInfo_cb ();
+                inforom_show (view_getItem (ui_viewModel, ui_viewModel->focus));
             }
             break;
 
@@ -737,7 +735,7 @@ ui_drawingAreaKeyPressEvent (GtkWidget *widget, GdkEventKey *event, gpointer dat
 
         case GDK_KEY_space:
             if (!ui_inSelectState ()) {
-                ui_romInfo_cb ();
+                inforom_show (view_getItem (ui_viewModel, ui_viewModel->focus));
             } else {
                 item = view_getItem (ui_viewModel, ui_viewModel->focus);
                 int rnk = rom_getItemRank (item) + 1;
@@ -1087,7 +1085,7 @@ ui_drawingAreaButtonPress (GtkWidget *widget, GdkEventButton *event, gpointer da
                 ui_focusAt (tileIdx);
                 ui_drawingAreaShowItem (ui_viewModel->focus);
                 if (!ui_inSelectState ()) {
-                    ui_romInfo_cb ();
+                    inforom_show (view_getItem (ui_viewModel, ui_viewModel->focus));
                 }
             }
             break;
@@ -1355,8 +1353,6 @@ ui_showAbout (GSimpleAction *action, GVariant *parameter, gpointer user_data)
                          "version", APP_VERSION,
                          "authors", app_authors,
                          "artists", app_artists,
-//                         "documenters", app_documenters,
-//                         "translator-credits", APP_TRANSLATORS,
                          "comments", APP_DESCRIPTION,
                          "copyright", APP_COPYRIGHT,
                          "website", APP_WEB,
@@ -1535,7 +1531,7 @@ ui_init (void)
     gtk_button_set_image (GTK_BUTTON (ui_romInfoBtn), GTK_WIDGET (imgRomInfo));
     gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_romInfoBtn);
     g_signal_connect (G_OBJECT (ui_romInfoBtn), "key_press_event", G_CALLBACK (ui_cmdGlobal), NULL);
-    g_signal_connect (G_OBJECT (ui_romInfoBtn), "clicked", G_CALLBACK (ui_romInfo_cb), NULL);
+    g_signal_connect (G_OBJECT (ui_romInfoBtn), "clicked", G_CALLBACK (inforom_show), NULL);
     gtk_widget_set_focus_on_click (GTK_WIDGET (ui_romInfoBtn), FALSE);
 
 
@@ -2084,7 +2080,7 @@ ui_cmdGlobal (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
         switch (event->keyval) {
         case GDK_KEY_I:
         case GDK_KEY_i:
-            ui_romInfo_cb ();
+            inforom_show (view_getItem (ui_viewModel, ui_viewModel->focus));
             break;
         case GDK_KEY_G:
         case GDK_KEY_g:
@@ -2250,225 +2246,3 @@ ui_downloadAsk (void)
     return (result == GTK_RESPONSE_OK ? TRUE : FALSE);
 }
 
-void
-ui_cmbSelectItem_cb (GtkWidget *sender, GtkWidget *da)
-{
-    GtkComboBox *cmb = GTK_COMBO_BOX (sender);
-
-    gchar *itm = gtk_combo_box_text_get_active_text (GTK_COMBO_BOX_TEXT (cmb));
-
-    // get the rom name
-    gchar **vclone = g_strsplit_set (itm, "[]", -1);
-    gchar **ptrTxt = NULL;
-
-    for (ptrTxt = vclone; *ptrTxt; ++ptrTxt) {}
-
-    gchar *romName = g_strdup (*(ptrTxt-2));
-    g_print ("preview of %s\n", romName);
-
-    vlc_stopVideo ();
-    vlc_playVideo (romName, da);
-
-    g_strfreev (vclone);
-    g_free (romName);
-    g_free (itm);
-}
-
-static void
-ui_romInfo_cb (void)
-{
-    if (!ui_viewModel) return;
-    if (ui_viewModel->romCount <= 0) return;
-
-    struct rom_romItem *item = view_getItem (ui_viewModel, ui_viewModel->focus);
-
-    struct inforom_info *info = mame_getInfoRom (rom_getItemName (item));
-    GtkWindow *win = gtk_application_get_active_window (app_application);
-
-    GtkWidget *dialog = gtk_dialog_new_with_buttons ("Rom information",
-                                        GTK_WINDOW (win),
-                                        GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-                                        NULL, NULL);
-
-    GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
-    GtkWidget *da = gtk_drawing_area_new ();
-    GtkWidget *cmbItem = gtk_combo_box_text_new ();
-
-    gchar *itm = g_strdup_printf ("%s [%s]", info->description, info->name);
-    gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (cmbItem), NULL, itm);
-    g_free (itm);
-    gtk_combo_box_set_active (GTK_COMBO_BOX (cmbItem), 0);
-
-    g_signal_connect (GTK_WIDGET (cmbItem), "changed", G_CALLBACK (ui_cmbSelectItem_cb), da);
-
-    if (rom_isParent (info->name)) {
-        if (g_hash_table_contains (rom_parentTable, info->name)) {
-            gchar *l = g_hash_table_lookup (rom_parentTable, info->name);
-
-            gchar **strv = g_strsplit (l, "\n", -1);
-            gchar **ptr = NULL;
-
-            for (ptr = strv; *ptr; ++ptr) {
-
-                gchar *cloneTxt = g_strdup ((*ptr));
-                gchar **vclone = g_strsplit_set (cloneTxt, "[]", -1);
-                gchar **ptrTxt = NULL;
-
-                for (ptrTxt = vclone; *ptrTxt; ++ptrTxt) {}
-
-                //gchar *romName = g_strdup (*(ptrTxt-2));
-
-                gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (cmbItem), NULL, (*ptr));
-
-                g_strfreev (vclone);
-                g_free (cloneTxt);
-                //g_free (romName);
-            }
-
-            g_strfreev (strv);
-        }
-    }
-
-    GtkWidget *table = gtk_grid_new ();
-    gtk_grid_set_row_spacing (GTK_GRID (table), 10);
-    gtk_grid_set_column_spacing (GTK_GRID (table), 10);
-
-    GtkWidget *tableTxt = gtk_grid_new ();
-    gtk_grid_set_row_spacing (GTK_GRID (tableTxt), 15);
-    gtk_grid_set_column_spacing (GTK_GRID (tableTxt), 5);
-
-    gtk_box_pack_start (GTK_BOX (content_area), table, TRUE, TRUE, 10);
-
-    GtkWidget *label;
-
-    // romname
-    label = gtk_label_new ("Name");
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 0, 1, 1, 1);
-
-    label = gtk_label_new (info->name);
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 1, 1, 1, 1);
-
-    // Year
-    label = gtk_label_new ("Year");
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 0, 2, 1, 1);
-
-    label = gtk_label_new (info->year);
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 1, 2, 1, 1);
-
-    // manufacturer
-    label = gtk_label_new ("Maker");
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 0, 3, 1, 1);
-
-    label = gtk_label_new (info->manufacturer);
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 1, 3, 1, 1);
-
-    // rom of
-    label = gtk_label_new ("Rom of");
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 0, 4, 1, 1);
-
-    label = gtk_label_new (info->romOf ? info->romOf : "✗");
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 1, 4, 1, 1);
-
-    // CHD
-    label = gtk_label_new ("Chd");
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 0, 5, 1, 1);
-
-    label = gtk_label_new (info->chd ? "✓" : "✗");
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 1, 5, 1, 1);
-
-    // source
-    label = gtk_label_new ("Source");
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 0, 6, 1, 1);
-
-    label = gtk_label_new (info->srcFile);
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 1, 6, 1, 1);
-
-    // Tag
-    label = gtk_label_new ("Tag");
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 0, 7, 1, 1);
-
-    gchar rank[3 * ROM_MAXRANK + 2 + 1];
-    if (pref_getPreferred (rom_getItemName (item))) {
-        g_utf8_strncpy (rank, "♥ ★★★★★", 2 + pref_getRank (rom_getItemName (item)));
-    } else if (pref_getRank (rom_getItemName (item)) > 0) {
-        g_utf8_strncpy (rank, "★★★★★", pref_getRank (rom_getItemName (item)));
-    } else {
-        g_utf8_strncpy (rank, "✗", 1);
-    }
-
-    label = gtk_label_new (rank);
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 1, 7, 1, 1);
-
-    // played
-    label = gtk_label_new ("Played");
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_widget_set_margin_start (GTK_WIDGET (label), 10);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 0, 8, 1, 1);
-
-    gint nplay = pref_getNPlay (rom_getItemName (item));
-    gchar *text;
-    switch (nplay) {
-    case 0:
-        text = g_strdup_printf ("✗");
-        break;
-    case 1:
-        text = g_strdup_printf ("%i time", nplay);
-        break;
-    default:
-        text = g_strdup_printf ("%i times", nplay);
-        break;
-    }
-
-    label = gtk_label_new (text);
-    gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
-    gtk_grid_attach (GTK_GRID (tableTxt), label, 1, 8, 1, 1);
-    g_free (text);
-
-    gtk_grid_attach (GTK_GRID (table), tableTxt, 0, 1, 1, 1);
-
-    gtk_grid_attach (GTK_GRID (table), cmbItem, 2, 0, 1, 1);
-    gtk_widget_set_halign (GTK_WIDGET (cmbItem), GTK_ALIGN_START);
-    gtk_widget_set_margin_end (GTK_WIDGET (cmbItem), 10);
-
-    // da
-    gtk_widget_set_size_request (da, 2.5 * cfg_keyInt ("TILE_SIZE_W"), 2.5 * cfg_keyInt ("TILE_SIZE_H"));
-    gtk_grid_attach (GTK_GRID (table), da, 2, 1, 1, 1);
-    gtk_widget_set_hexpand (da, TRUE);
-    gtk_widget_set_vexpand (da, TRUE);
-    gtk_widget_set_margin_end (GTK_WIDGET (da), 10);
-
-    gtk_widget_show_all (dialog);
-
-    // start the video
-    vlc_playVideo (rom_getItemName (item), GTK_WIDGET (da));
-
-    gtk_dialog_run (GTK_DIALOG (dialog));
-
-    // stop
-    vlc_stopVideo ();
-
-    gtk_widget_destroy (dialog);
-    mame_freeInfoRom (info);
-    dialog = NULL;
-}

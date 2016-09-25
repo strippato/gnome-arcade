@@ -71,7 +71,6 @@ void ui_downloadWarn (const gchar* text);
 gboolean ui_downloadAsk (void);
 void ui_progress_cb (void);
 
-
 void ui_showInfobar (void);
 void ui_feedback (void);
 

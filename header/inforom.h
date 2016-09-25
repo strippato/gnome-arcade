@@ -36,6 +36,7 @@ struct inforom_info {
 
 struct inforom_info *inforom_build (const gchar *romName, const gchar* description, const gchar* manufacturer, const gchar* year, const gchar* romOf, const gchar* srcFile,gboolean chd);
 void inforom_free (struct inforom_info *info);
+void inforom_show (struct rom_romItem *item);
 
 #endif
 
