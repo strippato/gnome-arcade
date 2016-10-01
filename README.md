@@ -2,7 +2,7 @@
 a minimal MAME frontend
 ![Demo](https://raw.githubusercontent.com/strippato/gnome-arcade/master/wiki/gnome-arcade.gif)
 
-### Download prebuilt binaries
+### Download prebuilt binaries (VERY OLD)
 - [Linux](http://software.opensuse.org/download.html?project=home%3Agallochri%3AStrippato&package=gnome-arcade)
 
 ### Compile
