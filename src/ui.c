@@ -147,6 +147,7 @@ static gboolean ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, g
 static void ui_drawingArea_search_cb (const gchar* car, gboolean forward);
 static gboolean ui_cmdGlobal (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 static void ui_rebuildPopover (void);
+static void ui_inforom_show_cb (void);
 
 __attribute__ ((hot))
 static inline void
@@ -1531,7 +1532,7 @@ ui_init (void)
     gtk_button_set_image (GTK_BUTTON (ui_romInfoBtn), GTK_WIDGET (imgRomInfo));
     gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_romInfoBtn);
     g_signal_connect (G_OBJECT (ui_romInfoBtn), "key_press_event", G_CALLBACK (ui_cmdGlobal), NULL);
-    g_signal_connect (G_OBJECT (ui_romInfoBtn), "clicked", G_CALLBACK (inforom_show), NULL);
+    g_signal_connect (G_OBJECT (ui_romInfoBtn), "clicked", G_CALLBACK (ui_inforom_show_cb), NULL);
     gtk_widget_set_focus_on_click (GTK_WIDGET (ui_romInfoBtn), FALSE);
 
 
@@ -2246,3 +2247,8 @@ ui_downloadAsk (void)
     return (result == GTK_RESPONSE_OK ? TRUE : FALSE);
 }
 
+void
+ui_inforom_show_cb (void)
+{
+    inforom_show (view_getItem (ui_viewModel, ui_viewModel->focus));
+}
