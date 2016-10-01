@@ -25,7 +25,7 @@
 #define APP_ID 				"org.gnome.arcade"
 #define APP_NAME      		"Arcade"
 #define APP_DESCRIPTION 	"the best arcade from '70 '80 '90"
-#define APP_VERSION     	"0.177.8"
+#define APP_VERSION     	"0.178.0"
 #define APP_AUTHOR      	"Strippato"
 #define APP_AUTHOR_EMAIL	"strippato@gmail.com"
 #define APP_LICENSE      	"This software is distributed under the terms of the\n"\
