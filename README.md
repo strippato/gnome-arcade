@@ -1,11 +1,10 @@
 #gnome-arcade
-a minimal MAME frontend
+A minimal MAME frontend using GTK+ 3
+
+### Screenshot
 ![Demo](https://raw.githubusercontent.com/strippato/gnome-arcade/master/wiki/gnome-arcade.gif)
 
-### Download prebuilt binaries (VERY OLD)
-- [Linux](http://software.opensuse.org/download.html?project=home%3Agallochri%3AStrippato&package=gnome-arcade)
-
-### Compile
+### Building
 ```
 # git clone http://github.com/strippato/gnome-arcade
 # cd gnome-arcade
@@ -14,13 +13,8 @@ a minimal MAME frontend
 # cmake ..
 # make
 ```
-### Run
-```
-# cd gnome-arcade
-# ./gnome-arcade
-```
 
-**Dependencies**
+**Building dependencies**
 ```
 GTK+ >= 3.20
 gdk 3.0
@@ -29,6 +23,15 @@ libevdev-1.4.5
 xdg-utils (screen saver support)
 vlc-devel-3.0.0
 ```
+
+### Run
+```
+# cd gnome-arcade
+# ./gnome-arcade
+```
+
+### Download prebuilt binaries (VERY OLD)
+- [Linux](http://software.opensuse.org/download.html?project=home%3Agallochri%3AStrippato&package=gnome-arcade)
 
 **Author**
  * Strippato <strippato@gmail.com>
