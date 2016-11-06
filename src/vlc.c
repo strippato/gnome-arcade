@@ -38,7 +38,7 @@ static char const *argv[] = { "--no-xlib" };
 static int argc = sizeof (argv) / sizeof (*argv);
 
 static const gchar *VLC_BASEURL   = "http://www.progettosnaps.net/videosnaps/mp4";
-static const gchar *VLC_EXTENSION = ".mp4";
+static const gchar *VLC_EXTENSION = "mp4";
 
 void
 vlc_init (void)
@@ -89,8 +89,8 @@ vlc_playVideo (const gchar* romName, GtkWidget* widget)
     if (vlc_mp)  return;
     if (vlc_evm) return;
 
-    gchar *videoUrl  = g_strdup_printf ("%s/%s%s", VLC_BASEURL, romName, VLC_EXTENSION);
-    gchar *videoFile = g_strdup_printf ("%s/%s%s", cfg_keyStr ("VIDEO_PATH"), romName, VLC_EXTENSION);
+    gchar *videoUrl  = g_strdup_printf ("%s/%s.%s", VLC_BASEURL, romName, VLC_EXTENSION);
+    gchar *videoFile = g_strdup_printf ("%s/%s.%s", cfg_keyStr ("VIDEO_PATH"), romName, VLC_EXTENSION);
 
     if (g_file_test (videoFile, G_FILE_TEST_EXISTS)) {
         vlc_m = libvlc_media_new_path (vlc, videoFile);
@@ -110,6 +110,9 @@ vlc_playVideo (const gchar* romName, GtkWidget* widget)
     vlc_mp = libvlc_media_player_new_from_media (vlc_m);
     vlc_evm = libvlc_media_player_event_manager (vlc_mp);
 
+    // linux X11
+    GdkDisplay *display = gdk_display_get_default ();
+    gdk_display_sync (display);
     libvlc_media_player_set_xwindow (vlc_mp, GDK_WINDOW_XID (gtk_widget_get_window (widget)));
 
     if (libvlc_event_attach (vlc_evm, libvlc_MediaPlayerEndReached, (libvlc_callback_t) vlc_end_cb, NULL) != 0) {
