@@ -30,13 +30,15 @@ vlc-devel-3.0.0
 # ./gnome-arcade
 ```
 
-### Download prebuilt binaries (VERY OLD)
+### Download prebuilt binaries
 - [Linux](http://software.opensuse.org/download.html?project=home%3Agallochri%3AStrippato&package=gnome-arcade)
 
 **Author**
  * Strippato <strippato@gmail.com>
 
 **Thanks**
- * [Antopisa] (http://www.progettosnaps.net) for providing [category.ini] (http://www.progettosnaps.net/MAME/pS_category.zip)
+* [Gallochri] (https://github.com/gallochri) prebuilt binaries for openSUSE, Fedora and Ubuntu
+* [Antopisa] (http://www.progettosnaps.net) for providing [category.ini] (http://www.progettosnaps.net/MAME/pS_category.zip)
+
 
 
