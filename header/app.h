@@ -25,12 +25,12 @@
 #define APP_ID 				"org.gnome.arcade"
 #define APP_NAME      		"Arcade"
 #define APP_DESCRIPTION 	"the best arcade from '70 '80 '90"
-#define APP_VERSION     	"0.180.0"
+#define APP_VERSION     	"0.181.0"
 #define APP_AUTHOR      	"Strippato"
 #define APP_AUTHOR_EMAIL	"strippato@gmail.com"
 #define APP_LICENSE      	"This software is distributed under the terms of the\n"\
 							"GNU General Public License 3.0"
-#define APP_COPYRIGHT       "Copyright© 2014-2016 Strippato"
+#define APP_COPYRIGHT       "Copyright© 2014-2017 Strippato"
 #define APP_TRANSLATORS     "Strippato"
 #define APP_WEB             "https://github.com/strippato"
 #define APP_GNU_WARN        "You should have received a copy of the GNU GPL along with gnome-arcade.\n"\
