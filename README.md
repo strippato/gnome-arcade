@@ -1,5 +1,5 @@
-#gnome-arcade
-A minimal MAME frontend using GTK+ 3
+# gnome-arcade
+*A minimal MAME frontend using GTK+ 3*
 
 ### Screenshot
 ![Demo](https://raw.githubusercontent.com/strippato/gnome-arcade/master/wiki/gnome-arcade.gif)
