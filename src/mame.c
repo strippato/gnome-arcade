@@ -893,8 +893,8 @@ mame_getInfoRom (const gchar* romName)
                     g_strfreev (lineVec);
                 }
             }
-            g_free (line);
         }
+        g_free (line);
 
         // Chd
         if (g_strrstr (buf, TAG_CHD)) {
