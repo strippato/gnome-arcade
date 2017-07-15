@@ -30,24 +30,15 @@
 #include "ui.h"
 #include "filedownloader.h"
 
-// ROM
-static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.151_ROMs/MAME_0.151_ROMs.zip/MAME 0.151 ROMs";
+// ROMSET 185
+static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.185_ROMs_split/MAME_0.185_ROMs_split.zip/MAME 0.185 ROMs (split)";
 
+// CHD 185
+#define CHD_AG_NAME "MAME 0.185 CHDs (merged) (a-g)"
+#define CHD_HZ_NAME "MAME 0.185 CHDs (merged) (h-z)"
 
-// CHD
-#define CHD_AB_NAME "MAME_0.149_CHDs_A-B"
-#define CHD_C_NAME  "MAME_0.149_CHDs_C"
-#define CHD_DG_NAME "MAME_0.149_CHDs_D-G"
-#define CHD_HO_NAME "MAME_0.149_CHDs_H-N"
-#define CHD_PT_NAME "MAME_0.149_CHDs_P-S"
-#define CHD_UZ_NAME "MAME_0.149_CHDs_U-Z"
-
-static const gchar *CHD_AB = "https://archive.org/download/" CHD_AB_NAME "/" CHD_AB_NAME ".zip/";
-static const gchar *CHD_C  = "https://archive.org/download/" CHD_C_NAME  "/" CHD_C_NAME  ".zip/";
-static const gchar *CHD_DG = "https://archive.org/download/" CHD_DG_NAME "/" CHD_DG_NAME ".zip/";
-static const gchar *CHD_HO = "https://archive.org/download/" CHD_HO_NAME "/" CHD_HO_NAME ".zip/";
-static const gchar *CHD_PT = "https://archive.org/download/" CHD_PT_NAME "/" CHD_PT_NAME ".zip/";
-static const gchar *CHD_UZ = "https://archive.org/download/" CHD_UZ_NAME "/" CHD_UZ_NAME ".zip/";
+static const gchar *CHD_AG = "https://archive.org/download/MAME_0.185_CHDs_Merged/" CHD_AG_NAME ".zip/";
+static const gchar *CHD_HZ = "https://archive.org/download/MAME_0.185_CHDs_Merged/" CHD_HZ_NAME ".zip/";
 
 static gchar *fd_romPath = NULL;
 static gchar *fd_chdPath = NULL;
@@ -72,7 +63,7 @@ fd_init (void)
 
 	if (cfg_keyBool ("CHD_DOWNLOAD")) {
 		g_print ("chd download " SUCCESS_MSG "\n");
-    	fd_chdPath = g_strdup_printf ("%s/chd",  cfg_keyStr ("WEB_PATH"));
+    	fd_chdPath = g_strdup_printf ("%s/chd", cfg_keyStr ("WEB_PATH"));
 
 	    if (g_mkdir_with_parents (fd_chdPath, 0700) != 0) {
 	    	g_print ("can't create %s " FAIL_MSG "\n", fd_chdPath);
@@ -250,23 +241,25 @@ fd_findAndDownloadChd (const gchar* romName)
 	gchar  *buf = NULL;
 
 	switch (romName[0]) {
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
 	case 'a':
 	case 'b':
-		chdLink = CHD_AB;
-		chdName = CHD_AB_NAME;
-		break;
-
 	case 'c':
-		chdLink = CHD_C;
-		chdName = CHD_C_NAME;
-		break;
-
 	case 'd':
 	case 'e':
 	case 'f':
 	case 'g':
-		chdLink = CHD_DG;
-		chdName = CHD_DG_NAME;
+		chdLink = CHD_AG;
+		chdName = CHD_AG_NAME;
 		break;
 
 	case 'h':
@@ -277,27 +270,19 @@ fd_findAndDownloadChd (const gchar* romName)
 	case 'm':
 	case 'n':
 	case 'o':
-		chdLink = CHD_HO;
-		chdName = CHD_HO_NAME;
-		break;
-
 	case 'p':
 	case 'q':
 	case 'r':
 	case 's':
 	case 't':
-		chdLink = CHD_PT;
-		chdName = CHD_PT_NAME;
-		break;
-
 	case 'u':
 	case 'v':
 	case 'w':
 	case 'x':
 	case 'y':
 	case 'z':
-		chdLink = CHD_UZ;
-		chdName = CHD_UZ_NAME;
+		chdLink = CHD_HZ;
+		chdName = CHD_HZ_NAME;
 		break;
 
 	default:
