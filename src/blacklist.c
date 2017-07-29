@@ -53,25 +53,19 @@ blist_init (void)
 
         FILE *file = g_fopen (fileBList, "r");
 
-        gboolean skipLine;
         while (fgets (buf, sizeof (buf), file)) {
 
-            if (g_str_has_prefix (buf, "#")) {
-                // skip comments
-                skipLine = TRUE;
-            } else if (g_str_has_prefix (buf, "[")) {
-                // skip sections
-                skipLine = TRUE;
-            } else if (buf[0] == '\x0d') {
-                // skip empty line
-                skipLine = TRUE;
-            } else if (buf[0] == ' ') {
-                // skip space
-                skipLine = TRUE;
-            } else {
-                skipLine = FALSE;
-            }
-            if (!skipLine) {
+            switch (buf[0]) {
+            
+            // skip
+            case '#':
+            case '[':
+            case '\x0d':
+            case '\x0a':
+            case ' ':            
+                break;
+
+            default:
                 numSkip++;
 
                 gchar **lineVec;
@@ -81,8 +75,10 @@ blist_init (void)
                 romName = g_strndup (lineVec[0], strlen (lineVec[0]) - 2);
 
                 g_strfreev (lineVec);
+
                 //g_print ("-> %s (%li)\n", romName, strlen(romName));
                 g_hash_table_insert (blist_skipTable, romName, NULL);
+                break;
             }
         }
 
