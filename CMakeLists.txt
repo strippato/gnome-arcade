@@ -11,7 +11,7 @@
 #	OR
 # 	cmake -DMAME_BIN=\"/usr/games/mame\" -DCMAKE_C_FLAGS="-g -O2" ..
 #	OR
-#	cmake -DAPP_RES=\"/usr/share/gnome-arcade\" -DCMAKE_C_FLAGS="-g -O2 -fmessage-length=0 -D_FORTIFY_SOURCE=2 -fstack-protector -funwind-tables -fasynchronous-unwind-tables" ..
+#	cmake -DAPP_RES=\"/usr/share/gnome-arcade\" -DCMAKE_C_FLAGS="-g -O2 -D_FORTIFY_SOURCE=2 -fstack-protector -funwind-tables -fasynchronous-unwind-tables" ..
 #
 #	make
 
