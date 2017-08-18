@@ -38,7 +38,7 @@ vlc-devel-3.0.0
 
 **Thanks**
 * [Gallochri](https://github.com/gallochri) prebuilt binaries for openSUSE, Fedora and Ubuntu
-* [Antopisa](http://www.progettosnaps.net) for providing [category.ini](http://www.progettosnaps.net/MAME/pS_category.zip)
+* [Antopisa](http://www.progettosnaps.net) for providing [category.ini](http://www.progettosnaps.net/renameset/packs/pS_category_188.zip)
 
 
 
