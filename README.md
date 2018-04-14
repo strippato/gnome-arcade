@@ -37,7 +37,8 @@ vlc-devel-3.0.0
  * Strippato <strippato@gmail.com>
 
 **Thanks**
-* [Gallochri](https://github.com/gallochri) prebuilt binaries for openSUSE, Fedora and Ubuntu
+* [Gallochri](https://github.com/gallochri) prebuilt binaries for openSUSE
+
 * [Antopisa](http://www.progettosnaps.net) for providing [category.ini](http://www.progettosnaps.net/renameset/packs/pS_category_189.zip)
 
 
