@@ -43,8 +43,6 @@ const gchar *app_artists[] = { "Strippato <strippato@gmail.com>",
 
 GtkApplication *app_application;
 
-static gint app_status = 0;
-
 GActionEntry app_entries[] = {
     { "fullscreen", ui_actionFullscreen, NULL, "false", ui_actionChangeFullscreen},
     { "preference", uipref_showDialog, NULL, NULL, NULL},
@@ -108,10 +106,7 @@ main (gint argc, gchar *argv[])
     g_signal_connect (app_application, "startup", G_CALLBACK (app_startup), NULL);
 
     g_application_set_default (G_APPLICATION (app_application));
-    app_status = g_application_run (G_APPLICATION (app_application), argc, argv);
 
-    g_object_unref (app_application);
-
-    return app_status;
+    return g_application_run (G_APPLICATION (app_application), argc, argv);
 }
 
