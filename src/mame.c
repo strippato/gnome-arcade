@@ -82,41 +82,30 @@ mame_getVersion (void)
 static gboolean
 mame_dumpTo (gchar *cmdline, gchar *file)
 {
-
     gchar **argv  = NULL;
     GError *error = NULL;
     gchar *stdout = NULL;
-
     gint status;
 
-    if (!g_shell_parse_argv (cmdline, NULL, &argv, &error)) {
-        g_error_free (error);
-        g_strfreev (argv);
-        return FALSE;
-    }
+    gboolean dumpOK = FALSE;
 
-    if (!g_spawn_sync (NULL, argv, NULL, G_SPAWN_STDERR_TO_DEV_NULL, NULL, NULL, &stdout, NULL, &status, &error)) {
+    if (!g_shell_parse_argv (cmdline, NULL, &argv, &error)) goto EXIT_FUN;
+    if (!g_spawn_sync (NULL, argv, NULL, G_SPAWN_STDERR_TO_DEV_NULL, NULL, NULL, &stdout, NULL, &status, &error)) goto EXIT_FUN;
 
-        if (error) g_error_free (error);
-        if (stdout) g_free (stdout);
+    // skip the first line:
+    // Name:             Description:
+    gchar* outbuf = g_strstr_len (stdout, -1, ":\n") + 2;
+    if (!g_file_set_contents (file, outbuf, -1, &error)) goto EXIT_FUN;
+    
+    dumpOK = TRUE;
 
-        g_strfreev (argv);
-        return FALSE;
+EXIT_FUN:
+    if (error) g_error_free (error);
+    if (stdout) g_free (stdout);
 
-    } else {
+    g_strfreev (argv);
 
-        // skip the first line:
-        // Name:             Description:
-        gchar* outbuf = g_strrstr (stdout, ":\n") + 2;
-
-        g_file_set_contents (file, outbuf, -1, &error);
-
-        if (error) g_error_free (error);
-        if (stdout) g_free (stdout);
-
-        g_strfreev (argv);
-        return TRUE;
-    }
+    return dumpOK;
 }
 
 static gboolean

@@ -71,9 +71,9 @@
 #define UI_OFFSET_Y           10
 #define UI_SCROLL_STEP        50
 
-// muhahah "comic sans MS"
-#define TEXT_FONT             "sans-serif"
-#define TEXT_SIZE             11.0
+//#define TEXT_FONT             "DejaVu" // "sans-serif"
+#define TEXT_FONT             "Cantarell bold"
+#define TEXT_SIZE             13
 #define TEXT_OFFSET           20
 #define TEXT_FONT_COLOR       0.75, 0.75, 0.75
 #define TEXT_FONT_COLOR_FOCUS 1.0, 1.0, 1.0
