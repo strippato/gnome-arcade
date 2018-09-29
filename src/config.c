@@ -49,8 +49,8 @@ cfg_fillDefaultConfig (void)
 	g_hash_table_insert (cfg_default, g_strdup ("CHD_PATH"), g_strdup ("/usr/share/gnome-arcade/data/rom")); // /usr/share/gnome-arcade/data/chd
 	g_hash_table_insert (cfg_default, g_strdup ("VIDEO_PATH"), g_strdup ("/usr/share/gnome-arcade/data/rom")); // /usr/share/gnome-arcade/data/video
 
-	g_hash_table_insert (cfg_default, g_strdup ("TILE_SIZE_W"), g_strdup ("210"));
-	g_hash_table_insert (cfg_default, g_strdup ("TILE_SIZE_H"), g_strdup ("210"));
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_SIZE_W"), g_strdup ("320"));
+	g_hash_table_insert (cfg_default, g_strdup ("TILE_SIZE_H"), g_strdup ("320"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_KEEP_ASPECT_RATIO"), g_strdup ("1"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_TITLE_CENTERED"), g_strdup ("1"));
 	g_hash_table_insert (cfg_default, g_strdup ("TILE_PATH"), g_strdup ("/usr/share/gnome-arcade/data/tile"));

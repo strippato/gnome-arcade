@@ -56,13 +56,13 @@ blist_init (void)
         while (fgets (buf, sizeof (buf), file)) {
 
             switch (buf[0]) {
-            
+
             // skip
             case '#':
             case '[':
             case '\x0d':
             case '\x0a':
-            case ' ':            
+            case ' ':
                 break;
 
             default:
