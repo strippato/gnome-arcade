@@ -42,7 +42,7 @@
 #include "vlc.h"
 
 #define TILE_MIN_SIZE         150
-#define TILE_W_BORDER_MIN     24
+#define TILE_W_BORDER_MIN     16
 #define TILE_H_BORDER         35
 
 #define TILE_COLOR_FOCUSR     0.05
@@ -55,7 +55,7 @@
 
 #define TILE_SHADOW_SIZE      4.5
 #define TILE_BORDER_SIZE      1.0
-#define TILE_FOCUS_SIZE       3.0
+#define TILE_FOCUS_SIZE       4.5
 
 #define TILE_FEEDBACK_SIZE    30.0
 #define TILE_FEEDBACK_TIME    0.40
