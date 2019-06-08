@@ -119,7 +119,7 @@ static GtkWidget *ui_dropBtn     = NULL;
 static GtkWidget *ui_popover     = NULL;
 static GtkWidget *ui_vpopbox     = NULL;
 static GtkWidget *ui_downloadDialog = NULL;
-static GtkWidget *ui_romInfoBtn  = NULL;
+static GtkWidget *ui_burgerBtn   = NULL;
 
 static GdkPixbuf *ui_selRankOn   = NULL;
 static GdkPixbuf *ui_selRankOff  = NULL;
@@ -147,7 +147,6 @@ static gboolean ui_search_key_press_cb (GtkWidget *widget, GdkEventKey *event, g
 static void ui_drawingArea_search_cb (const gchar* car, gboolean forward);
 static gboolean ui_cmdGlobal (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 static void ui_rebuildPopover (void);
-static void ui_inforom_show_cb (void);
 
 __attribute__ ((hot))
 static inline void
@@ -238,7 +237,7 @@ ui_select_cb (void)
         gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (ui_headerBar), FALSE);
         gtk_widget_hide (ui_playBtn);
         gtk_widget_hide (ui_dropBtn);
-        gtk_widget_hide (ui_romInfoBtn);
+        gtk_widget_hide (ui_burgerBtn);
         gtk_style_context_add_class (context, "selection-mode");
         ui_setPlayBtnState (FALSE);
         ui_headerBarShowInfo (ui_viewModel->focus);
@@ -246,7 +245,7 @@ ui_select_cb (void)
         gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (ui_headerBar), TRUE);
         gtk_widget_show (ui_playBtn);
         gtk_widget_show (ui_dropBtn);
-        gtk_widget_show (ui_romInfoBtn);
+        gtk_widget_show (ui_burgerBtn);
         gtk_style_context_remove_class (context, "selection-mode");
         ui_setPlayBtnState (TRUE);
         ui_headerBarRestore ();
@@ -1432,6 +1431,16 @@ ui_init (void)
                                "  <menu id='app-menu'>"
                                "    <section>"
                                "      <item>"
+                               "          <attribute name='label' translatable='yes'>Rom _information</attribute>"
+                               "          <attribute name='action'>app.inforom</attribute>"
+                               "          <attribute name='accel'>&lt;Primary&gt;i</attribute>"
+                               "      </item>"
+                               "      <item>"
+                               "          <attribute name='label' translatable='yes'>Re_scan</attribute>"
+                               "          <attribute name='action'>app.rescan</attribute>"
+                               "          <attribute name='accel'>&lt;Primary&gt;s</attribute>"
+                               "      </item>"
+                               "      <item>"
                                "          <attribute name='label' translatable='yes'>_Fullscreen</attribute>"
                                "          <attribute name='action'>app.fullscreen</attribute>"
                                "          <attribute name='accel'>F11</attribute>"
@@ -1443,17 +1452,8 @@ ui_init (void)
                                "          <attribute name='action'>app.preference</attribute>"
                                "        <attribute name='accel'>&lt;Primary&gt;p</attribute>"
                                "      </item>"
-                               "    </section>"
-                               "    <section>"
                                "      <item>"
-                               "          <attribute name='label' translatable='yes'>Re_scan</attribute>"
-                               "          <attribute name='action'>app.rescan</attribute>"
-                               "        <attribute name='accel'>&lt;Primary&gt;s</attribute>"
-                               "      </item>"
-                               "    </section>"
-                               "    <section>"
-                               "      <item>"
-                               "        <attribute name='label' translatable='yes'>Abo_ut arcade</attribute>"
+                               "        <attribute name='label' translatable='yes'>Abo_ut Arcade</attribute>"
                                "        <attribute name='action'>app.about</attribute>"
                                "        <attribute name='accel'>&lt;Primary&gt;u</attribute>"
                                "      </item>"
@@ -1467,7 +1467,6 @@ ui_init (void)
                                "</interface>", -1, NULL);
 
     gtk_application_set_app_menu (GTK_APPLICATION (app_application), G_MENU_MODEL (gtk_builder_get_object (builder, "app-menu")));
-    g_object_unref (builder);
 
     gtk_window_set_title (GTK_WINDOW (ui_window), APP_NAME);
 
@@ -1524,17 +1523,14 @@ ui_init (void)
     gtk_menu_button_set_popover (GTK_MENU_BUTTON (ui_dropBtn), ui_popover);
     gtk_widget_set_focus_on_click (GTK_WIDGET (ui_dropBtn), FALSE);
 
-    /* rominfo button */
-    ui_romInfoBtn = gtk_button_new ();
-    gtk_widget_set_tooltip_text (ui_romInfoBtn, "Rom information");
-    GtkWidget *imgRomInfo = gtk_image_new ();
-    gtk_image_set_from_icon_name (GTK_IMAGE (imgRomInfo), "dialog-information", GTK_ICON_SIZE_BUTTON);
-    gtk_button_set_image (GTK_BUTTON (ui_romInfoBtn), GTK_WIDGET (imgRomInfo));
-    gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_romInfoBtn);
-    g_signal_connect (G_OBJECT (ui_romInfoBtn), "key_press_event", G_CALLBACK (ui_cmdGlobal), NULL);
-    g_signal_connect (G_OBJECT (ui_romInfoBtn), "clicked", G_CALLBACK (ui_inforom_show_cb), NULL);
-    gtk_widget_set_focus_on_click (GTK_WIDGET (ui_romInfoBtn), FALSE);
-
+    /* burger */
+    ui_burgerBtn = gtk_menu_button_new ();
+    GtkWidget *imgBurger = gtk_image_new ();
+    gtk_widget_set_focus_on_click (GTK_WIDGET (ui_burgerBtn), FALSE);    
+    gtk_image_set_from_icon_name (GTK_IMAGE (imgBurger), "open-menu-symbolic", GTK_ICON_SIZE_BUTTON);
+    gtk_button_set_image (GTK_BUTTON (ui_burgerBtn), GTK_WIDGET (imgBurger));
+    gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (ui_burgerBtn), G_MENU_MODEL (gtk_builder_get_object (builder, "app-menu")));
+    gtk_header_bar_pack_end (GTK_HEADER_BAR (ui_headerBar), ui_burgerBtn);
 
     /* selection toolbar */
     ui_tbSelection = gtk_toggle_button_new ();
@@ -1686,6 +1682,8 @@ ui_init (void)
 
     //g_idle_add ((GSourceFunc) joy_debugFull, NULL);
     //g_timeout_add (1000, (GSourceFunc) joy_debugFull, NULL);
+
+    g_object_unref (builder);
 }
 
 void
@@ -2248,7 +2246,7 @@ ui_downloadAsk (void)
 }
 
 void
-ui_inforom_show_cb (void)
+ui_actionInforom_show (GSimpleAction *simple, GVariant *parameter, gpointer user_data)
 {
     inforom_show (view_getItem (ui_viewModel, ui_viewModel->focus));
 }

@@ -43,6 +43,7 @@ void ui_setScrollBarState (gboolean state);
 
 gboolean ui_tileIsVisible (struct rom_romItem *item);
 
+void ui_actionInforom_show (GSimpleAction *simple, GVariant *parameter, gpointer user_data);
 void ui_actionFullscreen (GSimpleAction *simple, GVariant *parameter, gpointer user_data);
 void ui_actionChangeFullscreen (GSimpleAction *simple, GVariant *parameter, gpointer user_data);
 void ui_quit (GSimpleAction *simple, GVariant *parameter, gpointer user_data);
@@ -70,7 +71,6 @@ void ui_afterDownload (void);
 void ui_downloadWarn (const gchar* text);
 gboolean ui_downloadAsk (void);
 void ui_progress_cb (void);
-
 void ui_showInfobar (void);
 void ui_feedback (void);
 

@@ -76,3 +76,4 @@ logTimer (const gchar* message)
     g_print ("*%s* %s\n", date, message);
     g_free (date);
 }
+

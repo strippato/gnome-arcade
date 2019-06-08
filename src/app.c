@@ -44,6 +44,7 @@ const gchar *app_artists[] = { "Strippato <strippato@gmail.com>",
 GtkApplication *app_application;
 
 GActionEntry app_entries[] = {
+    { "inforom"   , ui_actionInforom_show, NULL, NULL, NULL},    
     { "fullscreen", ui_actionFullscreen, NULL, "false", ui_actionChangeFullscreen},
     { "preference", uipref_showDialog, NULL, NULL, NULL},
     { "rescan"    , rescan, NULL, NULL, NULL},
