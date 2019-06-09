@@ -30,15 +30,12 @@
 #include "ui.h"
 #include "filedownloader.h"
 
-// ROMSET 185
-static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.185_ROMs_split/MAME_0.185_ROMs_split.zip/MAME 0.185 ROMs (split)";
+// 193 romset
+static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.193_ROMs_split/MAME_0.193_ROMs_split.zip/MAME 0.193 ROMs (split)";
 
-// CHD 185
-#define CHD_AG_NAME "MAME 0.185 CHDs (merged) (a-g)"
-#define CHD_HZ_NAME "MAME 0.185 CHDs (merged) (h-z)"
-
-static const gchar *CHD_AG = "https://archive.org/download/MAME_0.185_CHDs_Merged/" CHD_AG_NAME ".zip/";
-static const gchar *CHD_HZ = "https://archive.org/download/MAME_0.185_CHDs_Merged/" CHD_HZ_NAME ".zip/";
+// 193 CHD
+static const gchar *CHD_FILENAME = "https://archive.org/download/MAME_0.193_CHDs_merged/MAME_0.193_CHDs_merged.zip/";
+#define CHD_NAME "MAME 0.193 CHDs (merged)"
 
 static gchar *fd_romPath = NULL;
 static gchar *fd_chdPath = NULL;
@@ -258,10 +255,6 @@ fd_findAndDownloadChd (const gchar* romName)
 	case 'e':
 	case 'f':
 	case 'g':
-		chdLink = CHD_AG;
-		chdName = CHD_AG_NAME;
-		break;
-
 	case 'h':
 	case 'i':
 	case 'j':
@@ -281,8 +274,8 @@ fd_findAndDownloadChd (const gchar* romName)
 	case 'x':
 	case 'y':
 	case 'z':
-		chdLink = CHD_HZ;
-		chdName = CHD_HZ_NAME;
+		chdLink = CHD_FILENAME;
+		chdName = CHD_NAME;
 		break;
 
 	default:
@@ -300,6 +293,7 @@ fd_findAndDownloadChd (const gchar* romName)
 
 			unsigned int i = 0;
 			for (gchar **ptr = strvec; *ptr; ptr++, i++) {
+
 				if (i > 1) {
 					// skip invalid
 					// skip directory name

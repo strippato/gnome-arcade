@@ -39,8 +39,8 @@ else (NOT DEFINED ${MAME_BIN})
 endif (DEFINED MAME_BIN)
 
 # the compiler flags for compiling C sources
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall -Wpedantic -Wformat -Wformat-security -Wunused-result -march=native")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall -Wformat -Wformat-security -Wunused-result -march=native")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall -Wpedantic -Wformat -Wformat-security -Wunused-result -march=native")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall -Wformat -Wformat-security -Wunused-result -march=native")
 
 
 # log
