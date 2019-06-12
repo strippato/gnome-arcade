@@ -39,7 +39,7 @@ vlc-devel-3.0.0
 **Thanks**
 * [Gallochri](https://github.com/gallochri) prebuilt binaries for openSUSE
 
-* [Antopisa](http://www.progettosnaps.net) for providing [category.ini](http://www.progettosnaps.net/renameset/packs/pS_category_189.zip)
+* [Antopisa](http://www.progettosnaps.net) for providing [category.ini](http://www.progettosnaps.net/renameset/packs/pS_category_210.zip)
 
 
 
