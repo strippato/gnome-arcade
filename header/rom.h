@@ -90,9 +90,9 @@ const gchar* rom_getItemName (struct rom_romItem* item);
 const gchar* rom_getItemDescription (struct rom_romItem* item);
 const gchar* rom_getItemDesc (struct rom_romItem* item);
 const GdkPixbuf* rom_getItemTile (struct rom_romItem* item);
-const gboolean rom_getItemRomFound (struct rom_romItem* item);
-const gboolean rom_getItemTileLoaded (struct rom_romItem* item);
-const gboolean rom_getItemTileLoading (struct rom_romItem* item);
+gboolean rom_getItemRomFound (struct rom_romItem* item);
+gboolean rom_getItemTileLoaded (struct rom_romItem* item);
+gboolean rom_getItemTileLoading (struct rom_romItem* item);
 
 const gchar* rom_parentOf (const gchar *romName);
 void rom_invalidateUselessTile (void);
