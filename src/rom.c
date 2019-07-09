@@ -296,7 +296,7 @@ rom_setItemRomFound (struct rom_romItem* item, gboolean value)
     item->romFound = value;
 }
 
-inline const gboolean
+inline gboolean
 rom_getItemRomFound (struct rom_romItem* item)
 {
     return (item->romFound);
@@ -377,13 +377,13 @@ rom_setItemTile (struct rom_romItem* item, GdkPixbuf* tile)
     item->tile = tile;
 }
 
-inline const gboolean
+inline gboolean
 rom_getItemTileLoaded (struct rom_romItem* item)
 {
     return item->tileLoaded;
 }
 
-inline const gboolean
+inline gboolean
 rom_getItemTileLoading (struct rom_romItem* item)
 {
     return item->tileLoading;
@@ -839,3 +839,4 @@ rom_FoundInPath (const gchar* romName, ...)
 
     return foundRom;
 }
+
