@@ -31,11 +31,18 @@
 #include "filedownloader.h"
 
 // 193 romset
-static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.193_ROMs_split/MAME_0.193_ROMs_split.zip/MAME 0.193 ROMs (split)";
+//static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.193_ROMs_split/MAME_0.193_ROMs_split.zip/MAME 0.193 ROMs (split)";
+// 209 romset
+static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.209_ROMs_merged/MAME_0.209_ROMs_merged.zip";
 
-// 193 CHD
-static const gchar *CHD_FILENAME = "https://archive.org/download/MAME_0.193_CHDs_merged/MAME_0.193_CHDs_merged.zip/";
-#define CHD_NAME "MAME 0.193 CHDs (merged)"
+
+// 193 CHD is now blocked, see https://archive.org/download/MAME_0.193_CHDs_merged/a51site4/
+// fallback to CHD 185
+#define CHD_NAME_A_G "MAME 0.185 CHDs (merged) (a-g)"
+#define CHD_NAME_H_Z "MAME 0.185 CHDs (merged) (h-z)"
+
+static const gchar *CHD_FILENAME_A_G = "https://archive.org/download/MAME_0.185_CHDs_Merged/MAME 0.185 CHDs (merged) (a-g).zip/";
+static const gchar *CHD_FILENAME_H_Z = "https://archive.org/download/MAME_0.185_CHDs_Merged/MAME 0.185 CHDs (merged) (h-z).zip/";
 
 static gchar *fd_romPath = NULL;
 static gchar *fd_chdPath = NULL;
@@ -255,6 +262,10 @@ fd_findAndDownloadChd (const gchar* romName)
 	case 'e':
 	case 'f':
 	case 'g':
+		chdLink = CHD_FILENAME_A_G;
+		chdName = CHD_NAME_A_G;
+		break;
+
 	case 'h':
 	case 'i':
 	case 'j':
@@ -274,9 +285,9 @@ fd_findAndDownloadChd (const gchar* romName)
 	case 'x':
 	case 'y':
 	case 'z':
-		chdLink = CHD_FILENAME;
-		chdName = CHD_NAME;
-		break;
+		chdLink = CHD_FILENAME_H_Z;
+		chdName = CHD_NAME_H_Z;
+ 		break;
 
 	default:
 		chdLink = NULL;
@@ -306,7 +317,8 @@ fd_findAndDownloadChd (const gchar* romName)
 					// path building
 					gchar *srcRom  = g_strdup_printf ("%s%s/%s/%s", chdLink, chdName, romName, *strveca);
 					gchar *destRom = g_strdup_printf ("%s/%s/%s", fd_chdPath, romName, *strveca);
-
+					//g_print ("src for CHD in %s\n", srcRom);
+					//g_print ("dst for CHD in %s\n", destRom);
 					// FIXME: don't download all set of CHD
 
 					// start async downloading
