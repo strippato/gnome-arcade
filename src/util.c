@@ -66,14 +66,3 @@ pointInside (gint x, gint y, gint ax, gint ay, gint bx, gint by)
     }
 }
 
-inline void
-logTimer (const gchar* message)
-{
-    GTimeVal time;
-
-    g_get_current_time (&time);
-    gchar *date = g_time_val_to_iso8601(&time);
-    g_print ("*%s* %s\n", date, message);
-    g_free (date);
-}
-

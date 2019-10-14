@@ -29,7 +29,7 @@ gint lim (gint a, gint max);
 gint max (gint a, gint b);
 gint min (gint a, gint b);
 gboolean pointInside (gint x, gint y, gint ax, gint ay, gint bx, gint by);
-void logTimer(const gchar* message);
+
 
 #endif
 
