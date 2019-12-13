@@ -22,6 +22,7 @@ gdk-pixbuf-2.0
 libevdev-1.4.5
 xdg-utils (for screen saver support; you may need perl and some perl-Net-DBus-GLib helper)
 vlc-devel-3.0.0
+libarchive-devel-3.4
 ```
 
 ### Run
