@@ -31,6 +31,9 @@ struct fd_copyInfo {
 	// output
 	gchar *oFileName;
 	GFile *oFile;
+
+	//romname
+	gchar *romName;	
 };
 
 gint fd_downloadingItm;

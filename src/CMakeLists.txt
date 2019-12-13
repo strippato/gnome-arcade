@@ -5,5 +5,5 @@ add_executable(gnome-arcade app.c config.c mame.c pref.c rom.c ui.c util.c view.
 # inclue file
 include_directories(../header)
 
-target_link_libraries(gnome-arcade ${GTK3_LIBRARIES} ${PC_LIBEVDEV_LIBRARIES} ${LIBVLC_LIBRARIES})
+target_link_libraries(gnome-arcade ${GTK3_LIBRARIES} ${PC_LIBEVDEV_LIBRARIES} ${LIBVLC_LIBRARIES} ${LIBARCHIVE_LIBRARIES})
 
