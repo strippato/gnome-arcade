@@ -31,7 +31,7 @@ libarchive-devel-3.4
 # ./gnome-arcade
 ```
 
-### Download prebuilt binaries (OLD RELEASE)
+### Download prebuilt binaries
 - [Linux](http://software.opensuse.org/download.html?project=home%3Agallochri%3AStrippato&package=gnome-arcade)
 
 **Author**
