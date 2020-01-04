@@ -22,14 +22,21 @@ URL:            https://github.com/strippato/gnome-arcade
 Source0:        https://github.com/strippato/%{name}/archive/%{gittag}/%{name}-%{version}.tar.gz   
 Group:          Unspecified
 
+BuildRequires:  gcc
 BuildRequires:  cmake >= 2.8.11
 BuildRequires:  gtk3-devel >= 3.16
 BuildRequires:  libarchive-devel
 BuildRequires:  libevdev-devel
 BuildRequires:  vlc-devel
-BuildRequires:  xdg-utils
 BuildRequires:  gdk-pixbuf2-devel
+
 Requires:       mame
+Requires:       gtk3
+Requires:       gdk-pixbuf2
+Requires:       libarchive
+Requires:       libevdev
+Requires:       vlc
+Requires:       xdg-utils
 
 %description
 Gnome Arcade, a minimal MAME frontend
@@ -46,7 +53,8 @@ cd build
        -funwind-tables -fasynchronous-unwind-tables -fPIC" \
        --no-warn-unused-cli ..
 
-make %{?_smp_mflags}
+#make %{?_smp_mflags}
+%make_build
 
 
 %install
@@ -75,4 +83,3 @@ install -D -m 0644 data/tile/* %{buildroot}%{_datadir}/gnome-arcade/data/tile/
 %changelog
 * Fri Jan  3 2020 strippato <strippato@gmail.com>
 - test
-
