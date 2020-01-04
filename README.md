@@ -1,4 +1,7 @@
+
 # gnome-arcade
+[![Copr build status](https://copr.fedorainfracloud.org/coprs/strippato/gnome-arcade/package/gnome-arcade/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/strippato/gnome-arcade/package/gnome-arcade/)
+
 *A minimal MAME frontend using GTK+ 3*
 
 ### Screenshot
