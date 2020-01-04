@@ -1,9 +1,7 @@
-
 # gnome-arcade
 [![Copr build status](https://copr.fedorainfracloud.org/coprs/strippato/gnome-arcade/package/gnome-arcade/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/strippato/gnome-arcade/package/gnome-arcade/)
 
 *A minimal MAME frontend using GTK+ 3*
-
 ### Screenshot
 ![Demo](https://raw.githubusercontent.com/strippato/gnome-arcade/master/wiki/newgnomearcade.gif)
 
@@ -35,7 +33,9 @@ libarchive-devel-3.4
 ```
 
 ### Download prebuilt binaries
-- [Linux](http://software.opensuse.org/download.html?project=home%3Agallochri%3AStrippato&package=gnome-arcade)
+- [Suse Linux](http://software.opensuse.org/download.html?project=home%3Agallochri%3AStrippato&package=gnome-arcade)
+- [Fedora Linux](https://copr.fedorainfracloud.org/coprs/strippato/gnome-arcade/package/gnome-arcade/)
+
 
 **Author**
  * Strippato <strippato@gmail.com>
