@@ -35,7 +35,9 @@
 // 193 romset
 //static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.193_ROMs_split/MAME_0.193_ROMs_split.zip/MAME 0.193 ROMs (split)";
 // 209 romset
-static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.209_ROMs_merged/MAME_0.209_ROMs_merged.zip";
+//static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.209_ROMs_merged/MAME_0.209_ROMs_merged.zip";
+// 217 romset
+static const gchar* ROM_BASEURL = "https://archive.org/download/mame0217_nochd";
 
 
 
@@ -221,11 +223,11 @@ fd_infoBuildRom (const gchar* romName, struct fd_copyInfo* copyInfo)
 	copyInfo->romName = g_strdup (romName);
 
 	// source URL
-	copyInfo->iFileName = g_strdup_printf ("%s/%s.zip", ROM_BASEURL, romName);
+	copyInfo->iFileName = g_strdup_printf ("%s/%s.%s", ROM_BASEURL, romName, ROM_EXTENSION_7ZIP);
     copyInfo->iFile = g_file_new_for_uri (copyInfo->iFileName);
 
     // dest FILE
-	copyInfo->oFileName = g_strdup_printf ("%s/%s.zip", fd_romPath, romName);
+	copyInfo->oFileName = g_strdup_printf ("%s/%s.%s", fd_romPath, romName, ROM_EXTENSION_7ZIP);
 	copyInfo->oFile = g_file_new_for_path (copyInfo->oFileName);
 }
 
