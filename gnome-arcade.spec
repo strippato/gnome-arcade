@@ -13,7 +13,7 @@
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 Name:           gnome-arcade
-Version:        0.217
+Version:        0.217.2
 Release:        1%{?dist}
 Summary:        a minimal MAME frontend 
 
@@ -81,5 +81,7 @@ install -D -m 0644 data/tile/* %{buildroot}%{_datadir}/gnome-arcade/data/tile/
 %{_datadir}/gnome-arcade/*
 
 %changelog
+* Fri Jan  12 2020 strippato <strippato@gmail.com>
+- romset 217 to 209
 * Fri Jan  3 2020 strippato <strippato@gmail.com>
 - test
