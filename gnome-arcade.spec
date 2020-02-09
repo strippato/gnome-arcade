@@ -8,7 +8,7 @@
 # to download source:
 # spectool -C ../SOURCES -g gnome-arcade.spec
 
-%global commit d0fd1dfc0daaaf7c9b71010327f03e34f9902a2b
+%global commit ec4cfeefa50d5842a1687f16afd187b7e822ff5f
 %global gittag v.%{version}
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
@@ -81,7 +81,10 @@ install -D -m 0644 data/tile/* %{buildroot}%{_datadir}/gnome-arcade/data/tile/
 %{_datadir}/gnome-arcade/*
 
 %changelog
+* Sun Feb  9 2020 strippato <strippato@gmail.com>
+- romset 216
 * Sun Jan  12 2020 strippato <strippato@gmail.com>
 - romset 217 to 209
 * Fri Jan  3 2020 strippato <strippato@gmail.com>
 - test
+
