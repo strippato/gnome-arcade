@@ -13,7 +13,7 @@
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 Name:           gnome-arcade
-Version:        0.218.2
+Version:        0.219
 Release:        1%{?dist}
 Summary:        a minimal MAME frontend 
 
