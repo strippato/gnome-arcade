@@ -36,7 +36,7 @@ struct fd_copyInfo {
 	gchar *romName;	
 };
 
-gint fd_downloadingItm;
+extern gint fd_downloadingItm;
 
 void fd_init (void);
 void fd_free (void);

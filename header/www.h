@@ -23,9 +23,9 @@
 #ifndef WWW_H
 #define WWW_H
 
-gboolean www_autoDownload;
-gchar*	 www_tilePath;
-gint     www_downloadingItm;
+extern gboolean www_autoDownload;
+extern gchar*	 www_tilePath;
+extern gint     www_downloadingItm;
 
 void www_init (void);
 void www_free (void);

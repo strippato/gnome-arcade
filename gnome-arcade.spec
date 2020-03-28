@@ -8,7 +8,7 @@
 # to download source:
 # spectool -C ../SOURCES -g gnome-arcade.spec
 
-%global commit c59d21c5a2bcab59e24432890bbdc80f15a28dce
+%global commit c8406dbd940bed31def6c3bc5d103b6e3e91ec5f
 %global gittag v.%{version}
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 

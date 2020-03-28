@@ -105,6 +105,10 @@
 
 */
 
+gint ui_tileSize_W;
+gint ui_tileSize_H;
+
+
 static GtkAdjustment *ui_adjust  = NULL;
 
 static GtkWidget *ui_window      = NULL;

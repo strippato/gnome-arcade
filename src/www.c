@@ -34,6 +34,9 @@
 
 #define WWW_EXTENSION_PNG  "png"
 
+gboolean www_autoDownload;
+gchar*   www_tilePath;
+gint     www_downloadingItm;
 static const gchar* www_webProvider = NULL;
 
 void

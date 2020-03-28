@@ -23,8 +23,8 @@
 #ifndef UI_H
 #define UI_H
 
-gint ui_tileSize_W;
-gint ui_tileSize_H;
+extern gint ui_tileSize_W;
+extern gint ui_tileSize_H;
 
 void ui_init (void);
 void ui_free (void);

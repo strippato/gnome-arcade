@@ -65,6 +65,7 @@ static gchar *fd_chdPath = NULL;
 static void fd_infoFree (struct fd_copyInfo* copyInfo);
 static void fd_decompress7z (const char *filename7z, const char *outdir);
 
+gint fd_downloadingItm;
 
 void
 fd_init (void)
