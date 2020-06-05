@@ -48,7 +48,9 @@
 // 218 romset
 //static const gchar* ROM_BASEURL = "https://archive.org/download/MAME218RomsOnlyMerged/MAME%200.218%20ROMs%20%28merged%29.zip";
 // 220 romset
-static const gchar* ROM_BASEURL = "https://archive.org/download/MAME220RomsOnlyMerged";
+//static const gchar* ROM_BASEURL = "https://archive.org/download/MAME220RomsOnlyMerged";
+// 221 romset
+static const gchar* ROM_BASEURL = "https://archive.org/download/MAME221RomsOnlyMerged";
 
 
 // 193 CHD is now blocked, see https://archive.org/download/MAME_0.193_CHDs_merged/a51site4/
