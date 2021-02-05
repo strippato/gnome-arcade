@@ -8,14 +8,15 @@
 # to download source:
 # spectool -C ../SOURCES -g gnome-arcade.spec
 
-%global commit 0c4a282312bbb37715a00521d4ca9f09cec838f5
+%global commit f29cb7b01e856f0968b2a251edb0a02bf4754176
 %global gittag v.%{version}
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 Name:           gnome-arcade
-Version:        0.226
+Version:        0.228
 Release:        1%{?dist}
 Summary:        a minimal MAME frontend 
+
 
 License:        GPLv3+
 URL:            https://github.com/strippato/gnome-arcade
@@ -37,6 +38,8 @@ Requires:       libarchive
 Requires:       libevdev
 Requires:       vlc
 Requires:       xdg-utils
+
+%define __cmake_in_source_build 1
 
 %description
 Gnome Arcade, a minimal MAME frontend
@@ -87,4 +90,3 @@ install -D -m 0644 data/tile/* %{buildroot}%{_datadir}/gnome-arcade/data/tile/
 - romset 217 to 209
 * Fri Jan  3 2020 strippato <strippato@gmail.com>
 - test
-
