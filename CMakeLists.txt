@@ -19,7 +19,7 @@
 project(gnome-arcade C)
 
 # Set the minimum version of cmake required to build this project
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 
 #preprocesor flag
 if (DEFINED APP_RES)
