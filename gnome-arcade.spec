@@ -8,12 +8,12 @@
 # to download source:
 # spectool -C ../SOURCES -g gnome-arcade.spec
 
-%global commit 328c5bc83dc8bc44a421fdaef834fa10ac7a1743
+%global commit 010cb5e87c81363cc7c97f00f07fd6a670529c5d
 %global gittag v.%{version}
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 Name:           gnome-arcade
-Version:        0.232
+Version:        0.233
 Release:        1%{?dist}
 Summary:        a minimal MAME frontend 
 
