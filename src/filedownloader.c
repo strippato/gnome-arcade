@@ -62,7 +62,9 @@
 // 228
 //static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.228_ROMs_merged/MAME_0.228_ROMs_merged.zip";
 // 229
-static const gchar* ROM_BASEURL = "https://archive.org/download/mame.0229";
+//static const gchar* ROM_BASEURL = "https://archive.org/download/mame.0229";
+// 231
+static const gchar* ROM_BASEURL = "https://archive.org/download/mame-0.231-merged";
 
 
 
@@ -249,11 +251,11 @@ fd_infoBuildRom (const gchar* romName, struct fd_copyInfo* copyInfo)
 	copyInfo->romName = g_strdup (romName);
 
 	// source URL
-	copyInfo->iFileName = g_strdup_printf ("%s/%s.%s", ROM_BASEURL, romName, ROM_EXTENSION_ZIP);
+	copyInfo->iFileName = g_strdup_printf ("%s/%s.%s", ROM_BASEURL, romName, ROM_EXTENSION_7ZIP);
     copyInfo->iFile = g_file_new_for_uri (copyInfo->iFileName);
 
     // dest FILE
-	copyInfo->oFileName = g_strdup_printf ("%s/%s.%s", fd_romPath, romName, ROM_EXTENSION_ZIP);
+	copyInfo->oFileName = g_strdup_printf ("%s/%s.%s", fd_romPath, romName, ROM_EXTENSION_7ZIP);
 	copyInfo->oFile = g_file_new_for_path (copyInfo->oFileName);
 }
 
