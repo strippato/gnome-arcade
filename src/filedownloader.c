@@ -63,8 +63,10 @@
 //static const gchar* ROM_BASEURL = "https://archive.org/download/MAME_0.228_ROMs_merged/MAME_0.228_ROMs_merged.zip";
 // 229
 //static const gchar* ROM_BASEURL = "https://archive.org/download/mame.0229";
-// 231
-static const gchar* ROM_BASEURL = "https://archive.org/download/mame-0.231-merged";
+// 231 (now ?236?)
+//static const gchar* ROM_BASEURL = "https://archive.org/download/mame-0.231-merged";
+// 236
+static const gchar* ROM_BASEURL = "https://archive.org/download/mame0236repo";
 
 
 
