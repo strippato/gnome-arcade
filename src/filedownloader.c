@@ -66,7 +66,9 @@
 // 231 (now ?236?)
 //static const gchar* ROM_BASEURL = "https://archive.org/download/mame-0.231-merged";
 // 236
-static const gchar* ROM_BASEURL = "https://archive.org/download/mame0236repo";
+//static const gchar* ROM_BASEURL = "https://archive.org/download/mame0236repo";
+// 238
+static const gchar* ROM_BASEURL = "https://archive.org/download/mame-0.231-merged";
 
 
 
