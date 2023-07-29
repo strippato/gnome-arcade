@@ -72,8 +72,9 @@
 // 240
 //static const gchar* ROM_BASEURL = "https://archive.org/download/mame.0240";
 // 241
-static const gchar* ROM_BASEURL = "https://archive.org/download/mame-0.231-merged";
-
+//static const gchar* ROM_BASEURL = "https://archive.org/download/mame-0.231-merged";
+// 256
+static const gchar* ROM_BASEURL = "https://archive.org/download/mame-merged/mame-merged";
 
 // 193 CHD is now blocked, see https://archive.org/download/MAME_0.193_CHDs_merged/a51site4/
 // 185 CHD is now blocked
@@ -82,7 +83,11 @@ static const gchar* ROM_BASEURL = "https://archive.org/download/mame-0.231-merge
 //static const gchar *CHD_FILENAME_A_G = "https://archive.org/download/MAME_0.185_CHDs_Merged/MAME 0.185 CHDs (merged) (a-g).zip/";
 //static const gchar *CHD_FILENAME_H_Z = "https://archive.org/download/MAME_0.185_CHDs_Merged/MAME 0.185 CHDs (merged) (h-z).zip/";
 // 215 CHD
-static const gchar *CHD_FILENAME = "https://archive.org/download/mame0215_chd";
+//static const gchar *CHD_FILENAME = "https://archive.org/download/mame0215_chd";
+// 256 CHD
+//static const gchar *CHD_FILENAME = "https://archive.org/download/mame-chds-roms-extras-complete";
+// 223
+static const gchar* CHD_FILENAME = "https://archive.org/download/arcade-0223-merged/Arcade/chd";
 
 static gchar *fd_romPath = NULL;
 static gchar *fd_chdPath = NULL;
@@ -226,7 +231,7 @@ fd_copyCHDDone_cb (GObject *file, GAsyncResult *res, struct fd_copyInfo *user_da
 
 
 	// decompress 7z
-	
+	/*
 	GFile *decompressPath = g_file_get_parent (copyInfo->oFile); 
 	gchar *outBasePath = g_file_get_path (decompressPath);       // /home/strippy/gnome-arcade/data/www/chd 
 
@@ -238,8 +243,8 @@ fd_copyCHDDone_cb (GObject *file, GAsyncResult *res, struct fd_copyInfo *user_da
 	
 	g_free (outBasePath);
 	g_free (outFullPath);
-
 	g_object_unref (decompressPath);
+	*/
 
 
 	fd_infoFree (copyInfo);
@@ -258,11 +263,11 @@ fd_infoBuildRom (const gchar* romName, struct fd_copyInfo* copyInfo)
 	copyInfo->romName = g_strdup (romName);
 
 	// source URL
-	copyInfo->iFileName = g_strdup_printf ("%s/%s.%s", ROM_BASEURL, romName, ROM_EXTENSION_7ZIP);
+	copyInfo->iFileName = g_strdup_printf ("%s/%s.%s", ROM_BASEURL, romName, ROM_EXTENSION_ZIP);
     copyInfo->iFile = g_file_new_for_uri (copyInfo->iFileName);
 
     // dest FILE
-	copyInfo->oFileName = g_strdup_printf ("%s/%s.%s", fd_romPath, romName, ROM_EXTENSION_7ZIP);
+	copyInfo->oFileName = g_strdup_printf ("%s/%s.%s", fd_romPath, romName, ROM_EXTENSION_ZIP);
 	copyInfo->oFile = g_file_new_for_path (copyInfo->oFileName);
 }
 
@@ -309,6 +314,7 @@ fd_downloadRom (const gchar* romName)
 
 	// FIXME
 	//g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, (GFileProgressCallback) ui_progress_cb, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
+	//g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, NULL, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
 	g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, NULL, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
 }
 
@@ -334,6 +340,7 @@ fd_downloadChd (const gchar* romName, const gchar* srcRom, const gchar* destRom)
 
 	// FIXME
 	//g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, (GFileProgressCallback) ui_progress_cb, NULL, (GAsyncReadyCallback) fd_copyDone_cb , copyInfo);
+	//g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, NULL, NULL, (GAsyncReadyCallback) fd_copyCHDDone_cb , copyInfo);
 	g_file_copy_async (copyInfo->iFile, copyInfo->oFile, G_FILE_COPY_OVERWRITE, G_PRIORITY_HIGH, NULL, NULL, NULL, (GAsyncReadyCallback) fd_copyCHDDone_cb , copyInfo);
 }
 
@@ -396,8 +403,11 @@ fd_findAndDownloadChd (const gchar* romName)
 		g_print ("downloading CHD %s from in %s\n", romName, CHD_FILENAME);
 
 		// path building
-		gchar *srcRom  = g_strdup_printf ("%s/%s.7z", CHD_FILENAME, romName);
-		gchar *destRom = g_strdup_printf ("%s/%s.7z", fd_chdPath, romName);
+		//gchar *srcRom  = g_strdup_printf ("%s/%s.7z", CHD_FILENAME, romName);
+		//gchar *destRom = g_strdup_printf ("%s/%s.7z", fd_chdPath, romName);
+
+		gchar *srcRom  = g_strdup_printf ("%s/%s/%s.chd", CHD_FILENAME, romName, romName);
+		gchar *destRom = g_strdup_printf ("%s/%s/%s.chd", fd_chdPath, romName, romName);
 
 		//g_print ("src for CHD in %s\n", srcRom);
 		//g_print ("dst for CHD in %s\n", destRom);

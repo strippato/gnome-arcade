@@ -101,7 +101,7 @@ main (gint argc, gchar *argv[])
 
     g_print (APP_GNU_WARN "\n\n");
 
-    app_application = gtk_application_new (APP_ID, G_APPLICATION_FLAGS_NONE);
+    app_application = gtk_application_new (APP_ID, G_APPLICATION_DEFAULT_FLAGS);
 
     g_signal_connect (app_application, "activate", G_CALLBACK (app_activate), NULL);
     g_signal_connect (app_application, "shutdown", G_CALLBACK (app_shutdown), NULL);
